@@ -51,6 +51,7 @@ annotations: {}
 # Replicas - defaults to 1, param is just for development purpose, do not increase more than one replicas in production
 replicas: 1
 
+disableMon:
 
 ## OPTIONAL VALUES - Argus application configuration
 # A parent group id that will hold all cluster resources under it. This is useful when Argus is installed with non-admin user's token.
