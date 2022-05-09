@@ -166,6 +166,9 @@ kube-state-metrics:
   # Set enabled to false in case you want to use a custom configured KSM
   enabled: true
   # No. of KSM Replicas to be configured
+  selfMonitor:
+    enabled: true
+    telemetryPort: 8081
   replicas: 1
   collectors:
     - daemonsets
