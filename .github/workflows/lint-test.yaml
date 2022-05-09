@@ -4,6 +4,9 @@ on: pull_request
 
 jobs:
   lint-test:
+    strategy:
+      matrix:
+        k8sversion: [v1.23.5, v1.22.7, v1.21.10, v1.20.15]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -22,6 +25,13 @@ jobs:
 
       - name: Set up chart-testing
         uses: helm/chart-testing-action@v2.0.1
+      
+      - name: Setup go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.17
+      - name: install masterminds/vert
+        run: go install github.com/Masterminds/vert@latest
 
       - name: Run chart-testing (list-changed)
         id: list-changed
@@ -40,6 +50,8 @@ jobs:
 
       - name: Create kind cluster
         uses: helm/kind-action@v1.2.0
+        with:
+          node_image: ${{ matrix.k8sversion }}
         if: steps.list-changed.outputs.changed == 'true'
 
       - name: Run chart-testing (install) - except argus
