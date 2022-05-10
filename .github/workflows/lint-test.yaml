@@ -107,7 +107,7 @@ jobs:
               if [[ "$v" == "$K8SVERSION" ]]
               then
                 echo "Error: kubeVersion constraint expects chart to be installed on $K8SVERSION, but it failed to install"
-		sync
+                sync
                 exit 1
               else
                 echo "installation failed as per constraint"
