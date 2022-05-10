@@ -1,7 +1,7 @@
 apiVersion: v2
 description: Automated collector management
 icon: https://logicmonitor.github.io/helm-charts-qa/lm_logo.png
-kubeVersion: '>= 1.14.0, <= 1.23.0'
+kubeVersion: '>= 1.16.0'
 maintainers:
   - email: argus@logicmonitor.com
     name: LogicMonitor
