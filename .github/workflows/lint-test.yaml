@@ -57,12 +57,51 @@ jobs:
         if: steps.list-changed.outputs.changed == 'true'
 
       - name: Run chart-testing (install) - except argus
-        run: ct install --config ct.yaml --excluded-charts argus,lmotel,releasemanager
+        run: |
+          while read -r line ; do
+            ct install --config ct.yaml --charts=$line
+            a=$(echo $?)
+            if [[ $a -eq 0 ]]
+            then
+               echo "$line is installable on mentioned kubernetes version $1"
+            else
+              vc=$(yq $line/Chart.yaml -o json | jq ".kubeVersion" | tr -d '"' | tr -d "'")
+              echo $vc
+              v=$(vert "$vc" "$1")
+              if [[ "$v" == "$1" ]]
+              then
+                echo "Error: kubeVersion constraint expects chart to be installed on $1, but it failed to install"
+                exit 1
+              else
+                exit 0
+              fi
+            fi
+          done ${{ matrix.k8sversion }} < <(ct list-changed | egrep -v argus)
+          #ct install --config ct.yaml --excluded-charts argus
 
       - name: Run chart-testing (install) - only argus
         if: steps.list-changed.outputs.arguschanged == 'true'
         run: |
           kubectl apply -f charts/collectorset-controller/crds/collectorset.yaml
-          ct install --config ct.yaml --charts charts/argus
+          while read -r line ; do
+            ct install --config ct.yaml --charts=$line
+            a=$(echo $?)
+            if [[ $a -eq 0 ]]
+            then
+               echo "$line is installable on mentioned kubernetes version $1"
+            else
+              vc=$(yq $line/Chart.yaml -o json | jq ".kubeVersion" | tr -d '"' | tr -d "'")
+              echo $vc
+              v=$(vert "$vc" "$1")
+              if [[ "$v" == "$1" ]]
+              then
+                echo "Error: kubeVersion constraint expects chart to be installed on $1, but it failed to install"
+                exit 1
+              else
+                exit 0
+              fi
+            fi
+          done ${{ matrix.k8sversion }} < <(echo "charts/argus")
+          #ct install --config ct.yaml --charts charts/argus
           kubectl delete -f charts/collectorset-controller/crds/collectorset.yaml
 
