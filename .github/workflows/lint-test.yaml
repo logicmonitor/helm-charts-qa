@@ -65,6 +65,7 @@ jobs:
         run: |
           export K8SVERSION=${{ matrix.k8sversion }}
           while read -r line ; do
+            echo "installing chart $line"
             #EXIT_CODE=0
             out=$(ct install --config ct.yaml --charts=$line)
             EXIT_CODE=$?
