@@ -73,7 +73,7 @@ jobs:
             else
               vc=$(yq $line/Chart.yaml -o json | jq ".kubeVersion" | tr -d '"' | tr -d "'")
               echo $vc
-              v=$(vert "$vc" "$K8SVERSION")
+              v=$(vert "$vc" "$K8SVERSION" || echo "")
               if [[ "$v" == "$K8SVERSION" ]]
               then
                 echo "Error: kubeVersion constraint expects chart to be installed on $K8SVERSION, but it failed to install"
@@ -103,7 +103,7 @@ jobs:
             else
               vc=$(yq $line/Chart.yaml -o json | jq ".kubeVersion" | tr -d '"' | tr -d "'")
               echo $vc
-              v=$(vert "$vc" "$K8SVERSION")
+              v=$(vert "$vc" "$K8SVERSION" || echo "")
               if [[ "$v" == "$K8SVERSION" ]]
               then
                 echo "Error: kubeVersion constraint expects chart to be installed on $K8SVERSION, but it failed to install"
