@@ -66,11 +66,11 @@ jobs:
           export K8SVERSION=${{ matrix.k8sversion }}
           while read -r line ; do
             echo "installing chart $line"
-            #EXIT_CODE=0
-            out=$(ct install --config ct.yaml --charts=$line)
-            EXIT_CODE=$?
-            echo "ct install succeeded"
-            echo $out
+            ct install --config ct.yaml --charts=$line && EXIT_CODE=$(echo $?) || EXIT_CODE=$(echo $?)
+            #out=$(ct install --config ct.yaml --charts=$line)
+            #EXIT_CODE=$?
+            #echo "ct install succeeded"
+            #echo $out
             if [[ $EXIT_CODE -eq 0 ]]
             then
                echo "$line is installable on mentioned kubernetes version $K8SVERSION"
@@ -81,6 +81,7 @@ jobs:
               if [[ "$v" == "$K8SVERSION" ]]
               then
                 echo "Error: kubeVersion constraint expects chart to be installed on $K8SVERSION, but it failed to install"
+                exit 1
               else
                 echo "installation failed as per constraint"
               fi
@@ -95,9 +96,10 @@ jobs:
           export K8SVERSION=${{ matrix.k8sversion }}
           while read -r line ; do
             #EXIT_CODE=0
-            out=$(ct install --config ct.yaml --charts=$line)
-            EXIT_CODE=$?
-            echo $out
+            ct install --config ct.yaml --charts=$line && EXIT_CODE=$(echo $?) || EXIT_CODE=$(echo $?)
+            #out=$(ct install --config ct.yaml --charts=$line)
+            #EXIT_CODE=$?
+            #echo $out
             if [[ $EXIT_CODE -eq 0 ]]
             then
                echo "$line is installable on mentioned kubernetes version $K8SVERSION"
@@ -110,7 +112,7 @@ jobs:
                 echo "Error: kubeVersion constraint expects chart to be installed on $K8SVERSION, but it failed to install"
                 exit 1
               else
-                exit 0
+                echo "installation failed as per constraint"
               fi
             fi
           done < <(echo "charts/argus")
