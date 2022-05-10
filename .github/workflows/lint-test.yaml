@@ -78,7 +78,7 @@ jobs:
               then
                 echo "Error: kubeVersion constraint expects chart to be installed on $K8SVERSION, but it failed to install"
                 sync
-                exit 1
+                exit 2
               else
                 echo "installation failed as per constraint"
               fi
@@ -108,7 +108,7 @@ jobs:
               then
                 echo "Error: kubeVersion constraint expects chart to be installed on $K8SVERSION, but it failed to install"
                 sync
-                exit 1
+                exit 3
               else
                 echo "installation failed as per constraint"
               fi
