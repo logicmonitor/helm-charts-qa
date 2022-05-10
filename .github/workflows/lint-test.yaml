@@ -32,6 +32,8 @@ jobs:
           go-version: 1.17
       - name: install masterminds/vert
         run: go install github.com/Masterminds/vert@latest
+      - name: setup yq
+        run: sudo snap install yq
 
       - name: Run chart-testing (list-changed)
         id: list-changed
