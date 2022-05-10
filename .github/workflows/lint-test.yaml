@@ -77,7 +77,7 @@ jobs:
                 exit 0
               fi
             fi
-          done ${{ matrix.k8sversion }} < <(ct list-changed | egrep -v argus)
+          done < <(ct list-changed | egrep -v argus)
           #ct install --config ct.yaml --excluded-charts argus
 
       - name: Run chart-testing (install) - only argus
@@ -103,7 +103,7 @@ jobs:
                 exit 0
               fi
             fi
-          done ${{ matrix.k8sversion }} < <(echo "charts/argus")
+          done < <(echo "charts/argus")
           #ct install --config ct.yaml --charts charts/argus
           kubectl delete -f charts/collectorset-controller/crds/collectorset.yaml
 
