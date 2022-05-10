@@ -58,19 +58,20 @@ jobs:
 
       - name: Run chart-testing (install) - except argus
         run: |
+          export K8SVERSION=${{ matrix.k8sversion }}
           while read -r line ; do
             ct install --config ct.yaml --charts=$line
             a=$(echo $?)
             if [[ $a -eq 0 ]]
             then
-               echo "$line is installable on mentioned kubernetes version $1"
+               echo "$line is installable on mentioned kubernetes version $K8SVERSION"
             else
               vc=$(yq $line/Chart.yaml -o json | jq ".kubeVersion" | tr -d '"' | tr -d "'")
               echo $vc
-              v=$(vert "$vc" "$1")
-              if [[ "$v" == "$1" ]]
+              v=$(vert "$vc" "$K8SVERSION")
+              if [[ "$v" == "$K8SVERSION" ]]
               then
-                echo "Error: kubeVersion constraint expects chart to be installed on $1, but it failed to install"
+                echo "Error: kubeVersion constraint expects chart to be installed on $K8SVERSION, but it failed to install"
                 exit 1
               else
                 exit 0
@@ -83,19 +84,20 @@ jobs:
         if: steps.list-changed.outputs.arguschanged == 'true'
         run: |
           kubectl apply -f charts/collectorset-controller/crds/collectorset.yaml
+          export K8SVERSION=${{ matrix.k8sversion }}
           while read -r line ; do
             ct install --config ct.yaml --charts=$line
             a=$(echo $?)
             if [[ $a -eq 0 ]]
             then
-               echo "$line is installable on mentioned kubernetes version $1"
+               echo "$line is installable on mentioned kubernetes version $K8SVERSION"
             else
               vc=$(yq $line/Chart.yaml -o json | jq ".kubeVersion" | tr -d '"' | tr -d "'")
               echo $vc
-              v=$(vert "$vc" "$1")
-              if [[ "$v" == "$1" ]]
+              v=$(vert "$vc" "$K8SVERSION")
+              if [[ "$v" == "$K8SVERSION" ]]
               then
-                echo "Error: kubeVersion constraint expects chart to be installed on $1, but it failed to install"
+                echo "Error: kubeVersion constraint expects chart to be installed on $K8SVERSION, but it failed to install"
                 exit 1
               else
                 exit 0
