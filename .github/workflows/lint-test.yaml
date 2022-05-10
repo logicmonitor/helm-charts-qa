@@ -80,9 +80,8 @@ jobs:
               if [[ "$v" == "$K8SVERSION" ]]
               then
                 echo "Error: kubeVersion constraint expects chart to be installed on $K8SVERSION, but it failed to install"
-                exit 1
               else
-                exit 0
+                echo "installation failed as per constraint"
               fi
             fi
           done < <(ct list-changed --config ct.yaml | egrep -v argus)
