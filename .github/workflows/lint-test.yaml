@@ -88,7 +88,6 @@ jobs:
       - name: Run chart-testing (install) - only argus
         if: steps.list-changed.outputs.arguschanged == 'true'
         run: |
-          kubectl apply -f charts/collectorset-controller/crds/collectorset.yaml
           export K8SVERSION=${{ matrix.k8sversion }}
           vcs=$(vert ">= 1.16.0-0" "$K8SVERSION" || echo "")
           if [[ "$vcs" == "$K8SVERSION" ]]
