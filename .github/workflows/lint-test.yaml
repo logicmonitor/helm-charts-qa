@@ -74,7 +74,7 @@ jobs:
               vc=$(yq $line/Chart.yaml -o json | jq ".kubeVersion" | tr -d '"' | tr -d "'")
               echo $vc
               v=$(vert "$vc" "$K8SVERSION" || echo "")
-              if [[ "$v" == "$K8SVERSION" ]]
+              if [[ "v$v" == "$K8SVERSION" ]]
               then
                 echo "Error: kubeVersion constraint expects chart to be installed on $K8SVERSION, but it failed to install"
                 sync
@@ -90,7 +90,7 @@ jobs:
         run: |
           export K8SVERSION=${{ matrix.k8sversion }}
           vcs=$(vert ">= 1.16.0-0" "$K8SVERSION" || echo "")
-          if [[ "$vcs" == "$K8SVERSION" ]]
+          if [[ "v$vcs" == "$K8SVERSION" ]]
           then
             kubectl apply -f charts/collectorset-controller/crds/collectorset.yaml
           else
@@ -105,7 +105,7 @@ jobs:
               vc=$(yq $line/Chart.yaml -o json | jq ".kubeVersion" | tr -d '"' | tr -d "'")
               echo $vc
               v=$(vert "$vc" "$K8SVERSION" || echo "")
-              if [[ "$v" == "$K8SVERSION" ]]
+              if [[ "v$v" == "$K8SVERSION" ]]
               then
                 echo "Error: kubeVersion constraint expects chart to be installed on $K8SVERSION, but it failed to install"
                 sync
@@ -115,7 +115,7 @@ jobs:
               fi
             fi
           done < <(echo "charts/argus")
-          if [[ "$vcs" == "$K8SVERSION" ]]
+          if [[ "v$vcs" == "$K8SVERSION" ]]
           then
             kubectl delete -f charts/collectorset-controller/crds/collectorset.yaml
           else
