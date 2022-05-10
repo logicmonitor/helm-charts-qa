@@ -68,6 +68,7 @@ jobs:
             #EXIT_CODE=0
             out=$(ct install --config ct.yaml --charts=$line)
             EXIT_CODE=$?
+            echo "ct install succeeded"
             echo $out
             if [[ $EXIT_CODE -eq 0 ]]
             then
