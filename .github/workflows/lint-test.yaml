@@ -6,7 +6,7 @@ jobs:
   lint-test:
     strategy:
       matrix:
-        k8sversion: [v1.23.5, v1.22.7, v1.21.10, v1.20.15]
+        k8sversion: [v1.24.0, v1.23.5, v1.22.7, v1.21.10, v1.20.15, v1.19.16, v1.18.20, v1.17.17, v1.16.15, v1.15.12, v1.14.10, v1.13.12]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -84,7 +84,6 @@ jobs:
               fi
             fi
           done < <(ct list-changed --config ct.yaml | egrep -v argus)
-          #ct install --config ct.yaml --excluded-charts argus
 
       - name: Run chart-testing (install) - only argus
         if: steps.list-changed.outputs.arguschanged == 'true'
@@ -92,11 +91,7 @@ jobs:
           kubectl apply -f charts/collectorset-controller/crds/collectorset.yaml
           export K8SVERSION=${{ matrix.k8sversion }}
           while read -r line ; do
-            #EXIT_CODE=0
             ct install --config ct.yaml --charts=$line && EXIT_CODE=$(echo $?) || EXIT_CODE=$(echo $?)
-            #out=$(ct install --config ct.yaml --charts=$line)
-            #EXIT_CODE=$?
-            #echo $out
             if [[ $EXIT_CODE -eq 0 ]]
             then
                echo "$line is installable on mentioned kubernetes version $K8SVERSION"
@@ -114,6 +109,5 @@ jobs:
               fi
             fi
           done < <(echo "charts/argus")
-          #ct install --config ct.yaml --charts charts/argus
           kubectl delete -f charts/collectorset-controller/crds/collectorset.yaml
 
