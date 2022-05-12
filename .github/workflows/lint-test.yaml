@@ -65,7 +65,7 @@ jobs:
         run: |
           ksmVersion=$(yq charts/argus/Chart.yaml -o json | jq ".dependencies[] | select(. | .name == \"kube-state-metrics\")" | jq .version | tr -d '"')
           version=$(helm search repo -r prometheus/kube-state-metrics --version $ksmVersion -o json | jq ".[0].app_version" | tr -d '"')
-          docker pull k8s.gcr.io/kube-state-metrics/kube-state-metrics:$version
+          docker pull k8s.gcr.io/kube-state-metrics/kube-state-metrics:v$version
           cnm=$(kind get clusters)
           kind load docker-image k8s.gcr.io/kube-state-metrics/kube-state-metrics:$version --name $cnm
 
