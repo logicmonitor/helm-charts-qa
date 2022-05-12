@@ -67,7 +67,7 @@ jobs:
           version=$(helm search repo -r prometheus/kube-state-metrics --version $ksmVersion -o json | jq ".[0].app_version" | tr -d '"')
           docker pull k8s.gcr.io/kube-state-metrics/kube-state-metrics:v$version
           cnm=$(kind get clusters)
-          kind load docker-image k8s.gcr.io/kube-state-metrics/kube-state-metrics:$version --name $cnm
+          kind load docker-image k8s.gcr.io/kube-state-metrics/kube-state-metrics:v$version --name $cnm
 
       - name: Run chart-testing (install) - except argus
         if: steps.list-changed.outputs.otherschanged == 'true'
