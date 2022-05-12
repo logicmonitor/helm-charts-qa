@@ -68,6 +68,12 @@ jobs:
           docker pull k8s.gcr.io/kube-state-metrics/kube-state-metrics:v$version
           cnm=$(kind get clusters)
           kind load docker-image k8s.gcr.io/kube-state-metrics/kube-state-metrics:v$version --name $cnm
+          cscVersion=$(yq charts/collectorset-controller/Chart.yaml -o json | jq .appVersion | tr -d '"')
+          argusVersion=$(yq charts/argus/Chart.yaml -o json | jq .appVersion | tr -d '"')
+          docker pull logicmonitor/collectorset-controller:$cscVersion
+          kind load docker-image logicmonitor/collectorset-controller:$cscVersion
+          docker pull logicmonitor/argus:$argusVersion
+          kind load docker-image logicmonitor/argus:$argusVersion
 
       - name: Run chart-testing (install) - except argus
         if: steps.list-changed.outputs.otherschanged == 'true'
