@@ -22,4 +22,5 @@ collectorset-controller:
   account: "dummy"
 global:
   image:
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
+    registry: ""
