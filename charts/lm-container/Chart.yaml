@@ -11,7 +11,7 @@ kubeVersion: ">= 1.16.0"
 dependencies:
   - name: argus
     # need to explicitly quote to make it string, else json schema fails
-    version: "2.0.0-rc2"
+    version: "2.0.0-rc3"
     repository: "@logicmonitor-qa"
     # uncomment to test umbrella chart in while developing
     # repository: file://../argus
@@ -22,7 +22,7 @@ dependencies:
       - monitoring
   - name: collectorset-controller
     # need to explicitly quote to make it string, else json schema fails
-    version: "1.0.0-rc1"
+    version: "1.0.0-rc2"
     repository: "@logicmonitor-qa"
     # uncomment to test umbrella chart in while developing
     # repository: file://../collectorset-controller
