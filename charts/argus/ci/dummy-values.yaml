@@ -9,3 +9,5 @@ clusterName: "dummy"
 
 collector:
   size: nano
+image:
+  pullPolicy: IfNotPresent

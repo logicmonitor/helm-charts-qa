@@ -6,3 +6,5 @@ accessID: "dummy"
 accessKey: "dummy"
 # The LogicMonitor account name.
 account: "dummy"
+image:
+  pullPolicy: IfNotPresent
