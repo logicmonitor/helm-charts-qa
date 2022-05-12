@@ -71,9 +71,9 @@ jobs:
           cscVersion=$(yq charts/collectorset-controller/Chart.yaml -o json | jq .appVersion | tr -d '"')
           argusVersion=$(yq charts/argus/Chart.yaml -o json | jq .appVersion | tr -d '"')
           docker pull logicmonitor/collectorset-controller:$cscVersion
-          kind load docker-image logicmonitor/collectorset-controller:$cscVersion
+          kind load docker-image logicmonitor/collectorset-controller:$cscVersion --name $cnm
           docker pull logicmonitor/argus:$argusVersion
-          kind load docker-image logicmonitor/argus:$argusVersion
+          kind load docker-image logicmonitor/argus:$argusVersion --name $cnm
 
       - name: Run chart-testing (install) - except argus
         if: steps.list-changed.outputs.otherschanged == 'true'
