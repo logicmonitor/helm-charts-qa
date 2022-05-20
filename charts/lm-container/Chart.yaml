@@ -10,7 +10,7 @@ icon: https://logicmonitor.github.io/helm-charts-qa/lm_logo.png
 dependencies:
   - name: argus
     # need to explicitly quote to make it string, else json schema fails
-    version: "2.0.0-rc5"
+    version: "2.0.0-rc6"
     repository: https://logicmonitor.github.io/helm-charts-qa
     # uncomment to test umbrella chart in while developing
     # repository: file://../argus
@@ -21,7 +21,7 @@ dependencies:
       - monitoring
   - name: collectorset-controller
     # need to explicitly quote to make it string, else json schema fails
-    version: "1.0.0-rc3"
+    version: "1.0.0-rc4"
     repository: https://logicmonitor.github.io/helm-charts-qa
     # uncomment to test umbrella chart in while developing
     # repository: file://../collectorset-controller
