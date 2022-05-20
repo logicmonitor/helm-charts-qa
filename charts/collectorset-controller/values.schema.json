@@ -125,7 +125,8 @@
             "info"
           ]
         }
-      }
+      },
+      "additionalProperties": false
     },
     "nameOverride": {
       "$id": "#/properties/nameOverride",
@@ -172,7 +173,8 @@
             true
           ]
         }
-      }
+      },
+      "additionalProperties": false
     },
     "rbac": {
       "$id": "#/properties/rbac",
@@ -199,7 +201,8 @@
             true
           ]
         }
-      }
+      },
+      "additionalProperties": false
     },
     "image": {
       "$id": "#/properties/image",
@@ -265,7 +268,8 @@
             ""
           ]
         }
-      }
+      },
+      "additionalProperties": false
     },
     "proxy": {
       "$id": "#/properties/proxy",
@@ -313,7 +317,8 @@
             ""
           ]
         }
-      }
+      },
+      "additionalProperties": false
     },
     "nodeSelector": {
       "$id": "#/properties/nodeSelector",
