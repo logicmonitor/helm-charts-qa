@@ -45,6 +45,24 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           {{ end }}
           imagePullPolicy: {{ .Values.image.pullPolicy | default (.Values.global.image.pullPolicy | default "Always") }}
+          {{- if .Values.probe.enabled -}}
+          startupProbe:
+            grpc:
+              port: 50000
+            failureThreshold: {{ .Values.probe.startup.failureThreshold }}
+            periodSeconds: {{ .Values.probe.startup.periodSeconds }}
+          livenessProbe:
+            grpc:
+              port: 50000
+            failureThreshold: {{ .Values.probe.liveness.failureThreshold }}
+            periodSeconds: {{ .Values.probe.liveness.periodSeconds }}
+          readinessProbe:
+            grpc:
+              port: 50000
+            failureThreshold: {{ .Values.probe.readiness.failureThreshold }}
+            periodSeconds: {{ .Values.probe.readiness.periodSeconds }}
+          {{- end -}}
+
         {{- with .Values.resources }}
           resources:
             {{ toYaml . | nindent 12 }}
