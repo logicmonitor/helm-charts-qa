@@ -44,7 +44,7 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           {{ end }}
           imagePullPolicy: {{ .Values.image.pullPolicy | default (.Values.global.image.pullPolicy | default "Always") }}
-          {{ if .Values.probe.enabled }}
+          {{ if and ( .Values.probe.enabled) ( semverCompare ">=1.23.0-0" .Capabilities.KubeVersion.Version )}}
           startupProbe:
             grpc:
               port: 50000
