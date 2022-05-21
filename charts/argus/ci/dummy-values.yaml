@@ -11,4 +11,4 @@ collector:
   size: nano
 
 probe:
-  enabled: true
+  enabled: false
