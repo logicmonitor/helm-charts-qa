@@ -51,7 +51,7 @@ spec:
           {{ end }}
           args:
             - watch
-          {{- if .Values.probe.enabled -}}
+          {{- if .Values.probe.enabled }}
           startupProbe:
             httpGet:
               path: /healthz
