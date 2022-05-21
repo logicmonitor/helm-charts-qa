@@ -51,7 +51,7 @@ spec:
           {{ end }}
           args:
             - watch
-          {{- if .Values.probe.enabled }}
+          {{ if .Values.probe.enabled }}
           startupProbe:
             httpGet:
               path: /healthz
@@ -70,7 +70,7 @@ spec:
               port: 8080
             failureThreshold: {{ .Values.probe.readiness.failureThreshold }}
             periodSeconds: {{ .Values.probe.readiness.periodSeconds }}
-          {{- end -}}
+          {{ end }}
           env:
             - name: MY_POD_NAME
               valueFrom:

@@ -44,7 +44,7 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           {{ end }}
           imagePullPolicy: {{ .Values.image.pullPolicy | default (.Values.global.image.pullPolicy | default "Always") }}
-          {{- if .Values.probe.enabled }}
+          {{ if .Values.probe.enabled }}
           startupProbe:
             grpc:
               port: 50000
@@ -60,7 +60,7 @@ spec:
               port: 50000
             failureThreshold: {{ .Values.probe.readiness.failureThreshold }}
             periodSeconds: {{ .Values.probe.readiness.periodSeconds }}
-          {{- end -}}
+          {{ end }}
 
         {{- with .Values.resources }}
           resources:
