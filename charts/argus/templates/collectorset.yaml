@@ -49,3 +49,4 @@ spec:
   statefulsetspec:
     {{ toYaml .Values.collector.statefulsetSpec | nindent 4 }}
   {{- end }}
+  probe: {{ toYaml .Values.collector.probe | nindent 4 }}

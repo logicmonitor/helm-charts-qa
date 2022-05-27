@@ -11,3 +11,5 @@ collector:
   size: nano
 image:
   pullPolicy: IfNotPresent
+probe:
+  enabled: false
