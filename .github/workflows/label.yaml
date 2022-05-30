@@ -1,6 +1,4 @@
-on:
-  issues:
-    types: [opened]
+on: pull_request
 
 jobs:
   apply-label:
