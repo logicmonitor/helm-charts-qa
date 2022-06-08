@@ -1,7 +1,7 @@
-name: Add chart configuration file
+name: Generate and Upload Release assets
 on:
   release:
-    types: [created]
+    types: [ created ]
 
 jobs:
   build:
@@ -21,7 +21,9 @@ jobs:
         id: get_chart
         run: |
           chartname=$(echo "${{ steps.get_release.outputs.tag_name }}" | grep -E "^(.*)-[0-9\.]+" -o | rev | cut -d'-' -f2- | rev)
+          chartversion=$(echo "${{ steps.get_release.outputs.tag_name }}" | grep -Eio "[0-9\.]+(-[^\+]+)?")
           echo "::set-output name=chartname::$chartname"
+          echo "::set-output name=chartversion::$chartversion"
 
       - name: add values.yaml to release asset
         uses: actions/upload-release-asset@v1.0.2
@@ -47,4 +49,25 @@ jobs:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
           asset_path: ./charts/${{ steps.get_chart.outputs.chartname }}/values.schema.json
           asset_name: values.schema.json
+          asset_content_type: text/plain
+      - name: Install Helm
+        if: ${{ steps.get_chart.outputs.chartname }} == "lm-container"
+        uses: azure/setup-helm@v1
+        with:
+          version: v3.5.4
+      - name: Pull Charts
+        if: ${{ steps.get_chart.outputs.chartname }} == "lm-container"
+        run: |
+          helm repo add logicmonitor-qa https://logicmonitor.github.io/helm-charts-qa
+          helm pull logicmonitor/lm-container --untar --version ${{ steps.get_chart.outputs.chartversion }}
+          cd lm-container && ../scripts/lmui/lmui > lm-container-ui-jsonpaths.json && cd ..
+      - name: add ui template to release asset
+        uses: actions/upload-release-asset@v1.0.2
+        if: ${{ steps.get_chart.outputs.chartname }} == "lm-container"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: ./lm-container/lm-container-ui-jsonpaths.json
+          asset_name: lm-container-ui-jsonpaths.json
           asset_content_type: text/plain
