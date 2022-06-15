@@ -77,6 +77,16 @@ rules:
       - get
       - watch
       - update
+  - apiGroups:
+      - "networking.k8s.io"
+    resources:
+      - ingresses
+      - networkpolicies
+    verbs:
+      - list
+      - get
+      - watch
+      - update
   # - apiGroups:
   #     - "batch"
   #   resources:
