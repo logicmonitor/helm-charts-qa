@@ -81,7 +81,7 @@ rules:
       - "networking.k8s.io"
     resources:
       - ingresses
-      - networkpolicies
+      # - networkpolicies
     verbs:
       - list
       - get
@@ -92,16 +92,6 @@ rules:
   #   resources:
   #     - cronjobs
   #     - jobs
-  #   verbs:
-  #     - list
-  #     - get
-  #     - watch
-  #     - update
-  # - apiGroups:
-  #     - "networking.k8s.io"
-  #   resources:
-  #     - ingresses
-  #     - networkpolicies
   #   verbs:
   #     - list
   #     - get
