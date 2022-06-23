@@ -98,11 +98,21 @@ rules:
       - nodes
       - componentstatuses
       - replicasets
+      - persistentvolumes
+      - persistentvolumeclaims
       - ingresses
       - services
       - endpoints
       - pods/log
       - events
+    verbs:
+      - list
+      - get
+  - apiGroups:
+    - "batch"
+    resources:
+      - cronjobs
+      - jobs
     verbs:
       - list
       - get
