@@ -189,6 +189,10 @@ kube-state-metrics:
     - endpoints
     - cronjobs
     - jobs
+    - pods
+    - nodes
+    - deployments
+    - services
 
 imagePullSecrets: []
 
