@@ -30,6 +30,8 @@ rules:
       - pods
       - containers
       - nodes
+      - nodes/proxy
+      - nodes/metrics
       - componentstatuses
       - replicasets
       - persistentvolumes
@@ -91,6 +93,7 @@ rules:
       - /healthz
       - /healthz/*
       - /metrics
+      - /proxy
     verbs:
       - get
 ---
