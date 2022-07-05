@@ -10,7 +10,7 @@ jobs:
       - name: get labels
         id: get_labels
         run: |
-          labels=$(git diff --dirstat=files,0 main | egrep -o 'charts/(\w+\-?\w+)/' | cut -d'/' -f2 | uniq | tr '\n' ',' |  rev | cut -c2- | rev)
+          labels=$(git diff --dirstat=files,0 origin/main | egrep -o 'charts/(\w+\-?\w+)/' | cut -d'/' -f2 | uniq | tr '\n' ',' |  rev | cut -c2- | rev)
           echo "::set-output name=labels::$labels"
       - uses: actions/github-script@v6
         with:
