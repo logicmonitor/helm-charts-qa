@@ -4,6 +4,11 @@ jobs:
   apply-label:
     runs-on: ubuntu-latest
     steps:
+      - name: get labels
+        id: get_labels
+        run: |
+          labels=$(git diff --dirstat=files,0 main | egrep -o 'charts/(\w+\-?\w+)/' | cut -d'/' -f2 | uniq | tr '\n' ',' |  rev | cut -c2- | rev)
+          echo "::set-output name=labels::$labels"
       - uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.CHART_RELEASE_TOKEN }}
@@ -12,5 +17,5 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              labels: ['Triage']
+              labels: [${{ steps.get_labels.outputs.labels }}]
             })
