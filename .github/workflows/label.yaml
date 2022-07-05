@@ -16,13 +16,13 @@ jobs:
         with:
           github-token: ${{ secrets.CHART_RELEASE_TOKEN }}
           script: |
-            # el = await github.rest.issues.listLabelsOnIssue({
-            #   issue_number: context.issue.number,
-            #   owner: context.repo.owner,
-            #   repo: context.repo.repo
-            # })
-            # console.log(el)
-            # 
+            /** el = await github.rest.issues.listLabelsOnIssue({
+               issue_number: context.issue.number,
+               owner: context.repo.owner,
+               repo: context.repo.repo
+             })
+             console.log(el)
+             */
             github.rest.issues.addLabels({
               issue_number: context.issue.number,
               owner: context.repo.owner,
