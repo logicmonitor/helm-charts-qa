@@ -1,13 +1,13 @@
 on: pull_request
-
+name: Add labels on PR as per changes included in PR
 jobs:
-  apply-label:
+  apply-labels:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - name: get labels
+      - name: Get Labels
         id: get_labels
         run: |
           labels=$(git diff --dirstat=files,0 origin/main | egrep -o 'charts/(\w+\-?\w+)/' | cut -d'/' -f2 | uniq | tr '\n' ',' |  rev | cut -c2- | rev | sed -e 's/,/","/g' -e 's/^/"/g' -e 's/$/"/g')
