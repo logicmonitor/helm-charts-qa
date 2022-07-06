@@ -10,6 +10,6 @@ clusterName: "dummy"
 collector:
   size: nano
 image:
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 probe:
   enabled: false
