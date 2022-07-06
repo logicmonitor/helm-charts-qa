@@ -22,7 +22,3 @@ collectorset-controller:
   accessKey: "dummy"
   # The LogicMonitor account name.
   account: "dummy"
-global:
-  image:
-    pullPolicy: Always
-    registry: ""

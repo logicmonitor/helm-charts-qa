@@ -9,7 +9,5 @@ clusterName: "dummy"
 
 collector:
   size: nano
-image:
-  pullPolicy: Always
 probe:
   enabled: false
