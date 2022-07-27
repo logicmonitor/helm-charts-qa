@@ -1325,6 +1325,63 @@
             }
           }
         },
+        "installUser": {
+          "type": "string",
+          "description": "Linux User to install collector",
+          "default": "logicmonitor",
+          "$id": "#/properties/collector/properties/installUser"
+        },
+        "log": {
+          "$id": "#/properties/collector/properties/log",
+          "type": "object",
+          "title": "Log",
+          "description": "The Argus Log Configurations Schema",
+          "default": {},
+          "examples": [
+            {
+              "level": "info"
+            }
+          ],
+          "required": [
+          ],
+          "properties": {
+            "level": {
+              "$id": "#/properties/collector/properties/log/properties/level",
+              "type": "string",
+              "title": "The Log Level for Bootstrap Collector Schema",
+              "description": "The Log Level for Collector Bootstrap Scripts",
+              "default": "info",
+              "enum": [
+                "info",
+                "warn",
+                "warning",
+                "debug",
+                "trace",
+                "error",
+                "fatal",
+                "panic"
+              ],
+              "examples": [
+                "info"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "collectorConf": {
+          "$id": "#/properties/collector/properties/collectorConf",
+          "type": "object",
+          "properties": {
+            "agentConf": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/collectorConfKeyVal"
+              },
+              "uniqueItems": true
+            }
+          },
+          "additionalProperties": false
+        },
         "image": {
           "$id": "#/properties/collector/properties/image",
           "type": "object",
@@ -2307,6 +2364,95 @@
   },
   "additionalProperties": false,
   "definitions": {
+    "collectorConfKeyVal": {
+      "if": {
+        "properties": {
+          "discrete": {
+            "type": "boolean",
+            "enum": [
+              false
+            ]
+          }
+        }
+      },
+      "then": {
+        "additionalProperties": false,
+        "properties": {
+          "discrete": {
+            "type": "boolean"
+          },
+          "value": {
+            "type": [
+              "object",
+              "number",
+              "null",
+              "integer",
+              "array",
+              "boolean",
+              "string"
+            ]
+          },
+          "key": {
+            "type": "string",
+            "minLength": 1
+          },
+          "dontOverride": {
+            "type": "boolean"
+          },
+          "coalesceFormat": {
+            "enum": [
+              "",
+              "csv",
+              ",",
+              "json",
+              "|",
+              "bitOr"
+            ],
+            "default": ""
+          }
+        }
+      },
+      "else": {
+        "additionalProperties": false,
+        "properties": {
+          "discrete": {
+            "type": "boolean"
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "type": [
+                "object",
+                "number",
+                "null",
+                "integer",
+                "array",
+                "boolean",
+                "string"
+              ]
+            }
+          },
+          "key": {
+            "type": "string",
+            "minLength": 1
+          },
+          "dontOverride": {
+            "type": "boolean"
+          },
+          "coalesceFormat": {
+            "enum": [
+              "",
+              "csv",
+              ",",
+              "json",
+              "|",
+              "bitOr"
+            ],
+            "default": ""
+          }
+        }
+      }
+    },
     "toleration": {
       "oneOf": [
         {

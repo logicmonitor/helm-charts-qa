@@ -475,5 +475,153 @@
       },
       "type": "object"
     }
+  },
+  "collectorConfKeyVal": {
+    "oneOf": [
+      {
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "type": "string",
+            "minLength": 1
+          },
+          "values": {
+            "type": [
+              "string",
+              "boolean",
+              "array",
+              "integer",
+              "null",
+              "number",
+              "object"
+            ]
+          },
+          "dontOverride": {
+            "type": "boolean"
+          },
+          "discrete": {
+            "type": "boolean",
+            "enum": [
+              false
+            ]
+          },
+          "coalesceFormat": {
+            "enum": [
+              "csv",
+              ",",
+              "json",
+              "|",
+              "bitOr"
+            ]
+          }
+        }
+      },
+      {
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "type": "string",
+            "minLength": 1
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "type": [
+                "string",
+                "boolean",
+                "array",
+                "integer",
+                "null",
+                "number",
+                "object"
+              ]
+            }
+          },
+          "dontOverride": {
+            "type": "boolean"
+          },
+          "discrete": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "coalesceFormat": {
+            "enum": [
+              "csv",
+              ",",
+              "json",
+              "|",
+              "bitOr"
+            ]
+          }
+        }
+      }
+    ],
+    "allOf": [
+      {
+        "if": {
+          "properties": {
+            "discrete": {
+              "const": true
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "value": {
+              "maximum": 0,
+              "maxItems": 0,
+              "maxLength": 0
+            },
+            "values": {
+              "type": "array",
+              "items": {
+                "type": [
+                  "object",
+                  "number",
+                  "null",
+                  "integer",
+                  "array",
+                  "boolean",
+                  "string"
+                ]
+              }
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "discrete": {
+              "const": false
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "values": {
+              "maximum": 0,
+              "maxItems": 0,
+              "maxLength": 0
+            },
+            "value": {
+              "type": [
+                "object",
+                "number",
+                "null",
+                "integer",
+                "array",
+                "boolean",
+                "string"
+              ]
+            }
+          }
+        }
+      }
+    ]
   }
 }
+
+
