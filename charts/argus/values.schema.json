@@ -1916,6 +1916,25 @@
             }
           },
           "additionalProperties": false
+        },
+        "disableLightweightCollector": {
+          "$id": "#/properties/collector/properties/enableLightweightCollector",
+          "type": "boolean",
+          "default": false
+        },
+        "collectorConf": {
+          "$id": "#/properties/collector/properties/collectorConf",
+          "type": "object",
+          "properties": {
+            "agentConf": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/collectorConfKeyVal"
+              },
+              "uniqueItems": true
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -2307,6 +2326,91 @@
   },
   "additionalProperties": false,
   "definitions": {
+    "collectorConfKeyVal": {
+      "if": {
+        "properties": {
+          "discrete": {
+            "type": "boolean",
+            "enum": [
+              false
+            ]
+          }
+        }
+      },
+      "then": {
+        "additionalProperties": false,
+        "properties": {
+          "discrete": {
+            "type": "boolean"
+          },
+          "value": {
+            "type": [
+              "object",
+              "number",
+              "null",
+              "integer",
+              "array",
+              "boolean",
+              "string"
+            ]
+          },
+          "key": {
+            "type": "string",
+            "minLength": 1
+          },
+          "dontOverride": {
+            "type": "boolean"
+          },
+          "coalesceFormat": {
+            "enum": [
+              "",
+              "csv",
+              "json",
+              "pipe"
+            ],
+            "default": ""
+          }
+        }
+      },
+      "else": {
+        "additionalProperties": false,
+        "properties": {
+          "discrete": {
+            "type": "boolean"
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "type": [
+                "object",
+                "number",
+                "null",
+                "integer",
+                "array",
+                "boolean",
+                "string"
+              ]
+            }
+          },
+          "key": {
+            "type": "string",
+            "minLength": 1
+          },
+          "dontOverride": {
+            "type": "boolean"
+          },
+          "coalesceFormat": {
+            "enum": [
+              "",
+              "csv",
+              "json",
+              "pipe"
+            ],
+            "default": ""
+          }
+        }
+      }
+    },
     "toleration": {
       "oneOf": [
         {

@@ -138,8 +138,10 @@ collector:
     pullPolicy: ""
   ## OPTIONAL VALUES
 
-  # On a collector downloading event, either download the latest EA version or the latest GD version.
-
+  disableLightweightCollector: false
+  # collector application configuration such as agent.conf
+  collectorConf:
+    agentConf: []
   # The Http/s proxy url of the collectors.
   proxy:
     url: ""
