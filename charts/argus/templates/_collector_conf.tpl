@@ -17,15 +17,25 @@ trimmedCollectorAgentConf:
 {{ define "collector-conf" }}
 {{ $result := list }}
 
-{{- if not .Values.collector.disableLightweightCollector }}
-{{- $abc := include "trimmed-collector-config-agentConf" . | fromYaml }}
-{{- $trimmedList := get $abc "trimmedCollectorAgentConf" }}
-{{- $result = (concat $result $trimmedList | uniq )}}
+{{- $keys := dict }}
+{{- range .Values.collector.collectorConf.agentConf }}
+{{- $_ := set $keys .key true }}
 {{- end }}
 
 {{- if gt (len .Values.collector.collectorConf.agentConf) 0 }}
 {{- $result = (concat $result .Values.collector.collectorConf.agentConf | uniq ) }}
 {{- end }}
+
+{{- if not .Values.collector.disableLightweightCollector }}
+    {{- $abc := include "trimmed-collector-config-agentConf" . | fromYaml }}
+    {{- $trimmedList := get $abc "trimmedCollectorAgentConf" }}
+    {{- range $trimmedList }}
+        {{- if not (hasKey $keys .key) }}
+            {{- $result = append $result . }}
+        {{- end }}
+    {{- end }}
+{{- end }}
+
 resultList:
 {{- toYaml $result | nindent 2 }}
 {{- end }}
