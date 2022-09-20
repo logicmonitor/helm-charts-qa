@@ -14,8 +14,6 @@ metadata:
 data:
   collector-conf.yaml: |
     agentConf:
-      {{- if not .Values.collector.disableLightweightCollector }}
-      {{- $abc := include "trimmed-collector-config-agentConf" . | fromYaml }}
-      {{- get $abc "trimmedCollectorAgentConf" | toYaml | nindent 6 }}
-      {{- end }}
-      {{- toYaml .Values.collector.collectorConf.agentConf | nindent 6 }}
+    {{- $abc := include "collector-conf" . | fromYaml }}
+    {{- $result := get $abc "resultList" }}
+    {{- toYaml $result | nindent 6 }}

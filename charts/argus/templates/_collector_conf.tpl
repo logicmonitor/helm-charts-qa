@@ -12,3 +12,20 @@ trimmedCollectorAgentConf:
 {{- toYaml $propList | nindent 2 }}
 {{- end }}
 {{- end }}
+
+
+{{ define "collector-conf" }}
+{{ $result := list }}
+
+{{- if not .Values.collector.disableLightweightCollector }}
+{{- $abc := include "trimmed-collector-config-agentConf" . | fromYaml }}
+{{- $trimmedList := get $abc "trimmedCollectorAgentConf" }}
+{{- $result = (concat $result $trimmedList | uniq )}}
+{{- end }}
+
+{{- if gt (len .Values.collector.collectorConf.agentConf) 0 }}
+{{- $result = (concat $result .Values.collector.collectorConf.agentConf | uniq ) }}
+{{- end }}
+resultList:
+{{- toYaml $result | nindent 2 }}
+{{- end }}
