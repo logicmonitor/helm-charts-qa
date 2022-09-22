@@ -1,2 +1,11 @@
 # Global owner
-*	@vkumbhar94 @kedarjapan @sagarmamdapure @rohitphatak @shubhashri12 @bpuri7
+*	@vkumbhar94 @kedarjapan @bpuri7
+
+# argus directory owners
+charts/argus/    @rohitphatak @shubhashri12 @sagarmamdapure
+
+# collectorSet-controller directory owners
+charts/collectorset-controller/    @rohitphatak @shubhashri12 @sagarmamdapure
+
+# lm-container directory owners
+charts/lm-container/    @rohitphatak @shubhashri12 @sagarmamdapure
