@@ -95,6 +95,13 @@ jobs:
           asset_path: ./lm-container-ui-jsonpaths.json
           asset_name: lm-container-ui-jsonpaths.json
           asset_content_type: text/plain
+      - uses: hashicorp/setup-terraform@v2
+        if: ${{ steps.get_chart.outputs.chartname == 'lm-container' }}
+      - name: Terraform fmt
+        if: ${{ steps.get_chart.outputs.chartname == 'lm-container' }}
+        id: fmt
+        run: cd terraform-lm-lmc && terraform fmt && cd ..
+        continue-on-error: true
       - name: Push Terraform Scripts
         if: ${{ steps.get_chart.outputs.chartname == 'lm-container' }}
         uses: stefanzweifel/git-auto-commit-action@v4
