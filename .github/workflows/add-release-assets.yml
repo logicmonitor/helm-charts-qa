@@ -64,6 +64,13 @@ jobs:
           repo-token: ${{ secrets.CHART_RELEASE_TOKEN }}
           wait-interval: 10
 
+      - name: checkout terraform-lmc
+        uses: actions/checkout@v3
+        with:
+          repository: vkumbhar94/terraform-lm-lmc
+          fetch-depth: 0
+          path: terraform-lm-lmc
+          ref: main
       - name: Pull Charts and Generate UI Template
         if: ${{ steps.get_chart.outputs.chartname == 'lm-container' }}
         run: |
@@ -71,6 +78,8 @@ jobs:
           helm pull logicmonitor-qa/lm-container --untar --version ${{ steps.get_chart.outputs.chartversion }}
           ./scripts/lmui/lmui > lm-container-ui-jsonpaths.json
           cat lm-container-ui-jsonpaths.json
+          ./scripts/lmtf/lmtf ./lm-container ./terraform-lm-lmc/templates/lmc-configuration.yaml ./terraform-lm-lmc/variables.tf
+          echo "v${{ steps.get_chart.outputs.chartversion }}" > ./terraform-lm-lmc/version
       - name: Upload ui template to release asset
         uses: actions/upload-release-asset@v1.0.2
         if: ${{ steps.get_chart.outputs.chartname == 'lm-container' }}
@@ -81,3 +90,11 @@ jobs:
           asset_path: ./lm-container-ui-jsonpaths.json
           asset_name: lm-container-ui-jsonpaths.json
           asset_content_type: text/plain
+      - name: Push Terraform Scripts
+        if: ${{ steps.get_chart.outputs.chartname == 'lm-container' }}
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          branch: main
+          repository: terraform-lm-lmc
+          commit_message: "release(*): releasing new version"
+          file_pattern: "version templates/lmc-configuration.yaml variables.tf"
