@@ -9,9 +9,6 @@ const indent = "  "
 
 func ProcessTemplatesGlobal(m map[string]any, parent string, currKey string) string {
 	props := GetGlobalProps(m)
-	//for k := range props {
-	//	fmt.Println(k)
-	//}
 	m2 := map[string]any{
 		"properties": props,
 	}
@@ -19,7 +16,6 @@ func ProcessTemplatesGlobal(m map[string]any, parent string, currKey string) str
 	out = strings.ReplaceAll(out, "\n", "\n"+indent)
 	out = "%{ if lmc.global != null }\nglobal:" + indent + out + "\n%{ endif }"
 
-	//fmt.Println(props)
 	return out
 }
 
@@ -49,8 +45,6 @@ func ProcessTemplates(m map[string]any, parent string, currKey string) string {
 	if currKey == "global" {
 		return ""
 	}
-	//fmt.Println("traversing:", currKey)
-	//fmt.Printf("traversing: %s\n", parent)
 	yamlEncode := false
 	optional := false
 	tfCommentExists := false
@@ -90,12 +84,12 @@ func ProcessTemplates(m map[string]any, parent string, currKey string) string {
 			}
 		}
 	}
-	//fmt.Println("out:\n", out)
+
 	if outOrig != "" {
 		out = strings.ReplaceAll(outOrig, "\n", "\n"+indent)
 		out = indent + out
 	}
-	//fmt.Println("outindent:\n", out)
+
 	res := ""
 	absCurrKey := parent + "." + currKey
 	if tfCommentExists {

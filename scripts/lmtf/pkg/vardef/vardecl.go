@@ -149,7 +149,6 @@ func ProcessVarDefNonGlobal(m map[string]any, currKey string) []Item {
 }
 
 func Convert(enum Type, def any) any {
-	//fmt.Printf("typ: %T, def: %v\n", def, def)
 	return def
 }
 
