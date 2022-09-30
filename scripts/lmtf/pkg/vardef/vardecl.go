@@ -2,7 +2,7 @@ package vardef
 
 import (
 	"fmt"
-	"github.com/logicmonitor/helm-charts-qa/scripts/lmui/pkg/tmpl"
+	"github.com/logicmonitor/helm-charts-qa/scripts/lmtf/pkg/tmpl"
 	"strings"
 )
 

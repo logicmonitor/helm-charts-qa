@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/logicmonitor/helm-charts-qa/scripts/lmui/pkg/load"
-	"github.com/logicmonitor/helm-charts-qa/scripts/lmui/pkg/tmpl"
-	"github.com/logicmonitor/helm-charts-qa/scripts/lmui/pkg/vardef"
+	"github.com/logicmonitor/helm-charts-qa/scripts/lmtf/pkg/load"
+	"github.com/logicmonitor/helm-charts-qa/scripts/lmtf/pkg/tmpl"
+	"github.com/logicmonitor/helm-charts-qa/scripts/lmtf/pkg/vardef"
 	"os"
 )
 
