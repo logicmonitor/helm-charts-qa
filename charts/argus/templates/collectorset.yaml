@@ -10,7 +10,7 @@ metadata:
 spec:
   image:
     registry: {{ .Values.collector.image.registry | default .Values.global.image.registry }}
-    repository: {{ required "A valid .Values.collector.imageRepository entry is required!" .Values.collector.image.repository }}
+    repository: {{ include "collector-image" . }}
     tag: {{ required "A valid .Values.collector.imageTag entry is required!" .Values.collector.image.tag }}
     pullPolicy: {{ .Values.collector.image.pullPolicy | default (.Values.global.image.pullPolicy | default "Always") }}
   policy:
