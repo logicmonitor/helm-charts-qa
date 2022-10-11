@@ -153,6 +153,8 @@ collector:
   annotations: {}
   # labels to add on collector statefulset
   labels: {}
+  # labels to add on collector statefulset
+  env: {}
   # Collector statefulset template
   statefulsetSpec:
     template:

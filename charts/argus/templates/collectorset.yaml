@@ -47,8 +47,12 @@ spec:
   labels:
     {{- include "collector.labels" . | nindent 4 }}
   {{- if .Values.collector.annotations}}
-    annotations:
+  annotations:
     {{- toYaml .Values.collector.annotations| nindent 4 }}
+  {{- end }}
+  {{- if .Values.collector.env }}
+  env:
+    {{- toYaml .Values.collector.env | nindent 4 }}
   {{- end }}
 
   {{- if .Values.collector.statefulsetSpec }}
