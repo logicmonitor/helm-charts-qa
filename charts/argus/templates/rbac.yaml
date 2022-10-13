@@ -78,6 +78,15 @@ rules:
       - watch
       - update
   - apiGroups:
+      - "networking.k8s.io"
+    resources:
+      - networkpolicies
+    verbs:
+      - list
+      - get
+      - watch
+      - update
+  - apiGroups:
       - "batch"
     resources:
       - cronjobs
