@@ -15,7 +15,7 @@ trimmedCollectorAgentConf:
 
 
 {{ define "collector-conf" }}
-{{ $deniedProps := list "company" "company.uuid" "credential" }}
+{{ $deniedProps := list "company" "company.uuid" "credential" "id" "server" }}
 {{ $result := list }}
 
 {{- $keys := dict }}
