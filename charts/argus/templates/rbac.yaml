@@ -40,6 +40,17 @@ rules:
       - persistentvolumeclaims
       - secrets
       - endpoints
+      - limitranges
+      - resourcequotas
+    verbs:
+      - list
+      - get
+      - watch
+      - update
+  - apiGroups:
+      - "storage.k8s.io"
+    resources:
+      - storageclasses
     verbs:
       - list
       - get
