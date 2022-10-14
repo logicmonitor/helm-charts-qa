@@ -42,8 +42,8 @@ rules:
       - events
       - configmaps
       - secrets
-      - LimitRange
-      - ResourceQuota
+      - limitranges
+      - resourcequotas
     verbs:
       - list
       - get
