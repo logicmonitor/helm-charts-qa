@@ -78,6 +78,13 @@ rules:
       - list
       - get
   - apiGroups:
+      - "scheduling.k8s.io"
+    resources:
+      - priorityclasses
+    verbs:
+      - list
+      - get
+  - apiGroups:
       - "networking.k8s.io"
     resources:
       - networkpolicies

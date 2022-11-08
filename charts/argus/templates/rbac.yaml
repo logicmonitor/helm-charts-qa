@@ -80,6 +80,15 @@ rules:
       - watch
       - update
   - apiGroups:
+      - "scheduling.k8s.io"
+    resources:
+      - priorityclasses
+    verbs:
+      - list
+      - get
+      - watch
+      - update
+  - apiGroups:
       - "autoscaling"
     resources:
       - horizontalpodautoscalers
