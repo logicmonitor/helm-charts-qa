@@ -3,6 +3,15 @@ image:
   pullPolicy: Always
   tag: ""
 
+accessID: ""
+accessKey: ""
+account: ""
+clusterName: ""
+global:
+  accessID: ""
+  accessKey: ""
+  account: ""
+  clusterName: ""
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""

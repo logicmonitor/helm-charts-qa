@@ -18,6 +18,7 @@ data:
       <record>
         message ${record["log"]} ${record["message"]}
         timestamp ${record["time"]}
+        kubernetes.cluster_name {{ .Values.clusterName | default .Values.global.clusterName }}
         {{- if  .Values.fluent.device_less_logs }}
         resource.service.name ${record.dig("kubernetes","labels","app") != nil ? record.dig("kubernetes","labels","app") : record.dig("kubernetes","labels","app_kubernetes_io/name") != nil ? record.dig("kubernetes","labels","app_kubernetes_io/name") :  record.dig("kubernetes","container_name") != nil ?  record.dig("kubernetes","container_name") : record.dig("kubernetes","pod_name") != nil ? record.dig("kubernetes","pod_name") :  "unknown" }
         resource.service.namespace ${record["kubernetes"]["namespace_name"]}
@@ -28,10 +29,10 @@ data:
 
     <match kubernetes.**>
       @type lm
-      company_name {{ .Values.lm_company_name }}
+      company_name {{ .Values.account | default .Values.global.account }}
       resource_mapping {"kubernetes.pod_name": "auto.name"}
-      access_id {{ .Values.lm_access_id }}
-      access_key {{ .Values.lm_access_key }}
+      access_id {{ .Values.accessID | default .Values.global.accessID }}
+      access_key {{ .Values.accessKey | default .Values.global.accessKey }}
       debug false
       compression gzip
       include_metadata {{ hasKey .Values.fluent "include_metadata" | ternary .Values.fluent.include_metadata true }}
