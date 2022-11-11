@@ -4,6 +4,8 @@ metadata:
   name: {{ include "fluentd.fullname" . }}
   labels:
     {{- include "fluentd.labels" . | nindent 4 }}
+  annotations:
+    {{- include "fluentd.annotations" . | nindent 4 }}
 spec:
   selector:
     matchLabels:
@@ -18,7 +20,7 @@ spec:
         - name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          image: {{ include "fluentd-image" . }}
           env:
             - name: K8S_NODE_NAME
               valueFrom:
@@ -27,7 +29,7 @@ spec:
             {{ if gt (.Values.env | len) 0 }}
             {{ include "ds-env" . | nindent 12 }}
             {{ end }}
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | default (.Values.global.image.pullPolicy | default "Always") }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
@@ -35,7 +37,7 @@ spec:
       volumes:
         - name: fluentconf
           configMap:
-            name: {{ include "fluentd.name" . }}
+            name: {{ include "fluentd.fullname" . }}
         {{- toYaml .Values.volumes | nindent 8 }}
       {{- with .Values.nodeSelector }}
       nodeSelector:

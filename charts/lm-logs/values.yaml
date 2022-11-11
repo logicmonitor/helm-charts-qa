@@ -1,6 +1,8 @@
 image:
-  repository: logicmonitor/lm-logs-k8s-fluentd
-  pullPolicy: Always
+  registry: ""
+  repository: logicmonitor
+  name: lm-logs-k8s-fluentd
+  pullPolicy: ""
   tag: ""
 
 accessID: ""
@@ -12,9 +14,16 @@ global:
   accessKey: ""
   account: ""
   clusterName: ""
+  image:
+    registry: ""
+    repository: ""
+    pullPolicy: ""
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
+
+labels: {}
+annotations: {}
 
 env: {}
 
@@ -36,10 +45,9 @@ fluent:
 kubernetes:
   multiline_start_regexp: /^\[(\d{4}-)?\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3}.*\]/
 
-nodeSelector: []
-affinity: []
-tolerations:
-  - operator: Exists
+nodeSelector: {}
+affinity: {}
+tolerations: []
 
 
 volumes:

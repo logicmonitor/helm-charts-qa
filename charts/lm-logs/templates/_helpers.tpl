@@ -35,11 +35,16 @@ Common labels
 */}}
 {{- define "fluentd.labels" -}}
 helm.sh/chart: {{ include "fluentd.chart" . }}
+app.kubernetes.io/component: lm-logs-agent
+app.kubernetes.io/part-of: {{ template "fluentd.name" . }}
 {{ include "fluentd.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- if .Values.labels }}
+{{ toYaml .Values.labels }}
+{{- end }}
 {{- end }}
 
 {{/*
@@ -49,6 +54,17 @@ Selector labels
 app.kubernetes.io/name: {{ include "fluentd.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
+
+{{/*
+Common Annotations
+*/}}
+{{- define "fluentd.annotations" -}}
+logicmonitor.com/provider: lm-container
+{{- if .Values.annotations }}
+{{ toYaml .Values.annotations }}
+{{- end }}
+{{- end }}
+
 
 {{/*
 Create the name of the service account to use
@@ -77,4 +93,24 @@ Return the appropriate apiVersion for rbac.
 {{- $envList = append $envList $envProps -}}
 {{- end -}}
 {{- toYaml $envList | nindent 0 -}}
+{{- end -}}
+
+{{- define "fluentd-image" -}}
+{{- $registry := "" -}}
+{{- $repo := "logicmonitor" -}}
+{{- if .Values.image.registry -}}
+{{- $registry = .Values.image.registry -}}
+{{- else if .Values.global.image.registry -}}
+{{- $registry = .Values.global.image.registry -}}
+{{- end -}}
+{{- if .Values.image.repository -}}
+{{- $repo = .Values.image.repository -}}
+{{- else if .Values.global.image.repository -}}
+{{- $repo = .Values.global.image.repository -}}
+{{- end -}}
+{{- if ne $registry "" -}}
+"{{ $registry }}/{{ $repo }}/{{ .Values.image.name }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+{{- else -}}
+"{{ $repo }}/{{ .Values.image.name }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+{{- end -}}
 {{- end -}}
