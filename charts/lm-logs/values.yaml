@@ -1,6 +1,6 @@
 image:
   registry: ""
-  repository: logicmonitor
+  repository: ""
   name: lm-logs-k8s-fluentd
   pullPolicy: ""
   tag: ""
