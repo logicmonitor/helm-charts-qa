@@ -112,7 +112,7 @@
       "examples": [
         ""
       ],
-      "$comment": "ui:clusterName tf:"
+      "$comment": "ui:clusterName-ignore tf:"
     },
     "global": {
       "type": "object",
@@ -127,7 +127,7 @@
           "examples": [
             ""
           ],
-          "$comment": "ui:accessId tf:optional"
+          "$comment": "ui:accessId-ignore tf:optional"
         },
         "accessKey": {
           "$id": "#/properties/global/properties/accessKey",
@@ -138,7 +138,7 @@
           "examples": [
             ""
           ],
-          "$comment": "ui:accessKey tf:optional"
+          "$comment": "ui:accessKey-ignore tf:optional"
         },
         "account": {
           "$id": "#/properties/global/properties/account",
@@ -149,7 +149,7 @@
           "examples": [
             "lmqauat"
           ],
-          "$comment": "ui:account tf:optional"
+          "$comment": "ui:account-ignore tf:optional"
         },
         "clusterName": {
           "$id": "#/properties/clusterName",
@@ -160,7 +160,7 @@
           "examples": [
             ""
           ],
-          "$comment": "ui:clusterName tf:"
+          "$comment": "ui:clusterName-ignore tf:"
         },
         "image": {
           "type": "object",
