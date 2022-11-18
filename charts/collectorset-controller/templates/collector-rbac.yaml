@@ -44,6 +44,7 @@ rules:
       - secrets
       - limitranges
       - resourcequotas
+      - serviceaccounts
     verbs:
       - list
       - get

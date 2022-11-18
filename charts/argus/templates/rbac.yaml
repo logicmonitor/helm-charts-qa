@@ -42,6 +42,7 @@ rules:
       - endpoints
       - limitranges
       - resourcequotas
+      - serviceaccounts
     verbs:
       - list
       - get
