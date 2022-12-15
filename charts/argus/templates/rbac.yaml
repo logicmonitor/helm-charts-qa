@@ -112,6 +112,8 @@ rules:
     resources:
       - clusterroles
       - clusterrolebindings
+      - roles
+      - rolebindings
     verbs:
       - list
       - get
