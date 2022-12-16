@@ -177,6 +177,11 @@ collector:
       periodSeconds: 10
 
 imagePullSecrets: []
+podSecurityContext: {}
+securityContext:
+  capabilities:
+    add: []
+    drop: []
 
 global:
   accessID: ""

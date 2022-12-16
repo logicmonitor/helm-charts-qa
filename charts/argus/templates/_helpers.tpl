@@ -185,3 +185,24 @@ app: collector
 {{- end -}}
 "{{ $repo }}/{{ .Values.collector.image.name }}"
 {{- end -}}
+
+{{- define "psp" }}
+{{ toYaml .Values.podSecurityContext | nindent 0 }}
+{{- end }}
+
+{{- define "csp" }}
+{{- $addCaps := .Values.securityContext.capabilities.add }}
+{{- if and (contains "-gke" .Capabilities.KubeVersion.Version) (not (has "NET_RAW" $addCaps)) }}
+{{- $addCaps = append $addCaps "NET_RAW" }}
+{{- end }}
+
+{{- with .Values.securityContext }}
+{{- if not (hasKey . "capabilities") }}
+{{ toYaml . | nindent 0 }}
+{{- end }}
+{{- end }}
+
+capabilities:
+  drop: {{ toYaml .Values.securityContext.capabilities.drop | nindent 4 }}
+  add: {{ toYaml $addCaps | nindent 4 }}
+{{- end }}
