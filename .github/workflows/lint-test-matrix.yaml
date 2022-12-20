@@ -53,9 +53,17 @@ jobs:
           if [[ -n "$arguschanged" ]]; then
             echo "::set-output name=arguschanged::true"
           fi
+          lmutilchanged=$(ct list-changed --config ct.yaml || "no change" | grep lmutil)
+          if [[ -n "$lmutilchanged" ]]; then
+            echo "::set-output name=lmutilchanged::true"
+          fi
 
       - name: Run chart-testing (lint)
-        run: ct lint --config ct.yaml
+        run: ct lint --config ct.yaml --excluded-charts lmutil
+
+      - name: Run chart-testing (lint) - lmutil
+        if: steps.list-changed.outputs.lmutilchanged == 'true'
+        run: ct lint --validate-yaml=false --config ct.yaml --charts charts/lmutil
 
       - name: Create kind cluster
         uses: helm/kind-action@v1.3.0
@@ -100,7 +108,7 @@ jobs:
                 echo "installation failed as per constraint"
               fi
             fi
-          done < <(ct list-changed --config ct.yaml | egrep -v argus)
+          done < <(ct list-changed --config ct.yaml | egrep -v "argus|lmutil")
 
       - name: Run chart-testing (install) - only argus
         if: steps.list-changed.outputs.arguschanged == 'true'
