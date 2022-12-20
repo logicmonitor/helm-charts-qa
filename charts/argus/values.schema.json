@@ -2053,6 +2053,14 @@
             }
           },
           "additionalProperties": false
+        },
+        "securityContext": {
+          "$id": "#/properties/collector/properties/securityContext",
+          "$ref": "#/definitions/io.k8s.api.core.v1.SecurityContext"
+        },
+        "podSecurityContext": {
+          "$id": "#/properties/collector/properties/podSecurityContext",
+          "$ref": "#/definitions/io.k8s.api.core.v1.PodSecurityContext"
         }
       },
       "additionalProperties": false
@@ -2409,6 +2417,10 @@
         }
       },
       "additionalProperties": false
+    },
+    "lmutil": {
+      "$id": "#/properties/lmutil",
+      "additionalProperties": true
     }
   },
   "additionalProperties": false,
