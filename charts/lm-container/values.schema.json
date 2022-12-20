@@ -43,6 +43,10 @@
       },
       "additionalProperties": true
     },
+    "lmutil": {
+      "$id": "#/properties/lmutil",
+      "additionalProperties": true
+    },
     "lm-logs": {
       "$id": "#/properties/lm-logs",
       "description": "LM Logs Helm Chart Configurations",
