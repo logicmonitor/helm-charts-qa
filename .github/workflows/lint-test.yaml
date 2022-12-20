@@ -51,7 +51,7 @@ jobs:
         if: steps.list-changed.outputs.changed == 'true'
 
       - name: Run chart-testing (install) - except argus
-        run: ct install --config ct.yaml --excluded-charts argus,lmotel,releasemanager
+        run: ct install --config ct.yaml --excluded-charts argus,lmotel,releasemanager,lmutil
 
       - name: Run chart-testing (install) - only argus
         if: steps.list-changed.outputs.arguschanged == 'true'
