@@ -120,7 +120,8 @@ rules:
     resources:
       - customresourcedefinitions
     verbs:
-      - "*"
+      - list
+      - get
   - nonResourceURLs:
       - /
       - /healthz

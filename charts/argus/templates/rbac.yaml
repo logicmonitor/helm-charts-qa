@@ -143,7 +143,10 @@ rules:
     resources:
       - customresourcedefinitions
     verbs:
-      - "*"
+      - list
+      - get
+      - watch
+      - update
   - nonResourceURLs:
       - /
       - /healthz
