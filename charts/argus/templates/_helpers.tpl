@@ -48,6 +48,12 @@ logicmonitor.com/provider: lm-container
 {{- toYaml $resultList | nindent 0}}
 {{- end }}
 
+{{- define "ignored.annotations" }}
+{{ $alwaysIgnore := list "virtual-kubelet.io/last-applied-node-status" "control-plane.alpha.kubernetes.io/leader"}}
+{{ $resultList := ( concat $alwaysIgnore $.Values.ignoredAnnotations | uniq )  }}
+{{- toYaml $resultList | nindent 0}}
+{{- end }}
+
 {{- define "alerting.disable" }}
 {{ $alwaysDisable := list }}
 {{ $resultList := (concat $alwaysDisable $.Values.lm.resource.alerting.disable | uniq )  }}

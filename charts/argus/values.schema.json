@@ -12,6 +12,7 @@
       "account": "",
       "clusterName": "",
       "clusterTreeParentID": 1,
+      "ignoredAnnotations": [],
       "image": {
         "repository": "logicmonitor/argus",
         "pullPolicy": "",
@@ -220,6 +221,23 @@
         1
       ],
       "$comment": "ui:clusterGroupID tf:optional"
+    },
+    "ignoredAnnotations": {
+      "$id": "#/properties/ignoredAnnotations",
+      "type": "array",
+      "$comment": "tf:optional,yamlencode",
+      "title": "ignoredAnnotations",
+      "description": "Annotations to be ignored while updating a resource",
+      "default": [],
+      "examples": [
+        []
+      ],
+      "additionalItems": true,
+      "items": {
+        "$id": "#/properties/ignoredAnnotations/items",
+        "type": "string"
+      },
+      "uniqueItems": true
     },
     "image": {
       "$id": "#/properties/image",

@@ -18,6 +18,8 @@ clusterName: ""
 # clusterTreeParentID is a parent group ID underneath the organised kubernetes resource tree gets created
 clusterTreeParentID: 1
 
+# annotations to be ignored while performing an update operation
+ignoredAnnotations: []
 ## OPTIONAL VALUES - used for Kubernetes Manifest files
 image:
   registry: ""

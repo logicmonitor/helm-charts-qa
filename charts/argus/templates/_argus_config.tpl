@@ -18,6 +18,8 @@ globalDeleteAfterDuration: {{ .Values.lm.resource.globalDeleteAfterDuration | de
 {{- if .Values.telemetryCronString }}
 telemetryCronString: {{ .Values.telemetryCronString | quote }}
 {{- end }}
+ignoredAnnotations:
+{{- include "ignored.annotations" . | nindent 2 }}
 ignoreSSL: {{ .Values.ignoreSSL }}
 daemons:
   lmCacheSync:
