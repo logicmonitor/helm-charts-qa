@@ -40,6 +40,8 @@ Allow the release namespace to be overridden for multi-namespace deployments in 
 {{- printf "%s" "eks" }}
 {{- else if contains "+vmware" .Capabilities.KubeVersion.Version }}
 {{- printf "%s" "vmware" }}
+{{- else if contains "-rancher" .Capabilities.KubeVersion.Version }}
+{{- printf "%s" "rancher" }}
 {{- else if contains "-mirantis" .Capabilities.KubeVersion.Version }}
 {{- printf "%s" "mirantis" }}
 {{- else if eq (include "lmutil.is-openshift" .) "true" }}
