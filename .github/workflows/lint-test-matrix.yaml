@@ -46,17 +46,17 @@ jobs:
           if [[ -n "$changed" ]]; then
             echo "::set-output name=changed::true"
           fi
-          otherschanged=$(cat changed.txt | egrep -v "argus")
+          otherschanged=$(egrep -v "argus" changed.txt || echo "")
           if [[ -n "$otherschanged" ]]; then
             echo "::set-output name=otherschanged::true"
           fi
-          arguschanged=$(cat changed.txt | egrep "argus")
+          arguschanged=$(egrep "argus" changed.txt || echo "")
           echo $?
           echo $arguschanged
           if [[ -n "$arguschanged" ]]; then
             echo "::set-output name=arguschanged::true"
           fi
-          lmutilchanged=$(cat changed.txt | grep "lmutil")
+          lmutilchanged=$(grep "lmutil" changed.txt || echo "")
           if [[ -n "$lmutilchanged" ]]; then
             echo "::set-output name=lmutilchanged::true"
           fi
