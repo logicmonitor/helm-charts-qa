@@ -56,7 +56,7 @@ jobs:
         run: ct install --config ct.yaml --excluded-charts argus,lmotel,releasemanager,lmutil
 
       - name: Run chart-testing (install) - only argus
-        if: steps.list-changed.outputs.arguschanged == 'true'
+        if: ${{ steps.list-changed.outputs.arguschanged == 'true' }}
         run: |
           kubectl apply -f charts/collectorset-controller/crds/collectorset.yaml
           ct install --config ct.yaml --charts charts/argus
