@@ -111,7 +111,7 @@ jobs:
           done < <(ct list-changed --config ct.yaml | egrep -v "argus|lmutil")
 
       - name: Run chart-testing (install) - only argus
-        if: steps.list-changed.outputs.arguschanged == 'true'
+        if: ${{ steps.list-changed.outputs.arguschanged == 'true' }}
         run: |
           export K8SVERSION=${{ matrix.k8sVersion }}
           vcs=$(vert ">= 1.16.0-0" "$K8SVERSION" || echo "")
