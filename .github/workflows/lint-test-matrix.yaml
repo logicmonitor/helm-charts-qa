@@ -41,7 +41,8 @@ jobs:
       - name: Run chart-testing (list-changed)
         id: list-changed
         run: |
-          ct list-changed --config ct.yaml > changed.txt
+          touch changed.txt
+          ct list-changed --config ct.yaml > changed.txt || echo "no chart changes"
           changed=$(ct list-changed --config ct.yaml)
           if [[ -n "$changed" ]]; then
             echo "::set-output name=changed::true"
@@ -51,8 +52,6 @@ jobs:
             echo "::set-output name=otherschanged::true"
           fi
           arguschanged=$(egrep "argus" changed.txt || echo "")
-          echo $?
-          echo $arguschanged
           if [[ -n "$arguschanged" ]]; then
             echo "::set-output name=arguschanged::true"
           fi
@@ -114,7 +113,7 @@ jobs:
           done < <(ct list-changed --config ct.yaml | egrep -v "argus|lmutil")
 
       - name: Run chart-testing (install) - only argus
-        if: ${{ steps.list-changed.outputs.arguschanged == 'true' }}
+        if: steps.list-changed.outputs.arguschanged == 'true'
         run: |
           export K8SVERSION=${{ matrix.k8sVersion }}
           vcs=$(vert ">= 1.16.0-0" "$K8SVERSION" || echo "")
