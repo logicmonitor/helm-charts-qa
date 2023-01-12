@@ -41,22 +41,22 @@ jobs:
       - name: Run chart-testing (list-changed)
         id: list-changed
         run: |
-          ct list-changed --config ct.yaml
+          ct list-changed --config ct.yaml > changed.txt
           changed=$(ct list-changed --config ct.yaml)
           if [[ -n "$changed" ]]; then
             echo "::set-output name=changed::true"
           fi
-          otherschanged=$(ct list-changed --config ct.yaml | egrep -v "argus")
+          otherschanged=$(cat changed.txt | egrep -v "argus")
           if [[ -n "$otherschanged" ]]; then
             echo "::set-output name=otherschanged::true"
           fi
-          arguschanged=$(ct list-changed --config ct.yaml | egrep "charts/argus")
+          arguschanged=$(cat changed.txt | egrep "argus")
           echo $?
           echo $arguschanged
           if [[ -n "$arguschanged" ]]; then
             echo "::set-output name=arguschanged::true"
           fi
-          lmutilchanged=$(ct list-changed --config ct.yaml | grep "lmutil")
+          lmutilchanged=$(cat changed.txt | grep "lmutil")
           if [[ -n "$lmutilchanged" ]]; then
             echo "::set-output name=lmutilchanged::true"
           fi
