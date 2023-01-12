@@ -41,6 +41,7 @@ jobs:
       - name: Run chart-testing (list-changed)
         id: list-changed
         run: |
+          ct list-changed --config ct.yaml
           changed=$(ct list-changed --config ct.yaml)
           if [[ -n "$changed" ]]; then
             echo "::set-output name=changed::true"
@@ -50,6 +51,7 @@ jobs:
             echo "::set-output name=otherschanged::true"
           fi
           arguschanged=$(ct list-changed --config ct.yaml || "no change" | grep argus)
+          echo $arguschanged
           if [[ -n "$arguschanged" ]]; then
             echo "::set-output name=arguschanged::true"
           fi
