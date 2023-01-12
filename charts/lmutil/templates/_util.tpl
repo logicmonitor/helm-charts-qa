@@ -116,3 +116,32 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
 {{- end }}
+
+
+{{- /*
+lmutil.merge will merge two YAML templates and output the result.
+This takes an array of three values:
+- the top context
+- the template name of the overrides (destination)
+- the template name of the base (source)
+*/}}
+{{- define "lmutil.merge" -}}
+{{- $top := first . -}}
+{{- $overrides := fromYaml (include (index . 1) $top) | default (dict ) -}}
+{{- $tpl := fromYaml (include (index . 2) $top) | default (dict ) -}}
+{{- toYaml (merge $overrides $tpl) -}}
+{{- end -}}
+
+{{- define "lmutil.default-pod-sec-context-nonroot" }}
+{{- toYaml .Values.podSecurityContext | nindent 0 }}
+{{- end }}
+{{- define "lmutil.pod-sec-context-nonroot" -}}
+{{- include "lmutil.merge" (append . "lmutil.default-pod-sec-context-nonroot" ) -}}
+{{- end -}}
+
+{{- define "lmutil.default-container-sec-context-nonroot" }}
+{{- toYaml .Values.securityContext | nindent 0 }}
+{{- end }}
+{{- define "lmutil.container-sec-context-nonroot" -}}
+{{- include "lmutil.merge" (append . "lmutil.default-container-sec-context-nonroot" ) -}}
+{{- end -}}
