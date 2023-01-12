@@ -50,12 +50,12 @@ jobs:
           if [[ -n "$otherschanged" ]]; then
             echo "::set-output name=otherschanged::true"
           fi
-          arguschanged=$(ct list-changed --config ct.yaml || "no change" | grep argus)
+          arguschanged=$(ct list-changed --config ct.yaml || "no change" | grep "argus")
           echo $arguschanged
           if [[ -n "$arguschanged" ]]; then
             echo "::set-output name=arguschanged::true"
           fi
-          lmutilchanged=$(ct list-changed --config ct.yaml || "no change" | grep lmutil)
+          lmutilchanged=$(ct list-changed --config ct.yaml || "no change" | grep "lmutil")
           if [[ -n "$lmutilchanged" ]]; then
             echo "::set-output name=lmutilchanged::true"
           fi
