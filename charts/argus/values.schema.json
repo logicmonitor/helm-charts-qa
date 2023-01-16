@@ -12,7 +12,6 @@
       "account": "",
       "clusterName": "",
       "clusterTreeParentID": 1,
-      "ignoredAnnotations": [],
       "image": {
         "repository": "logicmonitor/argus",
         "pullPolicy": "",
@@ -221,23 +220,6 @@
         1
       ],
       "$comment": "ui:clusterGroupID tf:optional"
-    },
-    "ignoredAnnotations": {
-      "$id": "#/properties/ignoredAnnotations",
-      "type": "array",
-      "$comment": "tf:optional,yamlencode",
-      "title": "ignoredAnnotations",
-      "description": "Annotations to be ignored while updating a resource",
-      "default": [],
-      "examples": [
-        []
-      ],
-      "additionalItems": true,
-      "items": {
-        "$id": "#/properties/ignoredAnnotations/items",
-        "type": "string"
-      },
-      "uniqueItems": true
     },
     "image": {
       "$id": "#/properties/image",
@@ -856,7 +838,8 @@
       "default": {},
       "examples": [
         {
-          "disable": []
+          "disable": [],
+          "annotations": []
         }
       ],
       "required": [
@@ -878,6 +861,36 @@
             "type": "string"
           },
           "uniqueItems": true
+        },
+        "annotations": {
+          "$comment": "tf:optional,yamlencode",
+          "id": "#/properties/monitoring/properties/annotations",
+          "type": "object",
+          "title": "Annotations settings",
+          "description": "Annotation settings",
+          "default": [],
+          "examples": [
+            {
+              "ignore": []
+            }
+          ],
+          "properties": {
+            "ignore": {
+              "$comment": "tf:optional,yamlencode",
+              "id": "#/properties/monitoring/properties/annotations/ignore",
+              "title": "Ignored Annotations",
+              "description": "Annotations Rules to ignore them while update operation is being performed",
+              "type": "array",
+              "additionalItems": false,
+              "items": {
+                "$id": "#/properties/monitoring/properties/annotations/ignore/items",
+                "type": "string"
+              },
+              "uniqueItems": true
+            }
+          },
+          "additionalItems": false,
+          "items": true
         }
       },
       "additionalProperties": false

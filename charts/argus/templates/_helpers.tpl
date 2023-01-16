@@ -48,9 +48,9 @@ logicmonitor.com/provider: lm-container
 {{- toYaml $resultList | nindent 0}}
 {{- end }}
 
-{{- define "ignored.annotations" }}
-{{ $alwaysIgnore := list "virtual-kubelet.io/last-applied-node-status" "control-plane.alpha.kubernetes.io/leader"}}
-{{ $resultList := ( concat $alwaysIgnore $.Values.ignoredAnnotations | uniq )  }}
+{{- define "monitoring.annotations.ignore" }}
+{{ $alwaysIgnore := list "key in ('virtual-kubelet.io/last-applied-node-status', 'control-plane.alpha.kubernetes.io/leader')"}}
+{{ $resultList := ( concat $alwaysIgnore $.Values.monitoring.annotations.ignore | uniq )  }}
 {{- toYaml $resultList | nindent 0}}
 {{- end }}
 
