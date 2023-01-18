@@ -14,10 +14,17 @@
 
 {{- define "lmutil.custom-collector-pod-sec-context-nonroot" }}
 {{ if eq (include "lmutil.is-openshift" .) "true" }}
+{{ if and (hasKey .Values.collector.env "COLLECTOR_NON_ROOT") (eq .Values.collector.env.COLLECTOR_NON_ROOT "true")  }}
 runAsUser: 1000
 fsGroup: 1000
 runAsGroup: 1000
 runAsNonRoot: true
+{{ else }}
+runAsUser: 0
+fsGroup: 0
+runAsGroup: 0
+runAsNonRoot: false
+{{ end }}
 {{- end }}
 {{- end }}
 
