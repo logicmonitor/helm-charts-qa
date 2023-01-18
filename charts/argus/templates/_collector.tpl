@@ -1,18 +1,18 @@
-{{- define "lmutil.collector-default-pod-sec-context-nonroot" }}
+{{- define "argus.collector-default-pod-sec-context-nonroot" }}
 {{- toYaml .Values.collector.podSecurityContext | nindent 0 }}
 {{- end }}
-{{- define "lmutil.collector-pod-sec-context-nonroot" -}}
-{{- include "lmutil.merge" (append . "lmutil.collector-default-pod-sec-context-nonroot" ) -}}
+{{- define "argus.collector-pod-sec-context-nonroot" -}}
+{{- include "lmutil.merge" (append . "argus.collector-default-pod-sec-context-nonroot" ) -}}
 {{- end -}}
 
-{{- define "lmutil.collector-default-container-sec-context-nonroot" }}
+{{- define "argus.collector-default-container-sec-context-nonroot" }}
 {{- toYaml .Values.collector.securityContext | nindent 0 }}
 {{- end }}
-{{- define "lmutil.collector-container-sec-context-nonroot" -}}
-{{- include "lmutil.merge" (append . "lmutil.collector-default-container-sec-context-nonroot" ) -}}
+{{- define "argus.collector-container-sec-context-nonroot" -}}
+{{- include "lmutil.merge" (append . "argus.collector-default-container-sec-context-nonroot" ) -}}
 {{- end -}}
 
-{{- define "lmutil.custom-collector-pod-sec-context-nonroot" }}
+{{- define "argus.custom-collector-pod-sec-context-nonroot" }}
 {{ if eq (include "lmutil.is-openshift" .) "true" }}
 {{ if and (hasKey .Values.collector.env "COLLECTOR_NON_ROOT") (eq .Values.collector.env.COLLECTOR_NON_ROOT "true")  }}
 runAsUser: 1000
@@ -29,7 +29,7 @@ runAsNonRoot: false
 {{- end }}
 
 
-{{- define "lmutil.custom-collector-container-sec-context-nonroot" }}
+{{- define "argus.custom-collector-container-sec-context-nonroot" }}
 {{- if eq (include "lmutil.is-openshift" .) "true" }}
 allowPrivilegeEscalation: true
 capabilities:
