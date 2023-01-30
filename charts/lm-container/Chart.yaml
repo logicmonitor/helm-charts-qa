@@ -2,7 +2,7 @@ apiVersion: v2
 name: lm-container
 description: A Helm chart for Logicmonitor's Kubernetes monitoring solutions
 type: application
-version: 3.2.0-rc06
+version: 3.2.0-rc07
 maintainers:
   - name: LogicMonitor
     email: argus@logicmonitor.com
