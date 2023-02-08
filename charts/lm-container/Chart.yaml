@@ -2,7 +2,7 @@ apiVersion: v2
 name: lm-container
 description: A Helm chart for Logicmonitor's Kubernetes monitoring solutions
 type: application
-version: 3.2.0-rt01
+version: 3.2.0-rt02
 maintainers:
   - name: LogicMonitor
     email: argus@logicmonitor.com
@@ -11,7 +11,7 @@ kubeVersion: ">= 1.16.0-0"
 dependencies:
   - name: argus
     # need to explicitly quote to make it string, else json schema fails
-    version: "5.2.0-rc07"
+    version: "5.2.0-rc08"
     repository: https://logicmonitor.github.io/helm-charts-qa
     # uncomment to test umbrella chart in while developing
     # repository: file://../argus
@@ -22,7 +22,7 @@ dependencies:
       - monitoring
   - name: collectorset-controller
     # need to explicitly quote to make it string, else json schema fails
-    version: "4.2.0-rc04"
+    version: "4.2.0-rc05"
     repository: https://logicmonitor.github.io/helm-charts-qa
     # uncomment to test umbrella chart in while developing
     # repository: file://../collectorset-controller
@@ -52,4 +52,4 @@ dependencies:
     repository: https://logicmonitor.github.io/helm-charts-qa
     # uncomment to test umbrella chart in while developing
     # repository: file://../lmutil
-    version: 0.1.5
+    version: 0.1.6
