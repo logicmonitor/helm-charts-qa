@@ -7,8 +7,18 @@
 
 {{- define "argus.custom-collector-container-sec-context-nonroot" }}
 {{- $addCaps := .Values.collector.securityContext.capabilities.add }}
-{{- if and (or (eq (include "lmutil.get-platform" .) "gke") (eq (include "lmutil.is-openshift" .) "true")) (not (has "NET_RAW" $addCaps)) }}
+{{ /* GKE specific default caps */ }}
+{{- if and (eq (include "lmutil.get-platform" .) "gke") (not (has "NET_RAW" $addCaps)) }}
 {{- $addCaps = append $addCaps "NET_RAW" }}
+{{- end }}
+{{ /* Openshift specific default caps */ }}
+{{- if (eq (include "lmutil.is-openshift" .) "true")  }}
+{{- if not (has "NET_RAW" $addCaps) }}
+{{- $addCaps = append $addCaps "NET_RAW" }}
+{{- end }}
+{{- if not (has "SETFCAP" $addCaps) }}
+{{- $addCaps = append $addCaps "SETFCAP" }}
+{{- end }}
 {{- end }}
 {{- with .Values.collector.securityContext }}
 {{- if not (hasKey . "capabilities") }}
@@ -19,6 +29,8 @@ capabilities:
   drop: {{ toYaml .Values.collector.securityContext.capabilities.drop | nindent 4 }}
   add: {{ toYaml $addCaps | nindent 4 }}
 {{- end }}
+
+
 {{- define "argus.collector-container-sec-context-nonroot" -}}
 {{- include "lmutil.merge" (append . "argus.collector-default-container-sec-context-nonroot" ) -}}
 {{- end -}}
