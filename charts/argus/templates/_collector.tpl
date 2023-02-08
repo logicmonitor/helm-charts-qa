@@ -7,11 +7,11 @@
 
 {{- define "argus.custom-collector-container-sec-context-nonroot" }}
 {{- $addCaps := .Values.collector.securityContext.capabilities.add }}
-{{ /* GKE specific default caps */ }}
+
 {{- if and (eq (include "lmutil.get-platform" .) "gke") (not (has "NET_RAW" $addCaps)) }}
 {{- $addCaps = append $addCaps "NET_RAW" }}
 {{- end }}
-{{ /* Openshift specific default caps */ }}
+
 {{- if (eq (include "lmutil.is-openshift" .) "true")  }}
 {{- if not (has "NET_RAW" $addCaps) }}
 {{- $addCaps = append $addCaps "NET_RAW" }}
