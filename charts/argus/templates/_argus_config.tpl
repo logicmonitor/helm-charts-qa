@@ -69,7 +69,7 @@ proxy:
 {{- end }}
 {{- if .Values.helmChartReleases }}
 helmChartReleases:
-  ops_notes:
-  {{- toYaml .Values.helmChartReleases.ops_notes | nindent 4 }}
+  opsNotes:
+  {{- toYaml .Values.helmChartReleases.opsNotes | nindent 4 }}
 {{- end }}
 {{- end -}}

@@ -191,7 +191,7 @@ securityContext:
     add: []
     drop: []
 helmChartReleases:
-  ops_notes:
+  opsNotes:
     enabled: true
 
 global:

@@ -2362,9 +2362,9 @@
       "required": [
       ],
       "properties": {
-        "ops_notes": {
+        "opsNotes": {
           "$comment": "tf:optional",
-          "$id": "#/properties/helmChartReleases/ops_notes",
+          "$id": "#/properties/helmChartReleases/opsNotes",
           "type": "object",
           "title": "Configurations related to OpsNotes for helm charts releases",
           "description": "The OpsNotes settings for Helm Charts releases",
@@ -2377,7 +2377,7 @@
           "properties": {
             "enabled": {
               "$comment": "tf:optional",
-              "$id": "#/properties/helmChartReleases/ops_notes/enabled",
+              "$id": "#/properties/helmChartReleases/opsNotes/enabled",
               "type": "boolean",
               "title": "Configurations related to OpsNotes for helm charts releases",
               "description": "The OpsNotes settings for Helm Charts releases",
