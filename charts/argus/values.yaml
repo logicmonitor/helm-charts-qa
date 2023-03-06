@@ -190,6 +190,9 @@ securityContext:
   capabilities:
     add: []
     drop: []
+helmChartReleases:
+  ops_notes:
+    enabled: true
 
 global:
   accessID: ""

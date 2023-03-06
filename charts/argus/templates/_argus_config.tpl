@@ -67,4 +67,9 @@ proxy:
 proxy:
   url: {{ .Values.global.proxy.url }}
 {{- end }}
+{{- if .Values.helmChartReleases }}
+helmChartReleases:
+  ops_notes:
+  {{- toYaml .Values.helmChartReleases.ops_notes | nindent 4 }}
+{{- end }}
 {{- end -}}

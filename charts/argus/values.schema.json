@@ -2349,6 +2349,49 @@
       "$id": "#/properties/securityContext",
       "$ref": "#/definitions/io.k8s.api.core.v1.SecurityContext"
     },
+    "helmChartReleases": {
+      "$comment": "tf:optional",
+      "$id": "#/properties/helmChartReleases",
+      "type": "object",
+      "title": "Configurations related to helm charts releases monitoring",
+      "description": "The Helm Charts releases Monitoring settings",
+      "default": {},
+      "examples": [
+        ""
+      ],
+      "required": [
+      ],
+      "properties": {
+        "ops_notes": {
+          "$comment": "tf:optional",
+          "$id": "#/properties/helmChartReleases/ops_notes",
+          "type": "object",
+          "title": "Configurations related to OpsNotes for helm charts releases",
+          "description": "The OpsNotes settings for Helm Charts releases",
+          "default": {},
+          "examples": [
+            ""
+          ],
+          "required": [
+          ],
+          "properties": {
+            "enabled": {
+              "$comment": "tf:optional",
+              "$id": "#/properties/helmChartReleases/ops_notes/enabled",
+              "type": "boolean",
+              "title": "Configurations related to OpsNotes for helm charts releases",
+              "description": "The OpsNotes settings for Helm Charts releases",
+              "default": {},
+              "examples": [
+                ""
+              ],
+              "required": [
+              ]
+            }
+          }
+        }
+      }
+    },
     "podSecurityContext": {
       "$id": "#/properties/podSecurityContext",
       "$ref": "#/definitions/io.k8s.api.core.v1.PodSecurityContext"
