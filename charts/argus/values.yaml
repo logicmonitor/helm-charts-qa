@@ -194,6 +194,14 @@ helmChartReleases:
   opsNotes:
     enabled: true
 
+opsNotes:
+  enabled: false
+  rules:
+    - predicate: 'type == "secret" && jsonGet(object, "type") == "helm.sh/release.v1" && decodeHelmSecret(previous).ChartVersion != decodeHelmSecret(current).ChartVersion'
+      note: "Upgraded Helm Chart {{ .Current.HelmChart.ChartName }} from version {{ .Previous.HelmChart.Version }} to {{ .Current.HelmChart.Version }}"
+    - predicate: 'type == "deployment" && jsonGet(previous, "spec.template.spec.containers[*].image") != jsonGet(current, "spec.template.spec.containers[*].image")'
+      note: "Deployment {{ .Current.Deployment }} Container's image changed from {{.Previous.Spec.Template.Spec.Container}} to {{}}"
+  
 global:
   accessID: ""
   accessKey: ""
