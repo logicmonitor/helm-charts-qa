@@ -6,9 +6,9 @@ maintainers:
   - email: argus@logicmonitor.com
     name: LogicMonitor
 name: argus
-version: 5.4.0-rc02
+version: 5.4.0-rc03
 home: https://logicmonitor.github.io/helm-charts-qa
-appVersion: v10.4.0-rc2
+appVersion: v10.4.0-rc4
 dependencies:
   - name: lmutil
     repository: https://logicmonitor.github.io/helm-charts-qa
