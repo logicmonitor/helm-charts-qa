@@ -896,7 +896,7 @@
           "$comment": "tf:optional,yamlencode",
           "id": "#/properties/monitoring/properties/labels",
           "type": "object",
-          "title": "Labelss settings",
+          "title": "Labels settings",
           "description": "Label settings",
           "default": [],
           "examples": [
