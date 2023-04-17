@@ -155,16 +155,7 @@ collector:
       add: []
       drop: []
   podSecurityContext: {}
-  affinity:
-    podAntiAffinity:
-      preferredDuringSchedulingIgnoredDuringExecution:
-        - weight: 100
-          podAffinityTerm:
-            labelSelector: 
-              matchLabels:
-                 app.kubernetes.io/name: collectorset
-                 app.kubernetes.io/instance: lm-container-argus
-            topologyKey : kubernetes.io/hostname
+  affinity: {}
   disableLightweightCollector: false
   # collector application configuration such as agent.conf
   collectorConf:
