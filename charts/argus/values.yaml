@@ -155,6 +155,7 @@ collector:
       add: []
       drop: []
   podSecurityContext: {}
+  affinity: {}
   disableLightweightCollector: false
   # collector application configuration such as agent.conf
   collectorConf:
