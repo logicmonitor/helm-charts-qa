@@ -2175,6 +2175,12 @@
           "type": "boolean",
           "default": false
         },
+        "allowMultipleCollectorsOnNode": {
+          "$comment": "tf:optional",
+          "$id": "#/properties/collector/properties/multipleCollectorsOnNode",
+          "type": "boolean",
+          "default": true
+        },
         "collectorConf": {
           "$id": "#/properties/collector/properties/collectorConf",
           "$comment": "tf:optional",
