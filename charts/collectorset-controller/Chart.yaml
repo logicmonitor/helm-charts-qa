@@ -6,7 +6,7 @@ maintainers:
   - email: argus@logicmonitor.com
     name: LogicMonitor
 name: collectorset-controller
-version: 5.0.0-rc02
+version: 5.0.0-rc03
 home: https://logicmonitor.github.io/helm-charts-qa
 appVersion: v7.0.0-rc01
 dependencies:
@@ -14,3 +14,77 @@ dependencies:
     repository: https://logicmonitor.github.io/helm-charts-qa
     # repository: file://../lmutil
     version: 0.1.6
+annotations:
+  artifacthub.io/crds: |
+    - kind: CollectorSet
+      version: v1beta1
+      name: collectorsets.logicmonitor.com
+      displayName: CollectorSet crd
+      description: CollectorSet is used by argus to manage collector ids for monitored resources
+  artifacthub.io/crdsExamples: |
+    - apiVersion: logicmonitor.com/v1beta1
+      kind: CollectorSet
+      metadata:
+        name: lmc-argus
+        namespace: lm-portal
+      spec:
+        affinity:
+          podAntiAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+              - podAffinityTerm:
+                  labelSelector:
+                    matchLabels:
+                      app.kubernetes.io/instance: lmc-argus
+                      app.kubernetes.io/name: collectorset
+                  topologyKey: kubernetes.io/hostname
+                weight: 50
+        annotations: {}
+        clusterName: docker-desktop
+        collectorConfigMapName: lmc-argus-collector #ConfigMap Name of Collector Configuration
+        env:
+          COLLECTOR_NON_ROOT: "false" #Environment variable for collector pods to run as either root or non-root
+        groupID: 0 #The groupId of the collector
+        image:
+          pullPolicy: Always
+          registry: ""
+          repository: logicmonitor/collector
+          tag: v2.0.0-alpha3
+        labels: #The Labels of the collector
+          app: collector
+          app.kubernetes.io/part-of: argus
+        podSecurityContext: {}
+        policy:
+          distributionStrategy: RoundRobin #Distribution strategy to provide collector ID to the client requests from available running collectors
+          orchestrator: Kubernetes #The container orchestration platform designed to automate the deployment, scaling, and management of containerized applications
+        probe:
+          enabled: true
+          liveness:
+            failureThreshold: 30
+            periodSeconds: 10
+          readiness:
+            failureThreshold: 30
+            periodSeconds: 10
+          startup:
+            failureThreshold: 30
+            periodSeconds: 20
+        proxy:
+          url: "" #The Http/Https proxy url of the collector
+        replicas: 1
+        secretName: ""
+        securityContext:
+          capabilities:
+            add: []
+            drop: []
+        size: small
+        statefulsetspec: #The collector StatefulSet specification for customizations
+          template:
+            spec:
+              nodeSelector: {}
+              priorityClassName: ""
+              tolerations: []
+        useEA: true #Flag to opt for EA collector versions
+        version: 0 #The collector version (Fractional numbered version is invalid. For ex: 29.101 is invalid, correct input is 29101)
+      status:
+        ids:
+          - 14
+        state: Registered
