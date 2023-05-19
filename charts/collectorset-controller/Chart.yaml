@@ -41,15 +41,13 @@ annotations:
         annotations: {}
         clusterName: docker-desktop
         collectorConfigMapName: lmc-argus-collector
-        env:
-          COLLECTOR_NON_ROOT: "false"
-        groupID: 0 #The groupId of the collector
+        groupID: 0
         image:
           pullPolicy: Always
           registry: ""
           repository: logicmonitor/collector
           tag: latest
-        labels: #The Labels of the collector
+        labels:
           app: collector
           app.kubernetes.io/part-of: argus
         podSecurityContext: {}
