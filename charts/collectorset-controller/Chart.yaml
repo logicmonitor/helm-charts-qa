@@ -6,7 +6,7 @@ maintainers:
   - email: argus@logicmonitor.com
     name: LogicMonitor
 name: collectorset-controller
-version: 5.0.0-rc03
+version: 5.0.0-rc04
 home: https://logicmonitor.github.io/helm-charts-qa
 appVersion: v7.0.0-rc01
 dependencies:
@@ -40,22 +40,22 @@ annotations:
                 weight: 50
         annotations: {}
         clusterName: docker-desktop
-        collectorConfigMapName: lmc-argus-collector #ConfigMap Name of Collector Configuration
+        collectorConfigMapName: lmc-argus-collector
         env:
-          COLLECTOR_NON_ROOT: "false" #Environment variable for collector pods to run as either root or non-root
+          COLLECTOR_NON_ROOT: "false"
         groupID: 0 #The groupId of the collector
         image:
           pullPolicy: Always
           registry: ""
           repository: logicmonitor/collector
-          tag: v2.0.0-alpha3
+          tag: latest
         labels: #The Labels of the collector
           app: collector
           app.kubernetes.io/part-of: argus
         podSecurityContext: {}
         policy:
-          distributionStrategy: RoundRobin #Distribution strategy to provide collector ID to the client requests from available running collectors
-          orchestrator: Kubernetes #The container orchestration platform designed to automate the deployment, scaling, and management of containerized applications
+          distributionStrategy: RoundRobin
+          orchestrator: Kubernetes
         probe:
           enabled: true
           liveness:
@@ -68,7 +68,7 @@ annotations:
             failureThreshold: 30
             periodSeconds: 20
         proxy:
-          url: "" #The Http/Https proxy url of the collector
+          url: ""
         replicas: 1
         secretName: ""
         securityContext:
@@ -76,15 +76,11 @@ annotations:
             add: []
             drop: []
         size: small
-        statefulsetspec: #The collector StatefulSet specification for customizations
+        statefulsetspec:
           template:
             spec:
               nodeSelector: {}
               priorityClassName: ""
               tolerations: []
-        useEA: true #Flag to opt for EA collector versions
-        version: 0 #The collector version (Fractional numbered version is invalid. For ex: 29.101 is invalid, correct input is 29101)
-      status:
-        ids:
-          - 14
-        state: Registered
+        useEA: true
+        version: 0
