@@ -25,7 +25,6 @@ kube-state-metrics:
     telemetryPort: 8081
   replicas: 1
   collectors:
-    - ingresses
     - daemonsets
     - replicasets
     - statefulsets
