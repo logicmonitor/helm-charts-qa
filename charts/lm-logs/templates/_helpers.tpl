@@ -24,6 +24,25 @@ If release name contains chart name it will be used as a full name.
 {{- end }}
 
 {{/*
+Adding validations for clustername for lm-logs to contain only lower alphanumeric or '-' and start and end with an alphanumeric character
+*/}}
+{{- define "kubernetes.cluster_name" -}}
+{{- $cluster := "" -}}
+{{- if .Values.kubernetes.cluster_name -}}
+{{- $cluster = .Values.kubernetes.cluster_name -}}
+{{- else if .Values.global.clusterName -}}
+{{- $cluster = .Values.global.clusterName -}}
+{{- end -}}
+{{- if ne $cluster "" -}}
+{{- if regexMatch "^[a-z0-9][a-z0-9-]*[a-z0-9]$" $cluster }}
+kubernetes.cluster_name {{ $cluster }}
+{{- else -}}
+{{- fail "cluster_name should contain only lower alphanumeric or '-' and should start and end with an alphanumeric character" }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{/*
 Create chart name and version as used by the chart label.
 */}}
 {{- define "fluentd.chart" -}}
@@ -96,21 +115,5 @@ Return the appropriate apiVersion for rbac.
 {{- end -}}
 
 {{- define "fluentd-image" -}}
-{{- $registry := "" -}}
-{{- $repo := "logicmonitor" -}}
-{{- if .Values.image.registry -}}
-{{- $registry = .Values.image.registry -}}
-{{- else if .Values.global.image.registry -}}
-{{- $registry = .Values.global.image.registry -}}
-{{- end -}}
-{{- if .Values.image.repository -}}
-{{- $repo = .Values.image.repository -}}
-{{- else if .Values.global.image.repository -}}
-{{- $repo = .Values.global.image.repository -}}
-{{- end -}}
-{{- if ne $registry "" -}}
-"{{ $registry }}/{{ $repo }}/{{ .Values.image.name }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-{{- else -}}
-"{{ $repo }}/{{ .Values.image.name }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-{{- end -}}
+"{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
 {{- end -}}

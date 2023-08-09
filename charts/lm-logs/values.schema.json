@@ -1,5 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Lm-Logs Helm Chart Configuration Schema",
   "type": "object",
   "properties": {
     "enabled": {
@@ -13,33 +14,13 @@
       "additionalProperties": false,
       "type": "object",
       "properties": {
-        "name": {
-          "$id": "#/properties/image/properties/name",
-          "$comment": "tf:optional",
-          "type": "string",
-          "default": "lm-logs-k8s-fluentd",
-          "minLength": 1,
-          "examples": [
-            "lm-logs-k8s-fluentd"
-          ]
-        },
-        "registry": {
-          "$comment": "tf:optional",
-          "$id": "#/properties/image/properties/registry",
-          "type": "string",
-          "default": "",
-          "minLength": 0,
-          "examples": [
-            "382028353997.dkr.ecr.us-west-2.amazonaws.com"
-          ]
-        },
         "repository": {
           "$comment": "tf:optional",
           "$id": "#/properties/image/properties/repository",
           "type": "string",
-          "default": "",
+          "default": "logicmonitor/lm-logs-k8s-fluentd",
           "examples": [
-            "logicmonitor"
+            "logicmonitor/lm-logs-k8s-fluentd"
           ]
         },
         "pullPolicy": {
@@ -70,8 +51,8 @@
         }
       }
     },
-    "accessID": {
-      "$id": "#/properties/accessID",
+    "lm_access_id": {
+      "$id": "#/properties/lm_access_id",
       "type": "string",
       "title": "Logicmonitor API Token accessID",
       "description": "The LogicMonitor API key ID.\nNOTE: Ensure to add surrounding double quotes to avoid special character parsing errors.",
@@ -79,10 +60,10 @@
       "examples": [
         ""
       ],
-      "$comment": "ui:accessId-ignore tf:optional"
+      "$comment": "ui:lm_access_id-ignore tf:optional"
     },
-    "accessKey": {
-      "$id": "#/properties/accessKey",
+    "lm_access_key": {
+      "$id": "#/properties/lm_access_key",
       "type": "string",
       "title": "Logicmonitor API Token accessKey",
       "description": "The LogicMonitor API key.\nNOTE: Ensure to add surrounding double quotes to avoid special character parsing errors.",
@@ -90,10 +71,10 @@
       "examples": [
         ""
       ],
-      "$comment": "ui:accessKey-ignore tf:optional"
+      "$comment": "ui:lm_access_key-ignore tf:optional"
     },
-    "account": {
-      "$id": "#/properties/account",
+    "lm_company_name": {
+      "$id": "#/properties/lm_company_name",
       "type": "string",
       "title": "Logicmonitor account name",
       "description": "The LogicMonitor account name.nValue should be trimmed from URL \"___.logicmonitor.com\"\nexample: lmqauat.logicmonitor.com then \"lmqauat\" must be a valid value.",
@@ -101,7 +82,7 @@
       "examples": [
         "lmqauat"
       ],
-      "$comment": "ui:account-ignore tf:optional"
+      "$comment": "ui:lm_company_name-ignore tf:optional"
     },
     "clusterName": {
       "$id": "#/properties/clusterName",
@@ -161,46 +142,6 @@
             ""
           ],
           "$comment": "ui:clusterName-ignore tf:"
-        },
-        "image": {
-          "type": "object",
-          "properties": {
-            "registry": {
-              "$comment": "tf:optional",
-              "$id": "#/properties/global/properties/image/properties/registry",
-              "type": "string",
-              "default": "",
-              "minLength": 0,
-              "examples": [
-                "382028353997.dkr.ecr.us-west-2.amazonaws.com"
-              ]
-            },
-            "repository": {
-              "$comment": "tf:optional",
-              "$id": "#/properties/global/properties/image/properties/repository",
-              "type": "string",
-              "default": "",
-              "examples": [
-                "logicmonitor"
-              ]
-            },
-            "pullPolicy": {
-              "$id": "#/properties/global/properties/image/properties/pullPolicy",
-              "$comment": "tf:optional",
-              "type": "string",
-              "description": "Overrides the image pullPolicy.\nDefaults to \"Always\".",
-              "default": "Always",
-              "enum": [
-                "Always",
-                "IfNotPresent",
-                "Never",
-                ""
-              ],
-              "examples": [
-                "Always"
-              ]
-            }
-          }
         }
       }
     },
@@ -358,6 +299,9 @@
       "properties": {
         "multiline_start_regexp": {
           "type": "string"
+        },
+        "cluster_name" : {
+          "type": "string"
         }
       }
     },
@@ -412,9 +356,9 @@
   },
   "additionalProperties": false,
   "required": [
-    "accessID",
-    "accessKey",
-    "account"
+    "lm_access_id",
+    "lm_access_key",
+    "lm_company_name"
   ],
   "definitions": {
     "io.k8s.apimachinery.pkg.api.resource.Quantity": {
