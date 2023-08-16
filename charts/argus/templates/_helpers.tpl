@@ -131,3 +131,66 @@ capabilities:
   drop: {{ toYaml .Values.collector.securityContext.capabilities.drop | nindent 4 }}
   add: {{ toYaml $addCaps | nindent 4 }}
 {{- end }}
+
+{{/*
+LM Credentials and Proxy Details
+*/}}
+
+{{- define "lm-credentials-and-proxy-details" -}}
+{{- $secretObj := (lookup "v1" "Secret" .Release.Namespace .Values.global.userDefinedSecret) | default dict }}
+{{- $secretData := (get $secretObj "data") | default dict }}
+- name: ACCESS_ID
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "argus-secret-name" . }}
+      key: accessID
+- name: ACCESS_KEY
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "argus-secret-name" . }}
+      key: accessKey
+- name: ACCOUNT
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "argus-secret-name" . }}
+      key: account
+- name: ETCD_DISCOVERY_TOKEN
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "argus-secret-name" . }}
+      key: etcdDiscoveryToken
+{{- if or $secretData.argusProxyUser $secretData.proxyUser .Values.proxy.user }}
+- name: PROXY_USER
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "argus-secret-name" . }}
+      {{- if $secretData.argusProxyUser }}
+      key: argusProxyUser
+      {{- else }}
+      key: proxyUser
+      {{- end }}
+{{- end }}
+{{- if or $secretData.argusProxyPass $secretData.proxyPass .Values.proxy.pass }}
+- name: PROXY_PASS
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "argus-secret-name" . }}
+      {{- if $secretData.argusProxyPass }}
+      key: argusProxyPass
+      {{- else }}
+      key: proxyPass
+      {{- end }}
+{{- end }}
+{{- end }}
+
+
+{{/*
+Return secret name to be used based on the userDefinedSecret.
+*/}}
+{{- define "argus-secret-name" -}}
+{{- if .Values.global.userDefinedSecret -}}
+{{- .Values.global.userDefinedSecret -}}
+{{- else -}}
+{{- include "lmutil.fullname" . -}}
+{{- end -}}
+{{- end -}}
