@@ -149,7 +149,7 @@ This takes an array of three values:
 {{/*
 Return secret name to be used based on the userDefinedSecret.
 */}}
-{{- define "argus-secret-name" -}}
+{{- define "lmutil.argus-secret-name" -}}
 {{- if .Values.global.userDefinedSecret -}}
 {{- .Values.global.userDefinedSecret -}}
 {{- else -}}
