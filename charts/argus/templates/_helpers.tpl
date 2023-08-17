@@ -133,7 +133,10 @@ capabilities:
 {{- end }}
 
 {{/*
-LM Credentials and Proxy Details
+LM Credentials and Proxy Details.
+The user can provide proxy details in values.yaml or by creating user defined secret.
+Argus proxy takes precendence over the global proxy. We need to check if the user defined secret contains
+Argus proxy details or not, for this we're using Lookup function in helm.
 */}}
 
 {{- define "lm-credentials-and-proxy-details" -}}
@@ -142,28 +145,28 @@ LM Credentials and Proxy Details
 - name: ACCESS_ID
   valueFrom:
     secretKeyRef:
-      name: {{ include "argus-secret-name" . }}
+      name: {{ include "lmutil.secret-name" . }}
       key: accessID
 - name: ACCESS_KEY
   valueFrom:
     secretKeyRef:
-      name: {{ include "argus-secret-name" . }}
+      name: {{ include "lmutil.secret-name" . }}
       key: accessKey
 - name: ACCOUNT
   valueFrom:
     secretKeyRef:
-      name: {{ include "argus-secret-name" . }}
+      name: {{ include "lmutil.secret-name" . }}
       key: account
 - name: ETCD_DISCOVERY_TOKEN
   valueFrom:
     secretKeyRef:
-      name: {{ include "argus-secret-name" . }}
+      name: {{ include "lmutil.secret-name" . }}
       key: etcdDiscoveryToken
 {{- if or $secretData.argusProxyUser $secretData.proxyUser .Values.proxy.user }}
 - name: PROXY_USER
   valueFrom:
     secretKeyRef:
-      name: {{ include "argus-secret-name" . }}
+      name: {{ include "lmutil.secret-name" . }}
       {{- if $secretData.argusProxyUser }}
       key: argusProxyUser
       {{- else }}
@@ -174,7 +177,7 @@ LM Credentials and Proxy Details
 - name: PROXY_PASS
   valueFrom:
     secretKeyRef:
-      name: {{ include "argus-secret-name" . }}
+      name: {{ include "lmutil.secret-name" . }}
       {{- if $secretData.argusProxyPass }}
       key: argusProxyPass
       {{- else }}
@@ -182,15 +185,3 @@ LM Credentials and Proxy Details
       {{- end }}
 {{- end }}
 {{- end }}
-
-
-{{/*
-Return secret name to be used based on the userDefinedSecret.
-*/}}
-{{- define "argus-secret-name" -}}
-{{- if .Values.global.userDefinedSecret -}}
-{{- .Values.global.userDefinedSecret -}}
-{{- else -}}
-{{- include "lmutil.fullname" . -}}
-{{- end -}}
-{{- end -}}
