@@ -145,3 +145,14 @@ This takes an array of three values:
 {{- define "lmutil.container-sec-context-nonroot" -}}
 {{- include "lmutil.merge" (append . "lmutil.default-container-sec-context-nonroot" ) -}}
 {{- end -}}
+
+{{/*
+Return secret name to be used based on the userDefinedSecret.
+*/}}
+{{- define "lmutil.secret-name" -}}
+{{- if .Values.global.userDefinedSecret -}}
+{{- .Values.global.userDefinedSecret -}}
+{{- else -}}
+{{- include "lmutil.fullname" . -}}
+{{- end -}}
+{{- end -}}
