@@ -162,7 +162,7 @@ Argus proxy details or not, for this we're using Lookup function in helm.
     secretKeyRef:
       name: {{ include "lmutil.secret-name" . }}
       key: etcdDiscoveryToken
-{{- if or $secretData.argusProxyUser $secretData.proxyUser .Values.proxy.user }}
+{{- if or $secretData.argusProxyUser $secretData.proxyUser .Values.proxy.user .Values.global.proxy.user }}
 - name: PROXY_USER
   valueFrom:
     secretKeyRef:
@@ -173,7 +173,7 @@ Argus proxy details or not, for this we're using Lookup function in helm.
       key: proxyUser
       {{- end }}
 {{- end }}
-{{- if or $secretData.argusProxyPass $secretData.proxyPass .Values.proxy.pass }}
+{{- if or $secretData.argusProxyPass $secretData.proxyPass .Values.proxy.pass .Values.global.proxy.pass }}
 - name: PROXY_PASS
   valueFrom:
     secretKeyRef:
