@@ -69,13 +69,7 @@ Argus proxy details or not, for this we're using Lookup function in helm.
 {{- define "lm-credentials-and-proxy-details" -}}
 {{- $secretObj := (lookup "v1" "Secret" .Release.Namespace .Values.global.userDefinedSecret) | default dict }}
 {{- $secretData := (get $secretObj "data") | default dict }}
-{{- if and .Values.global.userDefinedSecret (not $secretData.accessID) }}
-{{- required "A valid accessID key/value is required in the provided secret" $secretData.accessID }}
-{{- else if and .Values.global.userDefinedSecret (not $secretData.accessKey) }}
-{{- required "A valid accessKey key/value is required in the provided secret" $secretData.accessKey }}
-{{- else if and .Values.global.userDefinedSecret (not $secretData.account) }}
-{{- required "A valid account key/value is required in the provided secret" $secretData.account }}
-{{- end }}
+{{- include "lmutil.validate-user-provided-secret" $secretData }}
 - name: ACCESS_ID
   valueFrom:
     secretKeyRef:
