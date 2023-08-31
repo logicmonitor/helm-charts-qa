@@ -142,7 +142,8 @@ Argus proxy details or not, for this we're using Lookup function in helm.
 {{- define "lm-credentials-and-proxy-details" -}}
 {{- $secretObj := (lookup "v1" "Secret" .Release.Namespace .Values.global.userDefinedSecret) | default dict }}
 {{- $secretData := (get $secretObj "data") | default dict }}
-{{- include "lmutil.validate-user-provided-secret" $secretData }}
+{{- $data := dict "root" . "secretdata" (get $secretObj "data") | default dict }}
+{{- include "lmutil.validate-user-provided-secret" $data }}
 - name: ACCESS_ID
   valueFrom:
     secretKeyRef:
