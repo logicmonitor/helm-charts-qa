@@ -2,7 +2,7 @@
 
 This chart deploy a fluentd based daemonset to collect and forward logs to LogicMonitor
 #### Prerequisite
-- LogicMonitor Collector [installed and monitoring your Kubernetes Cluster](https://www.logicmonitor.com/support/monitoring/containers/kubernetes/adding-your-kubernetes-cluster-into-monitoring). 
+- LogicMonitor Collector [installed and monitoring your Kubernetes Cluster](https://www.logicmonitor.com/support/monitoring/containers/kubernetes/adding-your-kubernetes-cluster-into-monitoring).
 
 #### Deploy
 
@@ -39,12 +39,14 @@ The following tables lists the configurable parameters of the lm-logs chart and 
 | `nodeSelectors`             | Node labels for pod assignment		            | `{}`  (evaluated as a template)                         |
 | `affinity`                  | Affinity for pod assignment		                | `{}`  (evaluated as a template)                         |
 | `env`                       | Map to add extra environment variables	        | `{}`                                                    |
+| `kubernetes.multiline_start_regexp` | Regexp to match beginning of multiline	| `/^\[(\d{4}-)?\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3}.*\]/` |
+| `kubernetes.cluster_name`       | ClusterName given while adding k8s cluster  	| `""`                                                    |
 
 ### Avaialble Environment variables
 For descriptions see: https://github.com/fabric8io/fluent-plugin-kubernetes_metadata_filter
 
 * FLUENT_LOG_LEVEL
-* FLUENT_CONTAINER_TAIL_TAG 
+* FLUENT_CONTAINER_TAIL_TAG
 * FLUENT_CONTAINER_TAIL_EXCLUDE_PATH
 * FLUENT_CONTAINER_TAIL_PARSER_TYPE
 * FLUENT_FILTER_KUBERNETES_URL
@@ -62,7 +64,7 @@ To enable this feature set `fluent.device_less_logs=true`
 - k8s pods are ephemeral, anomaly detection is done per pod. Which creates high volume of anomalies and makes it hard to monitor.
 - When new pod is created, argus takes time to register it as LM Device and resource mapping fails until then. Consequently we miss initial pod logs.
 
-When `fluent.device_less_logs=true` 
+When `fluent.device_less_logs=true`
 Anomaly detection will be done on `namespace` and `service`
 - namespace will be k8s namespace
 - service will be extracted from metadata for yaml in the following priority.
