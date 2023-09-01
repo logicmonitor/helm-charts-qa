@@ -86,11 +86,13 @@ Argus proxy details or not, for this we're using Lookup function in helm.
     secretKeyRef:
       name: {{ include "lmutil.secret-name" . }}
       key: account
+{{- if $secretData.etcdDiscoveryToken }}
 - name: ETCD_DISCOVERY_TOKEN
   valueFrom:
     secretKeyRef:
       name: {{ include "lmutil.secret-name" . }}
       key: etcdDiscoveryToken
+{{- end }}
 {{- if or $secretData.collectorSetControllerProxyUser $secretData.proxyUser .Values.proxy.user .Values.global.proxy.user }}
 - name: PROXY_USER
   valueFrom:
