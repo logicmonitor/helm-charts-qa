@@ -156,3 +156,16 @@ Return secret name to be used based on the userDefinedSecret.
 {{- include "lmutil.fullname" . -}}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Check if the user provided secret contains mandatory fields i.e.accessID, accessKey and account
+*/}}
+{{- define "lmutil.validate-user-provided-secret" -}}
+{{- if and .root.Values.global.userDefinedSecret (not .secretdata.accessID) }}
+{{- required "A valid accessID is required in the provided secret" .secretdata.accessID }}
+{{- else if and .root.Values.global.userDefinedSecret (not .secretdata.accessKey) }}
+{{- required "A valid accessKey is required in the provided secret" .secretdata.accessKey }}
+{{- else if and .root.Values.global.userDefinedSecret (not .secretdata.account) }}
+{{- required "A valid account is required in the provided secret" .secretdata.account }}
+{{- end }}
+{{- end }}

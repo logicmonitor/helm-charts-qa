@@ -69,6 +69,8 @@ Argus proxy details or not, for this we're using Lookup function in helm.
 {{- define "lm-credentials-and-proxy-details" -}}
 {{- $secretObj := (lookup "v1" "Secret" .Release.Namespace .Values.global.userDefinedSecret) | default dict }}
 {{- $secretData := (get $secretObj "data") | default dict }}
+{{- $data := dict "root" . "secretdata" $secretData }}
+{{- include "lmutil.validate-user-provided-secret" $data }}
 - name: ACCESS_ID
   valueFrom:
     secretKeyRef:
@@ -84,11 +86,13 @@ Argus proxy details or not, for this we're using Lookup function in helm.
     secretKeyRef:
       name: {{ include "lmutil.secret-name" . }}
       key: account
+{{- if $secretData.etcdDiscoveryToken }}
 - name: ETCD_DISCOVERY_TOKEN
   valueFrom:
     secretKeyRef:
       name: {{ include "lmutil.secret-name" . }}
       key: etcdDiscoveryToken
+{{- end }}
 {{- if or $secretData.collectorSetControllerProxyUser $secretData.proxyUser .Values.proxy.user .Values.global.proxy.user }}
 - name: PROXY_USER
   valueFrom:
