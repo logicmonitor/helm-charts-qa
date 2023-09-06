@@ -416,6 +416,50 @@
       },
       "uniqueItems": true
     },
+    "resources": {
+      "$id": "#/properties/resources",
+      "type": "object",
+      "$comment": "tf:optional",
+      "title": "The Argus resource limits schema",
+      "description": "The Argus pod resource limits",
+      "default": {},
+      "examples": [
+        {
+          "limits": {
+            "cpu": "1000m",
+            "memory": "1Gi",
+            "ephemeral-storage": "100Mi"
+          },
+          "requests": {
+            "cpu": "1000m",
+            "memory": "1Gi",
+            "ephemeral-storage": "100Mi"
+          }
+        }
+      ],
+      "properties": {
+        "limits": {
+          "$id": "#/properties/resources/properties/limits",
+          "$comment": "tf:optional,yamlencode",
+          "additionalProperties": {
+            "$ref": "#/definitions/io.k8s.apimachinery.pkg.api.resource.Quantity"
+          },
+          "description": "Limits describes the maximum amount of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/",
+          "type": "object"
+        },
+        "requests": {
+          "$id": "#/properties/resources/properties/requests",
+          "$comment": "tf:optional,yamlencode",
+          "additionalProperties": {
+            "$ref": "#/definitions/io.k8s.apimachinery.pkg.api.resource.Quantity"
+          },
+          "description": "Requests describes the minimum amount of compute resources required. If Requests is omitted for a container, it defaults to Limits if that is explicitly specified, otherwise to an implementation-defined value. More info: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "required": []
+    },
     "labels": {
       "$comment": "tf:optional,yamlencode",
       "$id": "#/properties/labels",
@@ -954,6 +998,16 @@
         }
       },
       "type": "object"
+    },
+    "io.k8s.apimachinery.pkg.api.resource.Quantity": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        }
+      ]
     }
   }
 }
