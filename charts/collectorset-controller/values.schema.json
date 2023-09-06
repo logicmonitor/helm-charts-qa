@@ -420,8 +420,8 @@
       "$id": "#/properties/resources",
       "type": "object",
       "$comment": "tf:optional",
-      "title": "The Argus resource limits schema",
-      "description": "The Argus pod resource limits",
+      "title": "The CSC resource limits schema",
+      "description": "The CSC pod resource limits",
       "default": {},
       "examples": [
         {
