@@ -35,8 +35,13 @@ data:
       @type lm
       company_name {{ if .Values.lm_company_name }} {{ .Values.lm_company_name }} {{ else }} {{ required "A valid .Values.lm_company_name or .Values.global.account entry is required!" .Values.global.account }} {{ end }}
       resource_mapping {"kubernetes.pod_name": "auto.name"}
+      {{- if  and ( or .Values.lm_access_id .Values.global.accessID ) ( or .Values.lm_access_key .Values.global.accessKey) }}
       access_id {{ .Values.lm_access_id | default .Values.global.accessID }}
       access_key {{ .Values.lm_access_key | default .Values.global.accessKey }}
+      {{- else if .Values.lm_bearer_token }}
+      bearer_token {{ .Values.lm_bearer_token }}
+      {{- else }} {{ required "Either specify valid lm_access_id and lm_access_key both or lm_bearer_token for authentication with LogicMonitor." .Values.lm_bearer_token }}
+      {{- end}}
       debug false
       compression gzip
       include_metadata {{ hasKey .Values.fluent "include_metadata" | ternary .Values.fluent.include_metadata true }}
