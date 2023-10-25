@@ -99,3 +99,22 @@ capabilities:
 {{- end }}
 {{- end }}
 {{- end }}
+
+{{/* This template is used for case checking of COLLECTOR_NON_ROOT env variable */}}
+{{- define "non-root-prop-check"}}
+{{$flag := false}}
+{{- if and (not (empty .Values.collector.env))}}
+{{- range $key, $value := .Values.collector.env }}
+    {{- if eq (upper $key) "COLLECTOR_NON_ROOT"}}
+        {{- if eq $key "COLLECTOR_NON_ROOT"}}
+            {{- $flag = false}}
+        {{- else }}
+            {{- $flag = true}}
+        {{- end }}
+    {{- end}}
+{{- end}}
+{{- if $flag }}
+{{- fail (printf "COLLECTOR_NON_ROOT env is case sensitive, please check your configurations.") }}
+{{- end}}
+{{- end}}
+{{- end}}
