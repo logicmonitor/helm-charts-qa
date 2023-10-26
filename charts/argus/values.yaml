@@ -203,6 +203,10 @@ securityContext:
     add: []
     drop: []
 
+overview:
+  enable: false
+  duration: 60000
+
 global:
   accessID: ""
   accessKey: ""
