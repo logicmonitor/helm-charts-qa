@@ -110,7 +110,6 @@ capabilities:
 {{- range $key, $value := .Values.collector.env }}
     {{- if eq (upper $key) "COLLECTOR_NON_ROOT"}}
         {{- if eq $key "COLLECTOR_NON_ROOT"}}
-            {{- $isKeyInvalid = false}}
             {{- if and (not (empty $value)) (not (or (has $value $falseCheckList) (has $value $trueCheckList))) }}
             {{- $isValueInvalid = true}}
             {{- end}}
