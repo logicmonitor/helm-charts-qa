@@ -102,19 +102,28 @@ capabilities:
 
 {{/* This template is used for case checking of COLLECTOR_NON_ROOT env variable */}}
 {{- define "non-root-prop-check"}}
-{{$flag := false}}
-{{- if and (not (empty .Values.collector.env))}}
+{{$keyCheckFlag := false}}
+{{$valueCheckFlag := false}}
+{{- $trueCheckList := list "true" "1" "True" "yes" "Yes"}}
+{{- $falseCheckList := list "false" "0" "False" "no" "No"}}
+{{- if not (empty .Values.collector.env)}}
 {{- range $key, $value := .Values.collector.env }}
     {{- if eq (upper $key) "COLLECTOR_NON_ROOT"}}
         {{- if eq $key "COLLECTOR_NON_ROOT"}}
-            {{- $flag = false}}
+            {{- $keyCheckFlag = false}}
+            {{- if and (not (empty $value)) (not (or (has $value $falseCheckList) (has $value $trueCheckList))) }}
+            {{- $valueCheckFlag = true}}
+            {{- end}}
         {{- else }}
-            {{- $flag = true}}
+            {{- $keyCheckFlag = true}}
         {{- end }}
     {{- end}}
 {{- end}}
-{{- if $flag }}
-{{- fail (printf "COLLECTOR_NON_ROOT env is case sensitive, please check your configurations.") }}
+{{- if $keyCheckFlag }}
+{{- fail (printf "COLLECTOR_NON_ROOT param is case sensitive, please check your configurations.") }}
+{{- end}}
+{{- if $valueCheckFlag }}
+{{- fail (printf "Please provide a valid boolean value for COLLECTOR_NON_ROOT param")}}
 {{- end}}
 {{- end}}
 {{- end}}
