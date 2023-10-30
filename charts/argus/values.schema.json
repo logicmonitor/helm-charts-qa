@@ -1324,7 +1324,7 @@
       "examples": [
         {
           "enable": false,
-          "duration": 2112
+          "duration": "*/1 * * * *"
         }
       ],
       "required": [
@@ -1345,13 +1345,11 @@
         "duration": {
           "$comment": "tf:optional",
           "$id": "#/properties/overview/properties/duration",
-          "type": "integer",
+          "type": "string",
           "title": "The duration schema",
           "description": "Duration of argus pod annotation update in milliseconds.",
-          "default": 60000,
           "examples": [
-            60000,
-            120000
+            "*/1 * * * *"
           ]
         }
       },

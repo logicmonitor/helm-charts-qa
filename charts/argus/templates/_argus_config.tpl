@@ -15,8 +15,7 @@ etcdDiscoveryToken: {{ .Values.etcdDiscoveryToken | quote }}
 clusterTreeParentID: {{ .Values.clusterTreeParentID }}
 resourceContainerID: {{ .Values.resourceContainerID }}
 overview:
-  enable: {{ .Values.overview.enable }}
-  duration: {{ .Values.overview.duration }}
+ {{- toYaml .Values.overview | nindent 2 }}
 enableLegacyResourceTree: {{ .Values.enableLegacyResourceTree }}
 globalDeleteAfterDuration: {{ .Values.lm.resource.globalDeleteAfterDuration | default "P0DT0H0M0S" }}
 {{- if .Values.telemetryCronString }}
