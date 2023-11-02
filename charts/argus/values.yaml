@@ -205,7 +205,7 @@ securityContext:
 
 overview:
   enable: false
-  duration: "*/1 * * * *"
+  duration: "* * * * *"
 
 global:
   accessID: ""
