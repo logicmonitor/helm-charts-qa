@@ -1347,7 +1347,7 @@
           "$id": "#/properties/overview/properties/duration",
           "type": "string",
           "title": "The duration schema",
-          "description": "Duration of argus pod annotation update in milliseconds.",
+          "description": "Duration of argus pod annotation update in cron.",
           "examples": [
             "* * * * *"
           ]
