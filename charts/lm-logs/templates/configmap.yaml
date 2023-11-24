@@ -79,7 +79,7 @@ data:
 
     <filter kubernetes.**>
       @type concat
-      key log
+      key {{ .Values.kubernetes.multiline_concat_key }}
       seperator ""
       multiline_start_regexp {{ .Values.kubernetes.multiline_start_regexp }}
       timeout_label @NORMAL

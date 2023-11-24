@@ -313,6 +313,9 @@
         },
         "cluster_name" : {
           "type": "string"
+        },
+        "multiline_concat_key" : {
+          "type": "string"
         }
       }
     },
