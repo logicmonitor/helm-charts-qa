@@ -41,7 +41,7 @@ The following tables lists the configurable parameters of the lm-logs chart and 
 | `env`                       | Map to add extra environment variables	        | `{}`                                                    |
 | `kubernetes.multiline_start_regexp` | Regexp to match beginning of multiline	| `/^\[(\d{4}-)?\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3}.*\]/` |
 | `kubernetes.cluster_name`       | ClusterName given while adding k8s cluster  	| `""`                                                |
-| `kubernetes.multiline_concat_key`       | Key to look for fluentD to concatenate multiline logs   	| `"message"`                     |
+| `kubernetes.multiline_concat_key`       | Key to look for fluentD to concatenate multiline logs   	| `"log"`                     |
 
 
 ### Avaialble Environment variables
@@ -91,6 +91,6 @@ helm upgrade --install -n <namespace> \
 --set lm_access_id="<access_id>" \
 --set lm_access_key="<access_key"> \
 --set env.FLUENT_CONTAINER_TAIL_PARSER_TYPE="cri" \
---set kubernetes.multiline_concat_key="log" \
+--set kubernetes.multiline_concat_key="message" \
 lm-logs logicmonitor/lm-logs
 ```
