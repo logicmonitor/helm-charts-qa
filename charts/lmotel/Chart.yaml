@@ -6,7 +6,7 @@ maintainers:
 - name: LogicMonitor
   email: lmotel@logicmonitor.com
 name: lmotel
-version: 1.8.0-rc01
+version: 1.9.0-rc01
 home: https://logicmonitor.github.io/helm-charts-qa
 appVersion: v2.0.10
 dependencies:
