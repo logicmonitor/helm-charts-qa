@@ -120,3 +120,22 @@ jobs:
           repository: terraform-lm-lmc
           commit_message: "release(*): releasing new version"
           file_pattern: "version templates/lmc-configuration.yaml variables.tf"
+      - name: checkout gh-pages
+        if: steps.get_chart.outputs.chartname == 'lm-container'
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          path: gh-pages
+          ref: gh-pages
+      - name: Copy UI Template to gh-pages branch
+        if: steps.get_chart.outputs.chartname == 'lm-container'
+        run: |
+          cp ./lm-container-ui-jsonpaths.json gh-pages/uitmpl/lm-container-${{ steps.get_chart.outputs.chartversion }}-ui-jsonpaths.json
+      - name: Upload UI Jsonpath template to gh-pages
+        if: steps.get_chart.outputs.chartname == 'lm-container'
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          branch: gh-pages
+          repository: gh-pages
+          commit_message: "docs(uitmpl): upload ui jsonpaths template"
+          file_pattern: "uitmpl/*-ui-jsonpaths.json"
