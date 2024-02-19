@@ -69,7 +69,7 @@ jobs:
           ref: "gh-pages"
           running-workflow-name: "pages-build-deployment"
           repo-token: ${{ secrets.CHART_RELEASE_TOKEN }}
-          wait-interval: 10
+          wait-interval: 30
 
       #- name: checkout terraform-lmcontainer-kubernetes
       - name: checkout terraform-lm-lmc
@@ -81,10 +81,14 @@ jobs:
           fetch-depth: 0
           path: terraform-lm-lmc
           ref: main
+      - name: wait for 30 seconds
+        run: |
+         sleep 30
       - name: Pull Charts and Generate UI Template
         if: ${{ steps.get_chart.outputs.chartname == 'lm-container' }}
         run: |
           helm repo add logicmonitor-qa https://logicmonitor.github.io/helm-charts-qa
+          helm repo update
           helm pull logicmonitor-qa/lm-container --untar --version ${{ steps.get_chart.outputs.chartversion }}
           ./scripts/lmui/lmui > lm-container-ui-jsonpaths.json
           cat lm-container-ui-jsonpaths.json
