@@ -72,15 +72,15 @@ jobs:
           wait-interval: 30
 
       #- name: checkout terraform-lmcontainer-kubernetes
-      - name: checkout terraform-lm-lmc
-        uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.CHART_RELEASE_TOKEN }}
-          #repository: logicmonitor/terraform-lmcontainer-kubernetes
-          repository: vkumbhar94/terraform-lm-lmc
-          fetch-depth: 0
-          path: terraform-lm-lmc
-          ref: main
+      # - name: checkout terraform-lm-lmc
+      #   uses: actions/checkout@v3
+      #   with:
+      #     token: ${{ secrets.CHART_RELEASE_TOKEN }}
+      #     #repository: logicmonitor/terraform-lmcontainer-kubernetes
+      #     repository: vkumbhar94/terraform-lm-lmc
+      #     fetch-depth: 0
+      #     path: terraform-lm-lmc
+      #     ref: main
       - name: wait for 30 seconds
         run: |
          sleep 30
@@ -89,13 +89,14 @@ jobs:
         run: |
           helm repo add logicmonitor-qa https://logicmonitor.github.io/helm-charts-qa
           helm repo update
+          helm pull logicmonitor-qa/lm-container --version ${{ steps.get_chart.outputs.chartversion }}
           helm pull logicmonitor-qa/lm-container --untar --version ${{ steps.get_chart.outputs.chartversion }}
           ./scripts/lmui/lmui > lm-container-ui-jsonpaths.json
           cat lm-container-ui-jsonpaths.json
           #./scripts/lmtf/lmtf ./lm-container ./terraform-lmcontainer-kubernetes/templates/lmc-configuration.yaml ./terraform-lmcontainer-kubernetes/variables.tf
-          ./scripts/lmtf/lmtf ./lm-container ./terraform-lm-lmc/templates/lmc-configuration.yaml ./terraform-lm-lmc/variables.tf
+          #./scripts/lmtf/lmtf ./lm-container ./terraform-lm-lmc/templates/lmc-configuration.yaml ./terraform-lm-lmc/variables.tf
           #echo "v${{ steps.get_chart.outputs.chartversion }}" > ./terraform-lmcontainer-kubernetes/version
-          echo "v${{ steps.get_chart.outputs.chartversion }}" > ./terraform-lm-lmc/version
+          #echo "v${{ steps.get_chart.outputs.chartversion }}" > ./terraform-lm-lmc/version
       - name: Upload ui template to release asset
         uses: shogo82148/actions-upload-release-asset@v1
         if: ${{ steps.get_chart.outputs.chartname == 'lm-container' }}
@@ -106,24 +107,24 @@ jobs:
           asset_path: ./lm-container-ui-jsonpaths.json
           asset_name: lm-container-ui-jsonpaths.json
           asset_content_type: text/plain
-      - uses: hashicorp/setup-terraform@v2
-        if: ${{ steps.get_chart.outputs.chartname == 'lm-container' }}
-      - name: Terraform fmt
-        if: ${{ steps.get_chart.outputs.chartname == 'lm-container' }}
-        id: fmt
-        run: cd terraform-lm-lmc && terraform fmt && cd ..
-        continue-on-error: true
-      - name: Push Terraform Scripts
-        if: ${{ steps.get_chart.outputs.chartname == 'lm-container' }}
-        uses: stefanzweifel/git-auto-commit-action@v4
-        env:
-          GITHUB_TOKEN: ${{ secrets.CHART_RELEASE_TOKEN }}
-        with:
-          branch: main
-          #repository: terraform-lmcontainer-kubernetes
-          repository: terraform-lm-lmc
-          commit_message: "release(*): releasing new version"
-          file_pattern: "version templates/lmc-configuration.yaml variables.tf"
+      # - uses: hashicorp/setup-terraform@v2
+      #   if: ${{ steps.get_chart.outputs.chartname == 'lm-container' }}
+      # - name: Terraform fmt
+      #   if: ${{ steps.get_chart.outputs.chartname == 'lm-container' }}
+      #   id: fmt
+      #   run: cd terraform-lm-lmc && terraform fmt && cd ..
+      #   continue-on-error: true
+      # - name: Push Terraform Scripts
+      #   if: ${{ steps.get_chart.outputs.chartname == 'lm-container' }}
+      #   uses: stefanzweifel/git-auto-commit-action@v4
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.CHART_RELEASE_TOKEN }}
+      #   with:
+      #     branch: main
+      #     #repository: terraform-lmcontainer-kubernetes
+      #     repository: terraform-lm-lmc
+      #     commit_message: "release(*): releasing new version"
+      #     file_pattern: "version templates/lmc-configuration.yaml variables.tf"
       - name: checkout gh-pages
         if: steps.get_chart.outputs.chartname == 'lm-container'
         uses: actions/checkout@v3
