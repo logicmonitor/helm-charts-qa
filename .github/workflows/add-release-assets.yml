@@ -68,6 +68,7 @@ jobs:
         with:
           ref: "gh-pages"
           running-workflow-name: "pages-build-deployment"
+          allowed-conclusions: success
           repo-token: ${{ secrets.CHART_RELEASE_TOKEN }}
           wait-interval: 30
 
