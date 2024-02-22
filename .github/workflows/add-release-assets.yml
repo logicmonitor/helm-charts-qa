@@ -89,7 +89,9 @@ jobs:
         run: |
           helm repo add logicmonitor-qa https://logicmonitor.github.io/helm-charts-qa
           helm repo update
+          sleep 10
           helm pull logicmonitor-qa/lm-container --version ${{ steps.get_chart.outputs.chartversion }}
+          sleep 10
           helm pull logicmonitor-qa/lm-container --untar --version ${{ steps.get_chart.outputs.chartversion }}
           ./scripts/lmui/lmui > lm-container-ui-jsonpaths.json
           cat lm-container-ui-jsonpaths.json
