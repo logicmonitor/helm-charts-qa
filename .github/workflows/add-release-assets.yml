@@ -47,6 +47,7 @@ jobs:
         uses: andstor/file-existence-action@v1
         with:
           files: "./charts/${{ steps.get_chart.outputs.chartname }}/values.schema.json"
+
       - name: add values.schema.json to release asset
         uses: shogo82148/actions-upload-release-asset@v1
         if: steps.values_schema_exists.outputs.files_exists == 'true'
@@ -57,11 +58,13 @@ jobs:
           asset_path: ./charts/${{ steps.get_chart.outputs.chartname }}/values.schema.json
           asset_name: values.schema.json
           asset_content_type: text/plain
-      - name: Install Helm
-        if: ${{ steps.get_chart.outputs.chartname == 'lm-container' }}
-        uses: azure/setup-helm@v1
-        with:
-          version: v3.5.4
+          
+      # - name: Install Helm
+      #   if: ${{ steps.get_chart.outputs.chartname == 'lm-container' }}
+      #   uses: azure/setup-helm@v1
+      #   with:
+      #     version: v3.5.4
+
       - name: Wait for gh-pages to publish index.yaml
         uses: lewagon/wait-on-check-action@v1.3.3
         if: ${{ steps.get_chart.outputs.chartname == 'lm-container' }}
@@ -81,68 +84,68 @@ jobs:
       #     fetch-depth: 0
       #     path: terraform-lm-lmc
       #     ref: main
-      - name: wait for 30 seconds
-        run: |
-         sleep 30
-      - name: Pull Charts and Generate UI Template
-        if: ${{ steps.get_chart.outputs.chartname == 'lm-container' }}
-        run: |
-          helm repo add logicmonitor-qa https://logicmonitor.github.io/helm-charts-qa
-          helm repo update
-          sleep 10
-          helm pull logicmonitor-qa/lm-container --version ${{ steps.get_chart.outputs.chartversion }}
-          sleep 10
-          helm pull logicmonitor-qa/lm-container --untar --version ${{ steps.get_chart.outputs.chartversion }}
-          ./scripts/lmui/lmui > lm-container-ui-jsonpaths.json
-          cat lm-container-ui-jsonpaths.json
-          #./scripts/lmtf/lmtf ./lm-container ./terraform-lmcontainer-kubernetes/templates/lmc-configuration.yaml ./terraform-lmcontainer-kubernetes/variables.tf
-          #./scripts/lmtf/lmtf ./lm-container ./terraform-lm-lmc/templates/lmc-configuration.yaml ./terraform-lm-lmc/variables.tf
-          #echo "v${{ steps.get_chart.outputs.chartversion }}" > ./terraform-lmcontainer-kubernetes/version
-          #echo "v${{ steps.get_chart.outputs.chartversion }}" > ./terraform-lm-lmc/version
-      - name: Upload ui template to release asset
-        uses: shogo82148/actions-upload-release-asset@v1
-        if: ${{ steps.get_chart.outputs.chartname == 'lm-container' }}
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: ./lm-container-ui-jsonpaths.json
-          asset_name: lm-container-ui-jsonpaths.json
-          asset_content_type: text/plain
-      # - uses: hashicorp/setup-terraform@v2
+      # - name: wait for 30 seconds
+      #   run: |
+      #    sleep 30
+      # - name: Pull Charts and Generate UI Template
       #   if: ${{ steps.get_chart.outputs.chartname == 'lm-container' }}
-      # - name: Terraform fmt
+      #   run: |
+      #     helm repo add logicmonitor-qa https://logicmonitor.github.io/helm-charts-qa
+      #     helm repo update
+      #     sleep 10
+      #     helm pull logicmonitor-qa/lm-container --version ${{ steps.get_chart.outputs.chartversion }}
+      #     sleep 10
+      #     helm pull logicmonitor-qa/lm-container --untar --version ${{ steps.get_chart.outputs.chartversion }}
+      #     ./scripts/lmui/lmui > lm-container-ui-jsonpaths.json
+      #     cat lm-container-ui-jsonpaths.json
+      #     #./scripts/lmtf/lmtf ./lm-container ./terraform-lmcontainer-kubernetes/templates/lmc-configuration.yaml ./terraform-lmcontainer-kubernetes/variables.tf
+      #     #./scripts/lmtf/lmtf ./lm-container ./terraform-lm-lmc/templates/lmc-configuration.yaml ./terraform-lm-lmc/variables.tf
+      #     #echo "v${{ steps.get_chart.outputs.chartversion }}" > ./terraform-lmcontainer-kubernetes/version
+      #     #echo "v${{ steps.get_chart.outputs.chartversion }}" > ./terraform-lm-lmc/version
+      # - name: Upload ui template to release asset
+      #   uses: shogo82148/actions-upload-release-asset@v1
       #   if: ${{ steps.get_chart.outputs.chartname == 'lm-container' }}
-      #   id: fmt
-      #   run: cd terraform-lm-lmc && terraform fmt && cd ..
-      #   continue-on-error: true
-      # - name: Push Terraform Scripts
-      #   if: ${{ steps.get_chart.outputs.chartname == 'lm-container' }}
-      #   uses: stefanzweifel/git-auto-commit-action@v4
       #   env:
-      #     GITHUB_TOKEN: ${{ secrets.CHART_RELEASE_TOKEN }}
+      #     GITHUB_TOKEN: ${{ github.token }}
       #   with:
-      #     branch: main
-      #     #repository: terraform-lmcontainer-kubernetes
-      #     repository: terraform-lm-lmc
-      #     commit_message: "release(*): releasing new version"
-      #     file_pattern: "version templates/lmc-configuration.yaml variables.tf"
-      - name: checkout gh-pages
-        if: steps.get_chart.outputs.chartname == 'lm-container'
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          path: gh-pages
-          ref: gh-pages
-      - name: Copy UI Template to gh-pages branch
-        if: steps.get_chart.outputs.chartname == 'lm-container'
-        run: |
-          cp ./lm-container-ui-jsonpaths.json gh-pages/uitmpl/lm-container-${{ steps.get_chart.outputs.chartversion }}-ui-jsonpaths.json
-      - name: Upload UI Jsonpath template to gh-pages
-        if: steps.get_chart.outputs.chartname == 'lm-container'
-        uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          branch: gh-pages
-          repository: gh-pages
-          commit_message: "docs(uitmpl): upload ui jsonpaths template"
-          file_pattern: "uitmpl/*-ui-jsonpaths.json"
+      #     upload_url: ${{ steps.get_release.outputs.upload_url }}
+      #     asset_path: ./lm-container-ui-jsonpaths.json
+      #     asset_name: lm-container-ui-jsonpaths.json
+      #     asset_content_type: text/plain
+      # # - uses: hashicorp/setup-terraform@v2
+      # #   if: ${{ steps.get_chart.outputs.chartname == 'lm-container' }}
+      # # - name: Terraform fmt
+      # #   if: ${{ steps.get_chart.outputs.chartname == 'lm-container' }}
+      # #   id: fmt
+      # #   run: cd terraform-lm-lmc && terraform fmt && cd ..
+      # #   continue-on-error: true
+      # # - name: Push Terraform Scripts
+      # #   if: ${{ steps.get_chart.outputs.chartname == 'lm-container' }}
+      # #   uses: stefanzweifel/git-auto-commit-action@v4
+      # #   env:
+      # #     GITHUB_TOKEN: ${{ secrets.CHART_RELEASE_TOKEN }}
+      # #   with:
+      # #     branch: main
+      # #     #repository: terraform-lmcontainer-kubernetes
+      # #     repository: terraform-lm-lmc
+      # #     commit_message: "release(*): releasing new version"
+      # #     file_pattern: "version templates/lmc-configuration.yaml variables.tf"
+      # - name: checkout gh-pages
+      #   if: steps.get_chart.outputs.chartname == 'lm-container'
+      #   uses: actions/checkout@v3
+      #   with:
+      #     fetch-depth: 0
+      #     path: gh-pages
+      #     ref: gh-pages
+      # - name: Copy UI Template to gh-pages branch
+      #   if: steps.get_chart.outputs.chartname == 'lm-container'
+      #   run: |
+      #     cp ./lm-container-ui-jsonpaths.json gh-pages/uitmpl/lm-container-${{ steps.get_chart.outputs.chartversion }}-ui-jsonpaths.json
+      # - name: Upload UI Jsonpath template to gh-pages
+      #   if: steps.get_chart.outputs.chartname == 'lm-container'
+      #   uses: stefanzweifel/git-auto-commit-action@v4
+      #   with:
+      #     branch: gh-pages
+      #     repository: gh-pages
+      #     commit_message: "docs(uitmpl): upload ui jsonpaths template"
+      #     file_pattern: "uitmpl/*-ui-jsonpaths.json"
