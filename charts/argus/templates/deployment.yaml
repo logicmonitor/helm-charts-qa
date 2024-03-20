@@ -90,6 +90,7 @@ spec:
         - name: collector-ids
           configMap:
             name: {{ include "lmutil.fullname" . }}-collector
+            optional: true
             items:
               - key: collector-ids.csv
                 path: collector-ids.csv
