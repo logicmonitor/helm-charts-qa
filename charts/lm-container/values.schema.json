@@ -58,8 +58,8 @@
     },
     "argus": {
       "$id": "#/properties/argus",
-      "title": "Argus Configurations, check https://artifacthub.io/packages/helm/logicmonitor-helm-charts/argus?modal=values-schema for schema",
-      "description": "Argus Helm Chart Configurations, for detailed schema visit https://artifacthub.io/packages/helm/logicmonitor-helm-charts/argus?modal=values-schema",
+      "title": "Argus Configurations, check https://artifacthub.io/packages/helm/logicmonitor-helm-charts-qa/argus?modal=values-schema for schema",
+      "description": "Argus Helm Chart Configurations, for detailed schema visit https://artifacthub.io/packages/helm/logicmonitor-helm-charts-qa/argus?modal=values-schema",
       "type": "object",
       "properties": {
         "enabled": {
@@ -96,8 +96,8 @@
     },
     "collectorset-controller": {
       "$id": "#/properties/collectorset-controller",
-      "title": "Collectorset Controller Configurations, check https://artifacthub.io/packages/helm/logicmonitor-helm-charts/collectorset-controller?modal=values-schema for schema",
-      "description": "Collectorset Controller Helm Chart Configurations for detailed schema visit https://artifacthub.io/packages/helm/logicmonitor-helm-charts/collectorset-controller?modal=values-schema",
+      "title": "Collectorset Controller Configurations, check https://artifacthub.io/packages/helm/logicmonitor-helm-charts-qa/collectorset-controller?modal=values-schema for schema",
+      "description": "Collectorset Controller Helm Chart Configurations for detailed schema visit https://artifacthub.io/packages/helm/logicmonitor-helm-charts-qa/collectorset-controller?modal=values-schema",
       "type": "object",
       "properties": {
         "enabled": {
@@ -115,7 +115,8 @@
     },
     "lm-logs": {
       "$id": "#/properties/lm-logs",
-      "description": "LM Logs Helm Chart Configurations",
+      "title": "LM Logs Helm Chart Configurations, check https://artifacthub.io/packages/helm/logicmonitor-helm-charts-qa/lm-logs?modal=values-schema for schema",
+      "description": "LM Logs Helm Chart Configurations, check https://artifacthub.io/packages/helm/logicmonitor-helm-charts-qa/lm-logs?modal=values-schema for schema",
       "type": "object",
       "properties": {
         "enabled": {
@@ -129,7 +130,8 @@
     },
     "lmotel": {
       "$id": "#/properties/lmotel",
-      "description": "LMOTEL Helm Chart Configurations",
+      "title": "LMOTEL Helm Chart Configurations, check https://artifacthub.io/packages/helm/logicmonitor-helm-charts-qa/lmotel for schema",
+      "description": "LMOTEL Helm Chart Configurations, check https://artifacthub.io/packages/helm/logicmonitor-helm-charts-qa/lmotel for schema",
       "type": "object",
       "properties": {
         "enabled": {
