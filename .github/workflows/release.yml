@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - 'lm-container-[0-9]+.[0-9]+.[0-9]+.hotfix'
+      - 'release/lm-container-[0-9]+.[0-9]+.[0-9]+.hotfix'
     tags:
       - 'lm-container-[0-9]+.[0-9]+.[0-9]+.hotfix'
       - 'argus-[0-9]+.[0-9]+.[0-9]+.hotfix'
