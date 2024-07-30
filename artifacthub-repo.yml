@@ -1,5 +1,5 @@
 # Artifact Hub repository metadata file
 repositoryID: 311ea1e3-c6df-4b64-a484-03dfd1bacb5f
 owners: # (optional, used to claim repository ownership)
-  - name: vkumbhar94
-    email: vkumbhar94@gmail.com
+  - name: lm-container-dev
+    email: rsc_github_lm_container@logicmonitor.com
