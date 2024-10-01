@@ -160,7 +160,7 @@ Argus proxy details or not, for this we're using Lookup function in helm.
       name: {{ include "lmutil.secret-name" . }}
       key: account
 - name: COMPANY_DOMAIN
-{{- if and .Values.global.userDefinedSecret (not (hasKey $secretData "companyDomain")) }}
+{{- if and .Values.global.userDefinedSecret (or (not (hasKey $secretData "companyDomain")) (eq (get $secretData "companyDomain") "")) }}
   value: "logicmonitor.com"
 {{- else }}
   valueFrom:
