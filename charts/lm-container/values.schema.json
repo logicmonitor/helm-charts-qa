@@ -51,8 +51,14 @@
           "$comment": "tf:optional",
           "$id": "#/properties/companyDomain",
           "type": "string",
-          "title": "The domain schema",
-          "description": "The Logicmonitor account domain"
+          "title": "Logicmonitor account domain",
+          "description": "The Logicmonitor account domain",
+          "examples": [
+            "logicmonitor.com",
+            "qa-lmgov.us",
+            "lmgov.us"
+          ]
+
         },
         "userDefinedSecret": {
           "$id": "#/properties/userDefinedSecret",
