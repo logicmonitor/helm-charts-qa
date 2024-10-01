@@ -47,6 +47,13 @@
           ],
           "$comment": "ui:account-ignore tf:optional"
         },
+        "companyDomain": {
+          "$comment": "tf:optional",
+          "$id": "#/properties/companyDomain",
+          "type": "string",
+          "title": "The domain schema",
+          "description": "The Logicmonitor account domain"
+        },
         "userDefinedSecret": {
           "$id": "#/properties/userDefinedSecret",
           "type": "string",
