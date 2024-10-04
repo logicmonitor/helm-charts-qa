@@ -117,6 +117,35 @@ Collector Pod security context
 {{ toYaml .Values.collector.podSecurityContext | nindent 0 }}
 {{- end }}
 
+{{- define "ksm-url" -}}
+{{- $url := "" }}
+{{- $ksm := index .Values "kube-state-metrics" }}
+{{- if $ksm.enabled }}
+{{- $port := "" }}
+    {{- range $p := .Release.Service.spec.ports }}
+      {{- if or (eq $p.name "http") (eq $p.name "http-metrics") }}
+        {{- $port = $p.port }}
+      {{- end }}
+    {{- end }}
+{{- $url = printf "http://%s-kube-state-metrics.%s.svc.cluster.local:%d/metrics" .Release.metadata.name .Release.Namespace $port }}
+{{- end }}
+{{- $services := (lookup "v1" "Service" "" "") | default dict }}
+{{- $filteredServices := dict "items" (list) }}
+{{- range $service := $services.items }}
+  {{- if eq (index $service.metadata.labels "app.kubernetes.io/name" | default "") "kube-state-metrics" }}
+    {{- $_ := set $filteredServices "items" (append $filteredServices.items $service) }}
+    {{- $port := "" }}
+    {{- range $p := $service.spec.ports }}
+      {{- if or (eq $p.name "http") (eq $p.name "http-metrics") }}
+        {{- $port = $p.port }}
+      {{- end }}
+    {{- end }}
+    {{- $url = printf "http://%s.%s.svc.cluster.local:%d/metrics" $service.metadata.name $service.metadata.namespace $port }}
+  {{- end }}
+{{- end }}
+{{- $url }}
+{{- end }}
+
 {{- define "collector-csp" }}
 {{- $addCaps := .Values.collector.securityContext.capabilities.add }}
 {{- if and (eq (include "lmutil.get-platform" .) "gke") (not (has "NET_RAW" $addCaps)) }}
