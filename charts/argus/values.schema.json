@@ -447,6 +447,16 @@
       },
       "$comment": "tf:optional,yamlencode"
     },
+    "ksmUrl": {
+      "$id": "#/properties/ksmUrl",
+      "type": "string",
+      "title": "KSM service URL",
+      "description": "KSM service URL to be used by devices in the portal",
+      "default": "",
+      "examples": [
+        "http://lmc-kube-state-metrics.logicmonitor.svc.cluster.local:8080/metrics"
+      ]
+    },
     "replicas": {
       "$id": "#/properties/replicas",
       "type": "integer",
