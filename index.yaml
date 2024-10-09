@@ -2,6 +2,25 @@ apiVersion: v1
 entries:
   argus:
   - apiVersion: v2
+    appVersion: v15.0.0-rc02
+    created: "2024-10-09T08:44:58.653742851Z"
+    dependencies:
+    - name: lmutil
+      repository: https://logicmonitor.github.io/helm-charts-qa
+      version: 0.1.9
+    description: Automated Kubernetes monitoring
+    digest: 772cf14f04e48cc9cf888b54f334333a604c1b1340a292cb65d3442c038295d0
+    home: https://logicmonitor.github.io/helm-charts-qa
+    icon: https://logicmonitor.github.io/helm-charts-qa/lm_logo.png
+    kubeVersion: '>= 1.16.0-0'
+    maintainers:
+    - email: argus@logicmonitor.com
+      name: LogicMonitor
+    name: argus
+    urls:
+    - https://github.com/logicmonitor/helm-charts-qa/releases/download/argus-11.0.0-rc02/argus-11.0.0-rc02.tgz
+    version: 11.0.0-rc02
+  - apiVersion: v2
     appVersion: v15.0.0-rc01
     created: "2024-10-01T07:51:34.391158094Z"
     dependencies:
@@ -1769,6 +1788,93 @@ entries:
     - https://github.com/logicmonitor/helm-charts-qa/releases/download/argus-2.0.0-rc994/argus-2.0.0-rc994.tgz
     version: 2.0.0-rc994
   collectorset-controller:
+  - annotations:
+      artifacthub.io/crds: |
+        - kind: CollectorSet
+          version: v1beta1
+          name: collectorsets.logicmonitor.com
+          displayName: CollectorSet crd
+          description: CollectorSet is used by argus to manage collector ids for monitored resources
+      artifacthub.io/crdsExamples: |
+        - apiVersion: logicmonitor.com/v1beta1
+          kind: CollectorSet
+          metadata:
+            name: lmc-argus
+            namespace: lm-portal
+          spec:
+            affinity:
+              podAntiAffinity:
+                preferredDuringSchedulingIgnoredDuringExecution:
+                  - podAffinityTerm:
+                      labelSelector:
+                        matchLabels:
+                          app.kubernetes.io/instance: lmc-argus
+                          app.kubernetes.io/name: collectorset
+                      topologyKey: kubernetes.io/hostname
+                    weight: 50
+            annotations: {}
+            clusterName: docker-desktop
+            collectorConfigMapName: lmc-argus-collector
+            groupID: 0
+            image:
+              pullPolicy: Always
+              registry: ""
+              repository: logicmonitor/collector
+              tag: latest
+            labels:
+              app: collector
+              app.kubernetes.io/part-of: argus
+            podSecurityContext: {}
+            policy:
+              distributionStrategy: RoundRobin
+              orchestrator: Kubernetes
+            probe:
+              enabled: true
+              liveness:
+                failureThreshold: 30
+                periodSeconds: 10
+              readiness:
+                failureThreshold: 30
+                periodSeconds: 10
+              startup:
+                failureThreshold: 30
+                periodSeconds: 20
+            proxy:
+              url: ""
+            replicas: 1
+            secretName: ""
+            securityContext:
+              capabilities:
+                add: []
+                drop: []
+            size: small
+            statefulsetspec:
+              template:
+                spec:
+                  nodeSelector: {}
+                  priorityClassName: ""
+                  tolerations: []
+            useEA: true
+            version: 0
+    apiVersion: v2
+    appVersion: v12.0.0-rc02
+    created: "2024-10-09T08:44:58.802754948Z"
+    dependencies:
+    - name: lmutil
+      repository: https://logicmonitor.github.io/helm-charts-qa
+      version: 0.1.9
+    description: Automated collector management
+    digest: dbb9cddecc8a89731bddb2b724b75a9283fa6568f73ff1c71269069e8735261a
+    home: https://logicmonitor.github.io/helm-charts-qa
+    icon: https://logicmonitor.github.io/helm-charts-qa/lm_logo.png
+    kubeVersion: '>= 1.16.0-0'
+    maintainers:
+    - email: argus@logicmonitor.com
+      name: LogicMonitor
+    name: collectorset-controller
+    urls:
+    - https://github.com/logicmonitor/helm-charts-qa/releases/download/collectorset-controller-10.0.0-rc02/collectorset-controller-10.0.0-rc02.tgz
+    version: 10.0.0-rc02
   - annotations:
       artifacthub.io/crds: |
         - kind: CollectorSet
@@ -13170,4 +13276,4 @@ entries:
     urls:
     - https://github.com/logicmonitor/helm-charts-qa/releases/download/releasemanager-0.3.0/releasemanager-0.3.0.tgz
     version: 0.3.0
-generated: "2024-10-01T08:45:43.256122447Z"
+generated: "2024-10-09T08:44:58.807377775Z"
