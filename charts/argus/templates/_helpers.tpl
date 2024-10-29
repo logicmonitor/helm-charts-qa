@@ -120,7 +120,9 @@ Collector Pod security context
 {{- define "ksm-url" -}}
 {{- $url := "" }}
 {{- $ksm := index .Values "kube-state-metrics" }}
-{{- if $ksm.enabled }}
+{{- if .Values.ksmUrl }}
+{{- $url = .Values.ksmUrl }}
+{{- else if $ksm.enabled }}
 {{- $port := "" }}
     {{- range $p := .Release.Service.spec.ports }}
       {{- if or (eq $p.name "http") (eq $p.name "http-metrics") }}
@@ -128,7 +130,7 @@ Collector Pod security context
       {{- end }}
     {{- end }}
 {{- $url = printf "http://%s-kube-state-metrics.%s.svc.cluster.local:%d/metrics" .Release.metadata.name .Release.Namespace $port }}
-{{- end }}
+{{- else }}
 {{- $services := (lookup "v1" "Service" "" "") | default dict }}
 {{- $filteredServices := dict "items" (list) }}
 {{- range $service := $services.items }}
@@ -142,6 +144,7 @@ Collector Pod security context
     {{- end }}
     {{- $url = printf "http://%s.%s.svc.cluster.local:%d/metrics" $service.metadata.name $service.metadata.namespace $port }}
   {{- end }}
+{{- end }}
 {{- end }}
 {{- $url }}
 {{- end }}
