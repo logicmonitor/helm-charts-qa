@@ -120,7 +120,7 @@ Collector Pod security context
 {{- define "ksm-url" -}}
 {{- $url := "" }}
 {{- $ksm := index .Values "kube-state-metrics" }}
-{{- if .Values.ksmUrl }}
+{{- if not (empty .Values.ksmUrl) }}
 {{- $url = .Values.ksmUrl }}
 {{- else if $ksm.enabled }}
 {{- $port := "" }}
