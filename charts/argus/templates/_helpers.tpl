@@ -119,18 +119,28 @@ Collector Pod security context
 
 {{- define "ksm-url" -}}
 {{- $url := "" }}
-{{- $ksm := index .Values "kube-state-metrics" }}
+{{- $ksm := index .Values.global "kube-state-metrics" }}
 {{- if not (empty .Values.ksmUrl) }}
 {{- $url = .Values.ksmUrl }}
 {{- else if $ksm.enabled }}
-{{- $port := "" }}
-    {{- range $p := .Release.Service.spec.ports }}
+{{- $port := 8080 }}
+{{- $url = printf "http://%s-kube-state-metrics.%s.svc.cluster.local:%d/metrics" .Release.Name .Release.Namespace $port }}
+{{- else }}
+{{- $nsservices := (lookup "v1" "Service" .Release.Namespace "") | default dict }}
+{{- $nsfilteredServices := dict "items" (list) }}
+{{- range $service := $nsservices.items }}
+  {{- if eq (index $service.metadata.labels "app.kubernetes.io/name" | default "") "kube-state-metrics" }}
+    {{- $_ := set $nsfilteredServices "items" (append $nsfilteredServices.items $service) }}
+    {{- $port := "" }}
+    {{- range $p := $service.spec.ports }}
       {{- if or (eq $p.name "http") (eq $p.name "http-metrics") }}
         {{- $port = $p.port }}
       {{- end }}
     {{- end }}
-{{- $url = printf "http://%s-kube-state-metrics.%s.svc.cluster.local:%d/metrics" .Release.metadata.name .Release.Namespace $port }}
-{{- else }}
+    {{- $url = printf "http://%s.%s.svc.cluster.local:%d/metrics" $service.metadata.name $service.metadata.namespace $port }}
+  {{- end }}
+{{- end }}
+{{- if (empty $url)}}
 {{- $services := (lookup "v1" "Service" "" "") | default dict }}
 {{- $filteredServices := dict "items" (list) }}
 {{- range $service := $services.items }}
@@ -144,6 +154,7 @@ Collector Pod security context
     {{- end }}
     {{- $url = printf "http://%s.%s.svc.cluster.local:%d/metrics" $service.metadata.name $service.metadata.namespace $port }}
   {{- end }}
+{{- end }}
 {{- end }}
 {{- end }}
 {{- $url }}
