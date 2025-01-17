@@ -65,6 +65,8 @@ log:
   level: "info"
 
 ksmUrl: ""
+monitoringMode: "Minimal"
+disableBatchingPods: true
 
 collectorsetcontroller:
   address: collectorset-controller
@@ -95,7 +97,22 @@ daemons:
     sysIpsWaitTimeout: '5m'
 monitoring:
   # list of resources to disable monitoring
-  disable: []
+  disable:
+  - resourcequotas
+  - limitranges
+  - roles
+  - rolebindings
+  - networkpolicies
+  - configmaps
+  - clusterrolebindings
+  - clusterroles
+  - priorityclasses
+  - storageclasses
+  - cronjobs
+  - jobs
+  - endpoints
+  - secrets
+  - serviceaccounts
   # annotations to be ignored while performing an update operation
   annotations:
     ignore: []

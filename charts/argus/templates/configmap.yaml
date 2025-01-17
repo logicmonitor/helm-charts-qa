@@ -16,6 +16,7 @@ data:
   config.yaml: |
     {{- include "argus-config" . | fromYaml | toYaml | nindent 4 }}
   filters-config.yaml: |
-    filters: {{- toYaml .Values.filters | nindent 6 }}
+    {{- include "filter-config" . | fromYaml | toYaml | nindent 4 }}
+{{/*    filters: {{- toYaml .Values.filters | nindent 6 }}*/}}
   collectorConfig: |
     {{- include "collector-config" . | fromYaml | toYaml | nindent 4 }}
