@@ -45,7 +45,7 @@ logicmonitor.com/provider: lm-container
 {{- define "monitoring.disable" }}
 {{ $alwaysDisable := list }}
 {{- if eq .Values.monitoringMode "Minimal" }}
-{{ $alwaysDisable = list "resourcequotas" "limitranges" "roles" "rolebindings" "networkpolicies" "configmaps" "clusterrolebindings" "clusterroles" "priorityclasses" "storageclasses" "cronjobs" "jobs" "endpoints" "ingresses" "secrets" "serviceaccounts" }}
+{{ $alwaysDisable = list "resourcequotas" "limitranges" "roles" "rolebindings" "networkpolicies" "configmaps" "clusterrolebindings" "clusterroles" "priorityclasses" "storageclasses" "cronjobs" "jobs" "endpoints" "ingresses" "secrets" "serviceaccounts" "poddisruptionbudgets" "customresourcedefinitions" }}
 {{- end }}
 
 {{ $resultList := ( concat $alwaysDisable $.Values.monitoring.disable | uniq )  }}
