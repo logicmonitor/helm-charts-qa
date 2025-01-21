@@ -2,6 +2,7 @@
 ## Argus Releases
 | name | version | appVersion | dependencies | Compatible Kubernetes Versions |
 | :---- | :---- | :---- | :---- | :---- |
+| argus | [11.2.0-rc01](https://github.com/logicmonitor/helm-charts-qa/releases/tag/argus-11.2.0-rc01) | [v15.2.0-rc02](https://hub.docker.com/r/logicmonitor/argus/tags?page=1&name=v15.2.0-rc02) | <ul> <li>lmutil@0.1.9 https://logicmonitor.github.io/helm-charts-qa</li> </ul> | >= 1.16.0-0 | 
 | argus | [11.1.1-rc01](https://github.com/logicmonitor/helm-charts-qa/releases/tag/argus-11.1.1-rc01) | [v15.2.0-rc02](https://hub.docker.com/r/logicmonitor/argus/tags?page=1&name=v15.2.0-rc02) | <ul> <li>lmutil@0.1.9 https://logicmonitor.github.io/helm-charts-qa</li> </ul> | >= 1.16.0-0 | 
 | argus | [11.1.0-rt01](https://github.com/logicmonitor/helm-charts-qa/releases/tag/argus-11.1.0-rt01) | [v15.1.0-rt01](https://hub.docker.com/r/logicmonitor/argus/tags?page=1&name=v15.1.0-rt01) | <ul> <li>lmutil@0.1.9 https://logicmonitor.github.io/helm-charts-qa</li> </ul> | >= 1.16.0-0 | 
 | argus | [11.1.0-rc04](https://github.com/logicmonitor/helm-charts-qa/releases/tag/argus-11.1.0-rc04) | [v15.1.0-rc03](https://hub.docker.com/r/logicmonitor/argus/tags?page=1&name=v15.1.0-rc03) | <ul> <li>lmutil@0.1.9 https://logicmonitor.github.io/helm-charts-qa</li> </ul> | >= 1.16.0-0 | 
