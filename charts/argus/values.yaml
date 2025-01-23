@@ -97,24 +97,7 @@ daemons:
     sysIpsWaitTimeout: '5m'
 monitoring:
   # list of resources to disable monitoring
-  disable:
-  - resourcequotas
-  - limitranges
-  - roles
-  - rolebindings
-  - networkpolicies
-  - configmaps
-  - clusterrolebindings
-  - clusterroles
-  - priorityclasses
-  - storageclasses
-  - cronjobs
-  - jobs
-  - endpoints
-  - secrets
-  - serviceaccounts
-  - poddisruptionbudgets
-  - customresourcedefinitions
+  disable: []
   # annotations to be ignored while performing an update operation
   annotations:
     ignore: []
