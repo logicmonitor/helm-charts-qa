@@ -2066,6 +2066,93 @@ entries:
             useEA: true
             version: 0
     apiVersion: v2
+    appVersion: v13.0.0-rt01
+    created: "2025-02-13T06:59:59.367504441Z"
+    dependencies:
+    - name: lmutil
+      repository: https://logicmonitor.github.io/helm-charts-qa
+      version: 0.1.9
+    description: Automated collector management
+    digest: ce8b5454a245eada1a6379d446e9359a24ca403ea29f6650c0cf05cc248a4c26
+    home: https://logicmonitor.github.io/helm-charts-qa
+    icon: https://logicmonitor.github.io/helm-charts-qa/lm_logo.png
+    kubeVersion: '>= 1.16.0-0'
+    maintainers:
+    - email: argus@logicmonitor.com
+      name: LogicMonitor
+    name: collectorset-controller
+    urls:
+    - https://github.com/logicmonitor/helm-charts-qa/releases/download/collectorset-controller-11.0.0-rt01/collectorset-controller-11.0.0-rt01.tgz
+    version: 11.0.0-rt01
+  - annotations:
+      artifacthub.io/crds: |
+        - kind: CollectorSet
+          version: v1beta1
+          name: collectorsets.logicmonitor.com
+          displayName: CollectorSet crd
+          description: CollectorSet is used by argus to manage collector ids for monitored resources
+      artifacthub.io/crdsExamples: |
+        - apiVersion: logicmonitor.com/v1beta1
+          kind: CollectorSet
+          metadata:
+            name: lmc-argus
+            namespace: lm-portal
+          spec:
+            affinity:
+              podAntiAffinity:
+                preferredDuringSchedulingIgnoredDuringExecution:
+                  - podAffinityTerm:
+                      labelSelector:
+                        matchLabels:
+                          app.kubernetes.io/instance: lmc-argus
+                          app.kubernetes.io/name: collectorset
+                      topologyKey: kubernetes.io/hostname
+                    weight: 50
+            annotations: {}
+            clusterName: docker-desktop
+            collectorConfigMapName: lmc-argus-collector
+            groupID: 0
+            image:
+              pullPolicy: Always
+              registry: ""
+              repository: logicmonitor/collector
+              tag: latest
+            labels:
+              app: collector
+              app.kubernetes.io/part-of: argus
+            podSecurityContext: {}
+            policy:
+              distributionStrategy: RoundRobin
+              orchestrator: Kubernetes
+            probe:
+              enabled: true
+              liveness:
+                failureThreshold: 30
+                periodSeconds: 10
+              readiness:
+                failureThreshold: 30
+                periodSeconds: 10
+              startup:
+                failureThreshold: 30
+                periodSeconds: 20
+            proxy:
+              url: ""
+            replicas: 1
+            secretName: ""
+            securityContext:
+              capabilities:
+                add: []
+                drop: []
+            size: small
+            statefulsetspec:
+              template:
+                spec:
+                  nodeSelector: {}
+                  priorityClassName: ""
+                  tolerations: []
+            useEA: true
+            version: 0
+    apiVersion: v2
     appVersion: v13.0.0-rc02
     created: "2025-02-11T07:25:29.72355323Z"
     dependencies:
@@ -14505,4 +14592,4 @@ entries:
     urls:
     - https://github.com/logicmonitor/helm-charts-qa/releases/download/releasemanager-0.3.0/releasemanager-0.3.0.tgz
     version: 0.3.0
-generated: "2025-02-11T07:34:23.128181348Z"
+generated: "2025-02-13T06:59:59.371618736Z"
