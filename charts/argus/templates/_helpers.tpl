@@ -53,7 +53,7 @@ logicmonitor.com/provider: lm-container
 {{- end }}
 
 {{- define "monitoring.annotations.ignore" }}
-{{ $alwaysIgnore := list "key in ('virtual-kubelet.io/last-applied-node-status', 'control-plane.alpha.kubernetes.io/leader')" "key =~ 'last-applied'"}}
+{{ $alwaysIgnore := list "key in ('virtual-kubelet.io/last-applied-node-status', 'control-plane.alpha.kubernetes.io/leader','autoscaling.alpha.kubernetes.io/current-metrics','autoscaling.alpha.kubernetes.io/conditions')" "key =~ 'last-applied'"}}
 {{ $resultList := ( concat $alwaysIgnore $.Values.monitoring.annotations.ignore | uniq )  }}
 {{- toYaml $resultList | nindent 0}}
 {{- end }}
