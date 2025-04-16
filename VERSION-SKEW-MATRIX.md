@@ -2,6 +2,7 @@
 ## Argus Releases
 | name | version | appVersion | dependencies | Compatible Kubernetes Versions |
 | :---- | :---- | :---- | :---- | :---- |
+| argus | [13.1.0-rt01](https://github.com/logicmonitor/helm-charts-qa/releases/tag/argus-13.1.0-rt01) | [v17.1.0-rt01](https://hub.docker.com/r/logicmonitor/argus/tags?page=1&name=v17.1.0-rt01) | <ul> <li>lmutil@0.1.9 https://logicmonitor.github.io/helm-charts-qa</li> </ul> | >= 1.16.0-0 | 
 | argus | [13.0.1-rc01](https://github.com/logicmonitor/helm-charts-qa/releases/tag/argus-13.0.1-rc01) | [v17.0.1-rc01](https://hub.docker.com/r/logicmonitor/argus/tags?page=1&name=v17.0.1-rc01) | <ul> <li>lmutil@0.1.9 https://logicmonitor.github.io/helm-charts-qa</li> </ul> | >= 1.16.0-0 | 
 | argus | [13.0.0-rt01](https://github.com/logicmonitor/helm-charts-qa/releases/tag/argus-13.0.0-rt01) | [v17.0.0-rt01](https://hub.docker.com/r/logicmonitor/argus/tags?page=1&name=v17.0.0-rt01) | <ul> <li>lmutil@0.1.9 https://logicmonitor.github.io/helm-charts-qa</li> </ul> | >= 1.16.0-0 | 
 | argus | [13.0.0-rc03](https://github.com/logicmonitor/helm-charts-qa/releases/tag/argus-13.0.0-rc03) | [v17.0.0-rc01](https://hub.docker.com/r/logicmonitor/argus/tags?page=1&name=v17.0.0-rc01) | <ul> <li>lmutil@0.1.9 https://logicmonitor.github.io/helm-charts-qa</li> </ul> | >= 1.16.0-0 | 
@@ -122,6 +123,7 @@
 ## Collectorset Controller Releases
 | name | version | appVersion | dependencies | Compatible Kubernetes Versions |
 | :---- | :---- | :---- | :---- | :---- |
+| collectorset-controller | [11.1.0-rt01](https://github.com/logicmonitor/helm-charts-qa/releases/tag/collectorset-controller-11.1.0-rt01) | [v13.1.0-rt01](https://hub.docker.com/r/logicmonitor/collectorset-controller/tags?page=1&name=v13.1.0-rt01) | <ul> <li>lmutil@0.1.9 https://logicmonitor.github.io/helm-charts-qa</li> </ul> | >= 1.16.0-0 | 
 | collectorset-controller | [11.0.1-rc02](https://github.com/logicmonitor/helm-charts-qa/releases/tag/collectorset-controller-11.0.1-rc02) | [v13.0.0-rc04](https://hub.docker.com/r/logicmonitor/collectorset-controller/tags?page=1&name=v13.0.0-rc04) | <ul> <li>lmutil@0.1.9 https://logicmonitor.github.io/helm-charts-qa</li> </ul> | >= 1.16.0-0 | 
 | collectorset-controller | [11.0.1-rc01](https://github.com/logicmonitor/helm-charts-qa/releases/tag/collectorset-controller-11.0.1-rc01) | [v13.0.0-rc03](https://hub.docker.com/r/logicmonitor/collectorset-controller/tags?page=1&name=v13.0.0-rc03) | <ul> <li>lmutil@0.1.9 https://logicmonitor.github.io/helm-charts-qa</li> </ul> | >= 1.16.0-0 | 
 | collectorset-controller | [11.0.0-rt01](https://github.com/logicmonitor/helm-charts-qa/releases/tag/collectorset-controller-11.0.0-rt01) | [v13.0.0-rt01](https://hub.docker.com/r/logicmonitor/collectorset-controller/tags?page=1&name=v13.0.0-rt01) | <ul> <li>lmutil@0.1.9 https://logicmonitor.github.io/helm-charts-qa</li> </ul> | >= 1.16.0-0 | 
