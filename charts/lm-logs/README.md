@@ -35,7 +35,7 @@ The following tables lists the configurable parameters of the lm-logs chart and 
 | `resources.requests.memory` | Container memory resource requests              | `700Mi`                                                 |
 | `fluent.device_less_logs`   | beta feature. when set true, do not send resource information. send `service` and `namespace` as metadata when true  | `false`                                                 |
 | `fluent.include_metadata`   | if true send all metadata along with log msg    | `true`                                                  |
-| `fluent.resource_type`      | If specified, the value will be statically applied to all ingested logs. If ##predef.externalResourceType##, will be assigned dynamically based on the resource logs are mapped to. If left blank, the field will remain unset in the ingested logs. | `""`    |
+| `fluent.resource_type`      | If specified, the value will be statically applied to all ingested logs.  | `""`    |
 | `fluent.buffer.memory`      | fluentd's buffer memory plugin config           | `flush_interval 1s,chunk_limit_size 8m,flush_thread_count 8`|
 | `tolerations`               | Tolerations for pod assignment	                | `{}`  (evaluated as a template)                         |
 | `nodeSelectors`             | Node labels for pod assignment		            | `{}`  (evaluated as a template)                         |
