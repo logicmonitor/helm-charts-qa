@@ -103,7 +103,6 @@
       "default": "",
       "examples": [
         "logicmonitor.com",
-        "qa-lmgov.us",
         "lmgov.us"
       ],
       "$comment": "ui:lm_company_domain-ignore tf:optional"
