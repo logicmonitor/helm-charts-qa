@@ -160,14 +160,35 @@ Return the appropriate apiVersion for rbac.
 </match>
 {{- end }}
 
-
 {{/*
-Optional systemd.conf block for ConfigMap rendering
+Optional systemd.conf block for ConfigMap rendering (with context passing)
 */}}
 {{- define "fluentd.systemdConfBlock" -}}
-{{- if .Values.systemd.conf }}
+{{- $ctx := .context -}}
+{{- if $ctx.Values.useSystemdConf }}
+  {{- if not $ctx.Values.systemd.conf }}
 systemd.conf: |
-{{ .Values.systemd.conf | indent 2 }}
+  <source>
+    @type systemd
+    path /run/log/journal
+    tag systemd.al2023
+    read_from_head false
+    <storage>
+      @type local
+      persistent false
+    </storage>
+  </source>
+
+  <match systemd.al2023>
+    @type relabel
+    @label @PROCESS_AFTER_CONCAT
+  </match>
+  {{- else }}
+systemd.conf: |
+{{ $ctx.Values.systemd.conf | indent 2 }}
+  {{- end }}
+{{- else }}
+systemd.conf: ""
 {{- end }}
 {{- end }}
 

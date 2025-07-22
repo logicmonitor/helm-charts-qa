@@ -422,6 +422,11 @@
         ""
       ],
       "$comment": "tf:optional"
+    },
+    "useSystemdConf": {
+      "type": "boolean",
+      "default": true,
+      "description": "If true and no custom systemd.conf is provided, a default configuration for systemd will be injected. If false, systemd will be disabled regardless of conf."
     }
   },
   "additionalProperties": false,

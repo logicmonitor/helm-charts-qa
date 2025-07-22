@@ -9,7 +9,7 @@ metadata:
 data:
   fluent.conf: |
     @include kubernetes.conf
-    {{- if .Values.systemd.conf }}
+    {{- if .Values.useSystemdConf }}
     @include systemd.conf
     {{- end }}
 
@@ -18,14 +18,14 @@ data:
     </system>
 
     <label @PROCESS_AFTER_CONCAT>
-      {{- if .Values.systemd.conf }}
-      <filter {{ .Values.systemd.tag }}>
+      {{- if .Values.useSystemdConf }}
+      <filter {{ .Values.systemd.tag | default "systemd.al2023" }}>
         @type record_transformer
         enable_ruby
         <record>
           message ${record["MESSAGE"]}
           timestamp ${record["__REALTIME_TIMESTAMP"]}
-          source_tag {{ .Values.systemd.tag }}
+          source_tag {{ .Values.systemd.tag | default "systemd.al2023" }}
           {{- if .Values.fluent.device_less_logs }}
           resource.service.name ${ENV['K8S_NODE_NAME']}
           {{- end }}
@@ -67,10 +67,9 @@ data:
       </filter>
 
       {{ include "fluentd.lmMatch" (dict "tag" "kubernetes.**" "resource_mapping" "{\"kubernetes.pod_name\": \"auto.name\"}" "context" .) | nindent 6 }}
-      {{- if .Values.systemd.conf }}
-      {{ include "fluentd.lmMatch" (dict "tag" .Values.systemd.tag "resource_mapping" "{\"_HOSTNAME\": \"system.hostname\"}" "context" .) | nindent 6 }}
+      {{- if .Values.useSystemdConf }}
+      {{ include "fluentd.lmMatch" (dict "tag" (.Values.systemd.tag | default "systemd.al2023") "resource_mapping" "{\"_HOSTNAME\": \"system.hostname\"}" "context" .) | nindent 6 }}
       {{- end }}
-
     </label>
 
   kubernetes.conf: |
@@ -110,4 +109,4 @@ data:
       @label @PROCESS_AFTER_CONCAT
     </match>
 
-    {{ include "fluentd.systemdConfBlock" . | indent 2 }}
+    {{ include "fluentd.systemdConfBlock" (dict "context" .) | indent 2 }}
