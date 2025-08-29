@@ -8,7 +8,7 @@ maintainers:
 name: collectorset-controller
 version: 12.0.0-rc01
 home: https://logicmonitor.github.io/helm-charts-qa
-appVersion: v13.1.1-rc01
+appVersion: v13.2.0-rt01
 dependencies:
   - name: lmutil
     repository: https://logicmonitor.github.io/helm-charts-qa
