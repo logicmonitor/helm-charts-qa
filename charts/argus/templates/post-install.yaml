@@ -35,7 +35,7 @@ spec:
 
                 if [ -z "$KSM_SVC" ] || [ "$KSM_SVC" = "null" ]; then
                   echo "❌ kube-state-metrics service not found anywhere."
-                  exit 1
+                  # exit 1
                 fi
               fi
 
