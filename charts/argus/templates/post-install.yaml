@@ -45,6 +45,15 @@ spec:
               CLUSTER_IP=$(echo "$KSM_SVC" | jq -r '.spec.clusterIP')
               PORT=$(echo "$KSM_SVC" | jq -r '.spec.ports[0].port')
 
+              # Validate all required variables are populated
+              if [ -z "$SERVICE_NAME" ] || [ -z "$KSM_NAMESPACE" ] || [ -z "$CLUSTER_IP" ] || [ -z "$PORT" ]; then
+                echo "❌ One or more kube-state-metrics service variables are empty."
+                echo "SERVICE_NAME: $SERVICE_NAME"
+                echo "KSM_NAMESPACE: $KSM_NAMESPACE"
+                echo "CLUSTER_IP: $CLUSTER_IP"
+                echo "PORT: $PORT"
+              fi
+
               # Construct metrics endpoint
               METRICS_ENDPOINT="http://${SERVICE_NAME}.${KSM_NAMESPACE}.svc.cluster.local:${PORT}/metrics"
               echo "📡 kube-state-metrics endpoint: $METRICS_ENDPOINT"
