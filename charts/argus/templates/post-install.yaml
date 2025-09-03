@@ -2,10 +2,16 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: argus-props-patch-{{ .Release.Name }}
+  labels:
+    {{- include "argus.labels" . | nindent 4 }}
+    app.kubernetes.io/component: config-updater
   annotations:
     "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation
+    {{- include "argus.annotations" . | nindent 4 }}
+
 spec:
+  ttlSecondsAfterFinished: {{ .Values.patchJob.ttlSecondsAfterFinished | default 1800 }} # delete this job from cluster after 30 mins
   template:
     spec:
       containers:
