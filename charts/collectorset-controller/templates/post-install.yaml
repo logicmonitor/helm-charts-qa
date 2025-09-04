@@ -4,7 +4,7 @@ metadata:
   name: csc-props-patch-{{ .Release.Name }}
   labels:
     {{- include "collectorset-controller.labels" . | nindent 4}}
-    app.kubernetes.io/component: config-updater
+    app.kubernetes.io/job: config-updater
   annotations:
     "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation
@@ -91,7 +91,7 @@ spec:
                 COMPANY_DOMAIN_ENV=$(cat << EOF
                 {
                   "name": "COMPANY_DOMAIN",
-                  "value": {{ .Values.companyDomain | default "logicmonitor.com" | quote }}
+                  "value": {{ .Values.global.companyDomain | default "logicmonitor.com" | quote }}
                 }
               EOF
                 )
