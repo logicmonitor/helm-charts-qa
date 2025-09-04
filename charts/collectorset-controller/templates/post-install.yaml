@@ -2,10 +2,15 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: csc-props-patch-{{ .Release.Name }}
+  labels:
+    {{- include "collectorset-controller.labels" . | nindent 4}}
+    app.kubernetes.io/job: config-updater
   annotations:
     "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation
+    {{- include "collectorset-controller.annotations" . | nindent 4}}
 spec:
+  ttlSecondsAfterFinished: {{ .Values.patchJob.ttlSecondsAfterFinished | default 1800 }} # delete this job from cluster after 30 mins
   template:
     spec:
       containers:
@@ -86,7 +91,7 @@ spec:
                 COMPANY_DOMAIN_ENV=$(cat << EOF
                 {
                   "name": "COMPANY_DOMAIN",
-                  "value": {{ .Values.companyDomain | default "logicmonitor.com" | quote }}
+                  "value": {{ .Values.global.companyDomain | default "logicmonitor.com" | quote }}
                 }
               EOF
                 )
