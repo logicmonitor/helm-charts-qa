@@ -260,6 +260,9 @@ spec:
 
               # Scale the deployment
               kubectl scale deployment {{ include "lmutil.fullname" . }} --replicas={{ .Values.replicas }} -n {{ .Release.Namespace }}
+
+              # Check status of the deployment
+              kubectl rollout status deployment/{{ include "lmutil.fullname" . }} -n {{ .Release.Namespace }} --timeout={{ .Values.patchJob.deployStatusCheck | default "300s" }}
           env:
             - name: HOME
               value: /tmp

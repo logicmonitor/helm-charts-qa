@@ -57,6 +57,7 @@ annotations: {}
 ignoreSSL: false
 patchJob:
   ttlSecondsAfterFinished: 1800  # delete this job from cluster after 30 mins
+  deployStatusCheck: 300s  # time to wait for job to check status after scaling the deployment
 
 imagePullSecrets: []
 global:
