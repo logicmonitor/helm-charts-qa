@@ -89,7 +89,8 @@
       },
       "filters": [],
       "patchJob": {
-        "ttlSecondsAfterFinished": 1800
+        "ttlSecondsAfterFinished": 1800,
+        "deployStatusCheck": "300s"
       },
       "selfMonitor": {
         "enable": false,
@@ -1422,7 +1423,8 @@
       "default": {},
       "examples": [
         {
-          "ttlSecondsAfterFinished": 1800
+          "ttlSecondsAfterFinished": 1800,
+          "deployStatusCheck": "300s"
         }
       ],
       "required": [],
@@ -1438,6 +1440,17 @@
               60,
               1800
           ]
+          },
+          "deployStatusCheck" : {
+            "$comment": "tf:optional",
+            "$id": "#/properties/patchJob/properties/deployStatusCheck",
+            "type": "string",
+            "title": "Timeout to check the status of deployment rollout After PatchJob Completion",
+            "description": "Specifies the time-to-wait (in seconds) for the deployment to come up and running after patchJob has scaled the deployment.",
+            "default": "300s",
+            "examples": [
+              "300s"
+            ]
           }
       },
       "additionalProperties": false
