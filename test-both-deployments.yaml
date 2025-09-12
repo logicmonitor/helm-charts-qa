@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-argus-deployment
+  namespace: lm-portal
+  labels:
+    app: test-argus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-argus
+  template:
+    metadata:
+      labels:
+        app: test-argus
+    spec:
+      containers:
+      - name: argus  # Must be named "argus" for webhook to process
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-collectorset-deployment
+  namespace: lm-portal
+  labels:
+    app: test-collectorset
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-collectorset
+  template:
+    metadata:
+      labels:
+        app: test-collectorset
+    spec:
+      containers:
+      - name: collectorset-controller  # Must be named "collectorset-controller" for webhook to process
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-unknown-deployment
+  namespace: lm-portal
+  labels:
+    app: test-unknown
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-unknown
+  template:
+    metadata:
+      labels:
+        app: test-unknown
+    spec:
+      containers:
+      - name: some-other-container  # Should be ignored by webhook
+        image: nginx:alpine
+        ports:
+        - containerPort: 80

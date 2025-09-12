@@ -232,9 +232,17 @@ global:
 
 nameOverride: ""
 fullnameOverride: ""
-rbac:
-  create: true
+
+# Service account configuration
 serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+rbac:
   create: true
 
 probe:
@@ -248,3 +256,55 @@ probe:
   readiness:
     failureThreshold: 3
     periodSeconds: 10
+
+# Webhook configuration for mutating admission controller
+webhook:
+  # Enable the mutating webhook (replaces post-install job functionality)
+  # Uses admissionregistration.k8s.io/v1 API (requires Kubernetes 1.16+)
+  enabled: true
+  
+  # Webhook failure policy (Ignore or Fail)
+  failurePolicy: Ignore
+  
+  # CA bundle for webhook TLS (will be generated automatically if empty)
+  caBundle: ""
+  
+  # Webhook image configuration
+  image:
+#    registry: ""
+#    repository: ""
+    name: "test-mutating-webhook"
+    tag: "latest"
+    pullPolicy: "IfNotPresent"
+  
+  # Webhook resources
+  resources:
+    limits:
+      cpu: 500m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  
+  # Node selector for webhook pods
+  nodeSelector: {}
+  
+  # Affinity for webhook pods  
+  affinity: {}
+  
+  # Tolerations for webhook pods
+  tolerations: []
+  
+  # Certificate generation job configuration
+  certJob:
+    image: alpine/k8s:1.28.13
+    ttlSecondsAfterFinished: 300
+  
+  # ConfigMap update job configuration  
+  configmapUpdateJob:
+    image: alpine/k8s:1.28.13
+    ttlSecondsAfterFinished: 1800
+  
+  # Webhook readiness check job configuration
+  readinessJob:
+    ttlSecondsAfterFinished: 300

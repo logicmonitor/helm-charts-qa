@@ -1,0 +1,85 @@
+{{- if .Values.webhook.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "lmutil.fullname" . }}-webhook-configmap-update
+  namespace: {{ include "lmutil.release.namespace" . }}
+  labels:
+    {{ include "argus.labels" . | nindent 4 }}
+    app.kubernetes.io/component: webhook
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-6"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  template:
+    metadata:
+      labels:
+        {{ include "argus.labels" . | nindent 8 }}
+        app.kubernetes.io/component: webhook
+    spec:
+      serviceAccountName: {{ include "lmutil.serviceAccountName" . }}
+      restartPolicy: OnFailure
+      containers:
+      - name: configmap-updater
+        image: {{ .Values.webhook.configmapUpdateJob.image | default "alpine/k8s:1.28.13" }}
+        command:
+          - /bin/sh
+          - -c
+          - |
+            set -e
+            echo "🔄 Updating MutatingWebhookConfiguration CA bundle..."
+            
+            # Wait for ConfigMap to be ready
+            echo "⏳ Waiting for ConfigMap to be available..."
+            timeout=300
+            while [ $timeout -gt 0 ]; do
+              if kubectl get configmap {{ include "lmutil.fullname" . }}-webhook-ca -n {{ include "lmutil.release.namespace" . }} >/dev/null 2>&1; then
+                echo "✅ ConfigMap found"
+                break
+              fi
+              echo "⏳ ConfigMap not ready, waiting... ($timeout seconds left)"
+              sleep 5
+              timeout=$((timeout - 5))
+            done
+            
+            if [ $timeout -le 0 ]; then
+              echo "❌ Timeout waiting for ConfigMap"
+              exit 1
+            fi
+            
+            # Get CA bundle from ConfigMap
+            echo "📋 Getting CA bundle from ConfigMap..."
+            CA_BUNDLE=$(kubectl get configmap {{ include "lmutil.fullname" . }}-webhook-ca -n {{ include "lmutil.release.namespace" . }} -o jsonpath='{.data.caBundle}')
+            
+            if [ -z "$CA_BUNDLE" ]; then
+              echo "❌ CA bundle is empty!"
+              exit 1
+            fi
+            
+            echo "📋 CA bundle size: $(echo -n "$CA_BUNDLE" | wc -c) characters"
+            
+            # Update MutatingWebhookConfiguration
+            echo "🔄 Updating MutatingWebhookConfiguration..."
+            kubectl patch mutatingwebhookconfiguration {{ include "lmutil.fullname" . }}-webhook --type='json' -p="[{
+              \"op\": \"replace\",
+              \"path\": \"/webhooks/0/clientConfig/caBundle\",
+              \"value\": \"$CA_BUNDLE\"
+            }]"
+            
+            echo "✅ MutatingWebhookConfiguration updated successfully"
+            
+            # Verify the update
+            echo "🔍 Verifying CA bundle update..."
+            UPDATED_CA=$(kubectl get mutatingwebhookconfiguration {{ include "lmutil.fullname" . }}-webhook -o jsonpath='{.webhooks[0].clientConfig.caBundle}')
+            
+            if [ "$CA_BUNDLE" = "$UPDATED_CA" ]; then
+              echo "✅ CA bundle verification successful"
+            else
+              echo "❌ CA bundle verification failed"
+              exit 1
+            fi
+        securityContext:
+          runAsUser: 0
+          allowPrivilegeEscalation: false
+{{- end }}

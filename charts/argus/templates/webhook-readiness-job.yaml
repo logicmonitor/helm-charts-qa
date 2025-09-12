@@ -1,0 +1,60 @@
+{{- if .Values.webhook.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "lmutil.fullname" . }}-webhook-readiness
+  namespace: {{ include "lmutil.release.namespace" . }}
+  labels:
+    {{ include "argus.labels" . | nindent 4 }}
+    app.kubernetes.io/component: webhook-readiness
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "0"
+    "helm.sh/hook-delete-policy": before-hook-creation
+    {{ include "argus.annotations" . | nindent 4 }}
+spec:
+  ttlSecondsAfterFinished: {{ .Values.webhook.readinessJob.ttlSecondsAfterFinished | default 300 }}
+  template:
+    spec:
+      containers:
+        - name: webhook-readiness-check
+          image: curlimages/curl:latest
+          command:
+            - /bin/sh
+            - -c
+          args:
+            - |
+              set -e
+              
+              SERVICE_NAME="{{ include "lmutil.fullname" . }}-webhook"
+              NAMESPACE="{{ include "lmutil.release.namespace" . }}"
+              WEBHOOK_URL="https://${SERVICE_NAME}.${NAMESPACE}.svc.cluster.local:443/health"
+              
+              echo "Waiting for webhook to be ready at: $WEBHOOK_URL"
+              
+              # Wait up to 5 minutes for the webhook to be ready
+              TIMEOUT=300
+              INTERVAL=10
+              ELAPSED=0
+              
+              while [ $ELAPSED -lt $TIMEOUT ]; do
+                echo "Checking webhook readiness... (${ELAPSED}s/${TIMEOUT}s)"
+                
+                if curl -k -f -s --max-time 5 "$WEBHOOK_URL" > /dev/null 2>&1; then
+                  echo "✅ Webhook is ready!"
+                  exit 0
+                fi
+                
+                echo "⏳ Webhook not ready yet, waiting ${INTERVAL}s..."
+                sleep $INTERVAL
+                ELAPSED=$((ELAPSED + INTERVAL))
+              done
+              
+              echo "❌ Timeout waiting for webhook to be ready after ${TIMEOUT}s"
+              echo "Please check webhook deployment status:"
+              echo "  kubectl get pods -l app.kubernetes.io/component=webhook -n ${NAMESPACE}"
+              echo "  kubectl logs -l app.kubernetes.io/component=webhook -n ${NAMESPACE}"
+              exit 1
+      restartPolicy: Never
+      serviceAccountName: {{ include "lmutil.serviceAccountName" . }}
+{{- end }}

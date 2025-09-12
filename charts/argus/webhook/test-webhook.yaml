@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-argus-webhook
+  namespace: lm-portal
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-argus-webhook
+  template:
+    metadata:
+      labels:
+        app: test-argus-webhook
+    spec:
+      containers:
+      - name: argus  # Important: Must be named "argus" for webhook to process it
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        env:
+        - name: TEST_ENV
+          value: "original-value"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-argus-webhook-service
+  namespace: lm-portal
+spec:
+  selector:
+    app: test-argus-webhook
+  ports:
+  - port: 80
+    targetPort: 80
+  type: ClusterIP

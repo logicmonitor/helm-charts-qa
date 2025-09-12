@@ -2728,6 +2728,261 @@
       },
       "additionalProperties": false
     },
+    "webhook": {
+      "$id": "#/properties/webhook",
+      "$comment": "tf:optional",
+      "description": "Webhook configuration for mutating admission controller",
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "$comment": "tf:optional",
+          "$id": "#/properties/webhook/properties/enabled",
+          "type": "boolean",
+          "description": "Enable the mutating webhook (replaces post-install job functionality)",
+          "default": false
+        },
+        "failurePolicy": {
+          "$comment": "tf:optional",
+          "$id": "#/properties/webhook/properties/failurePolicy",
+          "type": "string",
+          "description": "Webhook failure policy (Ignore or Fail)",
+          "default": "Ignore",
+          "enum": [
+            "Ignore",
+            "Fail"
+          ]
+        },
+        "caBundle": {
+          "$comment": "tf:optional",
+          "$id": "#/properties/webhook/properties/caBundle",
+          "type": "string",
+          "description": "CA bundle for webhook TLS (will be generated automatically if empty)",
+          "default": ""
+        },
+        "image": {
+          "$comment": "tf:optional",
+          "$id": "#/properties/webhook/properties/image",
+          "type": "object",
+          "description": "Webhook image configuration",
+          "properties": {
+            "registry": {
+              "$comment": "tf:optional",
+              "$id": "#/properties/webhook/properties/image/properties/registry",
+              "type": "string",
+              "description": "Webhook image registry",
+              "default": ""
+            },
+            "repository": {
+              "$comment": "tf:optional",
+              "$id": "#/properties/webhook/properties/image/properties/repository",
+              "type": "string",
+              "description": "Webhook image repository",
+              "default": "logicmonitor"
+            },
+            "name": {
+              "$comment": "tf:optional",
+              "$id": "#/properties/webhook/properties/image/properties/name",
+              "type": "string",
+              "description": "Webhook image name",
+              "default": "argus-webhook"
+            },
+            "tag": {
+              "$comment": "tf:optional",
+              "$id": "#/properties/webhook/properties/image/properties/tag",
+              "type": "string",
+              "description": "Webhook image tag",
+              "default": ""
+            },
+            "pullPolicy": {
+              "$comment": "tf:optional",
+              "$id": "#/properties/webhook/properties/image/properties/pullPolicy",
+              "type": "string",
+              "description": "Webhook image pull policy",
+              "default": ""
+            }
+          },
+          "additionalProperties": false
+        },
+        "resources": {
+          "$comment": "tf:optional",
+          "$id": "#/properties/webhook/properties/resources",
+          "type": "object",
+          "description": "Webhook resource requirements",
+          "properties": {
+            "limits": {
+              "$comment": "tf:optional",
+              "$id": "#/properties/webhook/properties/resources/properties/limits",
+              "type": "object",
+              "description": "Resource limits",
+              "properties": {
+                "cpu": {
+                  "$comment": "tf:optional",
+                  "$id": "#/properties/webhook/properties/resources/properties/limits/properties/cpu",
+                  "type": "string",
+                  "description": "CPU limit",
+                  "default": "500m"
+                },
+                "memory": {
+                  "$comment": "tf:optional",
+                  "$id": "#/properties/webhook/properties/resources/properties/limits/properties/memory",
+                  "type": "string",
+                  "description": "Memory limit",
+                  "default": "256Mi"
+                }
+              },
+              "additionalProperties": false
+            },
+            "requests": {
+              "$comment": "tf:optional",
+              "$id": "#/properties/webhook/properties/resources/properties/requests",
+              "type": "object",
+              "description": "Resource requests",
+              "properties": {
+                "cpu": {
+                  "$comment": "tf:optional",
+                  "$id": "#/properties/webhook/properties/resources/properties/requests/properties/cpu",
+                  "type": "string",
+                  "description": "CPU request",
+                  "default": "100m"
+                },
+                "memory": {
+                  "$comment": "tf:optional",
+                  "$id": "#/properties/webhook/properties/resources/properties/requests/properties/memory",
+                  "type": "string",
+                  "description": "Memory request",
+                  "default": "128Mi"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "nodeSelector": {
+          "$comment": "tf:optional",
+          "$id": "#/properties/webhook/properties/nodeSelector",
+          "type": "object",
+          "description": "Node selector for webhook pods",
+          "additionalProperties": true,
+          "default": {}
+        },
+        "affinity": {
+          "$comment": "tf:optional",
+          "$id": "#/properties/webhook/properties/affinity",
+          "type": "object",
+          "description": "Affinity for webhook pods",
+          "additionalProperties": true,
+          "default": {}
+        },
+        "tolerations": {
+          "$comment": "tf:optional",
+          "$id": "#/properties/webhook/properties/tolerations",
+          "type": "array",
+          "description": "Tolerations for webhook pods",
+          "items": {
+            "type": "object"
+          },
+          "default": []
+        },
+        "certJob": {
+          "$comment": "tf:optional",
+          "$id": "#/properties/webhook/properties/certJob",
+          "type": "object",
+          "description": "Certificate generation job configuration",
+          "properties": {
+            "image": {
+              "$comment": "tf:optional",
+              "$id": "#/properties/webhook/properties/certJob/properties/image",
+              "type": "string",
+              "description": "Certificate generation job image",
+              "default": "alpine/k8s:1.28.13"
+            },
+            "ttlSecondsAfterFinished": {
+              "$comment": "tf:optional",
+              "$id": "#/properties/webhook/properties/certJob/properties/ttlSecondsAfterFinished",
+              "type": "integer",
+              "description": "TTL seconds after certificate job finished",
+              "default": 300,
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false
+        },
+        "configmapUpdateJob": {
+          "$comment": "tf:optional",
+          "$id": "#/properties/webhook/properties/configmapUpdateJob",
+          "type": "object",
+          "description": "ConfigMap update job configuration",
+          "properties": {
+            "image": {
+              "$comment": "tf:optional",
+              "$id": "#/properties/webhook/properties/configmapUpdateJob/properties/image",
+              "type": "string",
+              "description": "Container image for configmap update job",
+              "default": "alpine/k8s:1.28.13"
+            },
+            "ttlSecondsAfterFinished": {
+              "$comment": "tf:optional",
+              "$id": "#/properties/webhook/properties/configmapUpdateJob/properties/ttlSecondsAfterFinished",
+              "type": "integer",
+              "description": "TTL seconds after configmap update job finished",
+              "default": 1800,
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false
+        },
+        "readinessJob": {
+          "$comment": "tf:optional",
+          "$id": "#/properties/webhook/properties/readinessJob",
+          "type": "object",
+          "description": "Webhook readiness check job configuration",
+          "properties": {
+            "ttlSecondsAfterFinished": {
+              "$comment": "tf:optional",
+              "$id": "#/properties/webhook/properties/readinessJob/properties/ttlSecondsAfterFinished",
+              "type": "integer",
+              "description": "TTL seconds after readiness check job finished",
+              "default": 300,
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "serviceAccount": {
+      "$id": "#/properties/serviceAccount",
+      "$comment": "tf:optional",
+      "description": "Service account configuration",
+      "type": "object",
+      "properties": {
+        "create": {
+          "$comment": "tf:optional",
+          "$id": "#/properties/serviceAccount/properties/create",
+          "type": "boolean",
+          "description": "Specifies whether a service account should be created",
+          "default": true
+        },
+        "annotations": {
+          "$comment": "tf:optional",
+          "$id": "#/properties/serviceAccount/properties/annotations",
+          "type": "object",
+          "description": "Annotations to add to the service account",
+          "additionalProperties": true,
+          "default": {}
+        },
+        "name": {
+          "$comment": "tf:optional",
+          "$id": "#/properties/serviceAccount/properties/name",
+          "type": "string",
+          "description": "The name of the service account to use. If not set and create is true, a name is generated using the fullname template",
+          "default": ""
+        }
+      },
+      "additionalProperties": false
+    },
     "lmutil": {
       "$id": "#/properties/lmutil",
       "additionalProperties": true

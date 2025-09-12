@@ -186,3 +186,35 @@ Argus proxy details or not, for this we're using Lookup function in helm.
       key: proxyPass
 {{- end }}
 {{- end }}
+
+{{/*
+Return the webhook image name
+*/}}
+{{- define "webhook-image" -}}
+{{- $registry := .Values.webhook.image.registry | default .Values.global.image.registry -}}
+{{- $repository := .Values.webhook.image.repository | default "" -}}
+{{- $name := .Values.webhook.image.name | default "test-mutating-webhook" -}}
+{{- $tag := .Values.webhook.image.tag | default "latest" -}}
+{{- if $registry -}}
+{{ $registry }}/{{ $repository }}/{{ $name }}:{{ $tag }}
+{{- else if $repository -}}
+{{ $repository }}/{{ $name }}:{{ $tag }}
+{{- else -}}
+{{ $name }}:{{ $tag }}
+{{- end -}}
+{{- end }}
+
+{{/*
+Get webhook CA bundle from ConfigMap
+*/}}
+{{- define "webhook-ca-bundle" -}}
+{{- if .Values.webhook.caBundle -}}
+{{ .Values.webhook.caBundle }}
+{{- else -}}
+{{- $configMap := lookup "v1" "ConfigMap" (include "lmutil.release.namespace" .) (printf "%s-webhook-ca" (include "lmutil.fullname" .)) -}}
+{{- if and $configMap $configMap.data $configMap.data.caBundle -}}
+{{ $configMap.data.caBundle }}
+{{- else -}}
+{{- end -}}
+{{- end -}}
+{{- end }}

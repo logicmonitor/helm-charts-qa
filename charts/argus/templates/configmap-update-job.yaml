@@ -1,0 +1,82 @@
+{{- if .Values.webhook.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "lmutil.fullname" . }}-configmap-updater
+  namespace: {{ include "lmutil.release.namespace" . }}
+  labels:
+    {{ include "argus.labels" . | nindent 4 }}
+    app.kubernetes.io/component: configmap-updater
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation
+    {{ include "argus.annotations" . | nindent 4 }}
+spec:
+  ttlSecondsAfterFinished: {{ .Values.webhook.configmapUpdateJob.ttlSecondsAfterFinished | default 1800 }}
+  template:
+    spec:
+      containers:
+        - name: configmap-updater
+          image: bitnami/kubectl:latest
+          command:
+            - /bin/sh
+            - -c
+          args:
+            - |
+              set -e
+              echo "Updating ConfigMap with kube-state-metrics URL..."
+              
+              # Get current config
+              kubectl get configmap {{ include "lmutil.fullname" . }} -n {{ .Release.Namespace }} -o json | jq -r '.data["config.yaml"]' | yq e -P - >> /tmp/new-config.yaml
+
+              echo "🔍 Checking for kube-state-metrics in namespace {{ .Release.Namespace }}..."
+
+              # First, check in the current namespace
+              KSM_SVC=$(kubectl get svc -n {{ .Release.Namespace }} -l app.kubernetes.io/name=kube-state-metrics -o json | jq -r '.items[0]')
+
+              if [ -n "$KSM_SVC" ] && [ "$KSM_SVC" != "null" ]; then
+                echo "✅ Found kube-state-metrics in namespace {{ .Release.Namespace }}"
+              else
+                echo "⚠️ Not found in {{ .Release.Namespace }}, searching all namespaces..."
+
+                # Search all namespaces
+                KSM_SVC=$(kubectl get svc --all-namespaces -l app.kubernetes.io/name=kube-state-metrics -o json | jq -r '.items[0]')
+
+                if [ -z "$KSM_SVC" ] || [ "$KSM_SVC" = "null" ]; then
+                  echo "❌ kube-state-metrics service not found anywhere."
+                  exit 0
+                fi
+              fi
+
+              # Extract namespace, ClusterIP, and port
+              SERVICE_NAME=$(echo "$KSM_SVC" | jq -r '.metadata.name')
+              KSM_NAMESPACE=$(echo "$KSM_SVC" | jq -r '.metadata.namespace')
+              CLUSTER_IP=$(echo "$KSM_SVC" | jq -r '.spec.clusterIP')
+              PORT=$(echo "$KSM_SVC" | jq -r '.spec.ports[0].port')
+
+              # Validate all required variables are populated
+              if [ -z "$SERVICE_NAME" ] || [ -z "$KSM_NAMESPACE" ] || [ -z "$CLUSTER_IP" ] || [ -z "$PORT" ]; then
+                echo "❌ One or more kube-state-metrics service variables are empty."
+                echo "SERVICE_NAME: $SERVICE_NAME"
+                echo "KSM_NAMESPACE: $KSM_NAMESPACE"
+                echo "CLUSTER_IP: $CLUSTER_IP"
+                echo "PORT: $PORT"
+                exit 1
+              fi
+
+              # Construct metrics endpoint
+              METRICS_ENDPOINT="http://${SERVICE_NAME}.${KSM_NAMESPACE}.svc.cluster.local:${PORT}/metrics"
+              echo "📡 kube-state-metrics endpoint: $METRICS_ENDPOINT"
+
+              yq e ".ksmUrl = \"${METRICS_ENDPOINT}\"" /tmp/new-config.yaml
+
+              kubectl patch configmap {{ include "lmutil.fullname" . }} -n {{ .Release.Namespace }} --type merge -p "$(jq -n --arg cfg "$(cat /tmp/new-config.yaml | sed 's/"/\\"/g')" '{data: {"config.yaml": $cfg}}')"
+              
+              echo "ConfigMap updated successfully."
+          env:
+            - name: HOME
+              value: /tmp
+      restartPolicy: Never
+      serviceAccountName: {{ include "lmutil.serviceAccountName" . }}
+{{- end }}

@@ -1,0 +1,197 @@
+{{- if .Values.webhook.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "lmutil.fullname" . }}-webhook-cert-generator
+  namespace: {{ include "lmutil.release.namespace" . }}
+  labels:
+    {{ include "argus.labels" . | nindent 4 }}
+    app.kubernetes.io/component: webhook-cert-generator
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-9"
+    "helm.sh/hook-delete-policy": before-hook-creation
+    {{ include "argus.annotations" . | nindent 4 }}
+spec:
+  ttlSecondsAfterFinished: {{ .Values.webhook.certJob.ttlSecondsAfterFinished | default 300 }}
+  template:
+    spec:
+      securityContext:
+        runAsNonRoot: false  # Allow root for certificate generation
+        fsGroup: 0
+      containers:
+        - name: cert-generator
+          image: {{ .Values.webhook.certJob.image | default "alpine/k8s:1.28.13" }}
+          securityContext:
+            runAsUser: 0  # Run as root for file operations
+            allowPrivilegeEscalation: false
+          command:
+            - /bin/sh
+            - -c
+          args:
+            - |
+              set -e
+              
+              # Work in /tmp directory which is writable
+              cd /tmp
+              
+              # Ensure required tools are available
+              echo "Checking for required tools..."
+              
+              # Install kubectl if not available
+              if ! command -v kubectl &> /dev/null; then
+                echo "Installing kubectl..."
+                apk add --no-cache kubectl
+              fi
+              
+              # Install openssl if not available
+              if ! command -v openssl &> /dev/null; then
+                echo "Installing openssl..."
+                apk add --no-cache openssl
+              fi
+              
+              echo "✅ All required tools are available"
+              
+              SERVICE_NAME="{{ include "lmutil.fullname" . }}-webhook"
+              NAMESPACE="{{ include "lmutil.release.namespace" . }}"
+              
+              echo "Generating TLS certificates for webhook: ${SERVICE_NAME}.${NAMESPACE}.svc"
+              
+              # Generate CA private key
+              openssl genrsa -out ca.key 2048
+              
+              # Generate CA certificate
+              openssl req -new -x509 -key ca.key -sha256 -subj "/C=US/ST=CA/O=LogicMonitor/CN=webhook-ca" -days 3650 -out ca.crt
+              
+              # Generate server private key
+              openssl genrsa -out tls.key 2048
+              
+              # Wait for service to be ready and get service IP
+              echo "🔍 Waiting for webhook service to be ready..."
+              RETRIES=0
+              MAX_RETRIES=30
+              while [ $RETRIES -lt $MAX_RETRIES ]; do
+                SERVICE_IP=$(kubectl get svc ${SERVICE_NAME} -n ${NAMESPACE} -o jsonpath='{.spec.clusterIP}' 2>/dev/null || echo "")
+                if [ -n "${SERVICE_IP}" ] && [ "${SERVICE_IP}" != "None" ]; then
+                  echo "✅ Service found with ClusterIP: ${SERVICE_IP}"
+                  break
+                fi
+                echo "⏳ Service not ready yet, waiting... (${RETRIES}/${MAX_RETRIES})"
+                sleep 2
+                RETRIES=$((RETRIES + 1))
+              done
+              
+              if [ -z "${SERVICE_IP}" ] || [ "${SERVICE_IP}" = "None" ]; then
+                echo "⚠️ Service not found after waiting, generating cert without service IP"
+                SERVICE_IP=""
+              fi
+              
+              echo "📋 Service details:"
+              echo "   Name: ${SERVICE_NAME}"
+              echo "   Namespace: ${NAMESPACE}"
+              echo "   ClusterIP: ${SERVICE_IP}"
+              
+              # Generate server certificate signing request
+              openssl req -new -key tls.key -out server.csr -config <(
+              cat <<EOF
+              [req]
+              default_bits = 2048
+              prompt = no
+              default_md = sha256
+              req_extensions = req_ext
+              distinguished_name = dn
+              
+              [dn]
+              C=US
+              ST=CA
+              O=LogicMonitor
+              CN=${SERVICE_NAME}.${NAMESPACE}.svc.cluster.local
+              
+              [req_ext]
+              subjectAltName = @alt_names
+              keyUsage = keyEncipherment, dataEncipherment
+              extendedKeyUsage = serverAuth
+              
+              [alt_names]
+              DNS.1 = ${SERVICE_NAME}
+              DNS.2 = ${SERVICE_NAME}.${NAMESPACE}
+              DNS.3 = ${SERVICE_NAME}.${NAMESPACE}.svc
+              DNS.4 = ${SERVICE_NAME}.${NAMESPACE}.svc.cluster.local
+              DNS.5 = localhost
+              IP.1 = 127.0.0.1
+              $([ -n "${SERVICE_IP}" ] && echo "IP.2 = ${SERVICE_IP}" || echo "# No service IP available")
+              EOF
+              )
+              
+              # Generate server certificate signed by CA
+              openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out tls.crt -days 365 -extensions req_ext -extfile <(
+              cat <<EOF
+              [req_ext]
+              subjectAltName = @alt_names
+              keyUsage = keyEncipherment, dataEncipherment
+              extendedKeyUsage = serverAuth
+              
+              [alt_names]
+              DNS.1 = ${SERVICE_NAME}
+              DNS.2 = ${SERVICE_NAME}.${NAMESPACE}
+              DNS.3 = ${SERVICE_NAME}.${NAMESPACE}.svc
+              DNS.4 = ${SERVICE_NAME}.${NAMESPACE}.svc.cluster.local
+              DNS.5 = localhost
+              IP.1 = 127.0.0.1
+              $([ -n "${SERVICE_IP}" ] && echo "IP.2 = ${SERVICE_IP}" || echo "# No service IP available")
+              EOF
+              )
+              
+              # Validate the generated certificate
+              echo "🔍 Validating generated certificate..."
+              echo "📋 Certificate details:"
+              openssl x509 -in tls.crt -text -noout | grep -A 10 "Subject Alternative Name" || echo "⚠️ No SAN found"
+              
+              echo "📋 Certificate subject:"
+              openssl x509 -in tls.crt -subject -noout
+              
+              echo "📋 Certificate validity:"
+              openssl x509 -in tls.crt -dates -noout
+              
+              # Verify certificate and key match
+              CERT_MODULUS=$(openssl x509 -noout -modulus -in tls.crt | openssl md5)
+              KEY_MODULUS=$(openssl rsa -noout -modulus -in tls.key | openssl md5)
+              
+              if [ "$CERT_MODULUS" != "$KEY_MODULUS" ]; then
+                echo "❌ Certificate and private key do not match!"
+                exit 1
+              fi
+              
+              echo "✅ Certificate and private key match"
+              
+              # Create secret with the certificates
+              kubectl create secret tls {{ include "lmutil.fullname" . }}-webhook-certs \
+                --cert=tls.crt \
+                --key=tls.key \
+                --namespace=${NAMESPACE} \
+                --dry-run=client -o yaml | kubectl apply -f -
+              
+              # Generate clean base64 CA bundle
+              CA_BUNDLE=$(cat ca.crt | base64 -w 0)
+              
+              echo "📋 Generated CA bundle length: ${#CA_BUNDLE} characters"
+              echo "📋 CA bundle first 50 chars: ${CA_BUNDLE:0:50}..."
+              
+              # Validate the CA bundle is proper base64
+              if ! echo "$CA_BUNDLE" | base64 -d > /dev/null 2>&1; then
+                echo "❌ Generated CA bundle is not valid base64!"
+                exit 1
+              fi
+              
+              echo "✅ CA bundle validation passed"
+              
+              # Create a configmap with the CA bundle for the webhook configuration
+              kubectl create configmap {{ include "lmutil.fullname" . }}-webhook-ca \
+                --from-literal=caBundle="$CA_BUNDLE" \
+                --namespace=${NAMESPACE} \
+                --dry-run=client -o yaml | kubectl apply -f -
+                
+              echo "Certificates generated and stored successfully"
+      restartPolicy: Never
+      serviceAccountName: {{ include "lmutil.serviceAccountName" . }}
+{{- end }}

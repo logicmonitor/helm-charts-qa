@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-webhook-standalone
+  namespace: lm-portal
+  labels:
+    app: test-webhook-standalone
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-webhook-standalone
+  template:
+    metadata:
+      labels:
+        app: test-webhook-standalone
+    spec:
+      containers:
+      - name: argus  # Must be named "argus" for webhook to process
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        # Note: NO env field initially - webhook should create it
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-webhook-with-env
+  namespace: lm-portal
+  labels:
+    app: test-webhook-with-env
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-webhook-with-env
+  template:
+    metadata:
+      labels:
+        app: test-webhook-with-env
+    spec:
+      containers:
+      - name: argus  # Must be named "argus" for webhook to process
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        env:  # Has existing env field
+        - name: EXISTING_VAR
+          value: "existing-value"

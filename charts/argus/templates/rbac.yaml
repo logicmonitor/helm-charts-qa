@@ -9,11 +9,48 @@ metadata:
     {{- include "argus.labels" . | nindent 4 }}
   annotations:
     {{- include "argus.annotations" . | nindent 4 }}
+    {{- if .Values.webhook.enabled }}
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-15"
+    "helm.sh/hook-delete-policy": before-hook-creation
+    {{- end }}
 aggregationRule:
   clusterRoleSelectors:
     - matchLabels:
         logicmonitor.com/aggregate-to-argus: "true"
-rules: [ ] # The control plane automatically fills in the rules
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+      - pods/log
+      - containers
+      - nodes
+      - services
+      - namespaces
+      - componentstatuses
+      - persistentvolumes
+      - persistentvolumeclaims
+      - secrets
+      - endpoints
+      - limitranges
+      - resourcequotas
+      - serviceaccounts
+      - configmaps
+    verbs:
+      - list
+      - get
+      - watch
+      - update
+      - create
+      - patch
+  - apiGroups:
+      - "admissionregistration.k8s.io"
+    resources:
+        - mutatingwebhookconfigurations
+    verbs:
+        - get
+        - patch
 ---
 kind: ClusterRole
 apiVersion: {{ template "lmutil.rbac.apiVersion" . }}
@@ -157,6 +194,40 @@ rules:
       - /healthz/*
     verbs:
       - get
+{{- if .Values.webhook.enabled }}
+  # Additional permissions for webhook operations
+  - apiGroups:
+      - "admissionregistration.k8s.io"
+    resources:
+      - mutatingadmissionwebhookconfigurations
+      - validatingadmissionwebhookconfigurations
+    verbs:
+      - list
+      - get
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
+    verbs:
+      - create
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - create
+      - update
+      - patch
+      - delete
+{{- end }}
 ---
 apiVersion: {{ template "lmutil.rbac.apiVersion" . }}
 kind: ClusterRoleBinding
@@ -167,10 +238,15 @@ metadata:
   labels:
 {{ toYaml .Values.labels| indent 4 }}
 {{- end }}
-{{- if .Values.annotations }}
   annotations:
+    {{- if .Values.webhook.enabled }}
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-15"
+    "helm.sh/hook-delete-policy": before-hook-creation
+    {{- end }}
+    {{- if .Values.annotations }}
 {{ toYaml .Values.annotations | indent 4 }}
-{{- end }}
+    {{- end }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
