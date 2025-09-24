@@ -27,6 +27,13 @@ metadata:
     {{- include "argus.annotations" . | nindent 4 }}
 rules:
   - apiGroups:
+      - "logicmonitor.com"
+    resources:
+      - collectorsets
+    verbs:
+      - get
+      - patch
+  - apiGroups:
       - ""
     resources:
       - pods
