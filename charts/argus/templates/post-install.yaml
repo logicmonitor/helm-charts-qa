@@ -260,6 +260,16 @@ spec:
 
               # Scale the deployment
               kubectl scale deployment {{ include "lmutil.fullname" . }} --replicas={{ .Values.replicas }} -n {{ .Release.Namespace }}
+
+              # Patch collectorset if proxyUser or collectorProxyUser is found in userDefinedSecret
+              if [ -n "{{ .Values.global.userDefinedSecret }}" ] && [ "$SECRET_DATA" != "null" ] && [ -n "$SECRET_DATA" ]; then
+                if echo "$SECRET_DATA" | jq -e 'has("collectorProxyUser") or has("proxyUser")' > /dev/null; then
+                  echo "collectorProxyUser or proxyUser found in userDefinedSecret, patching collectorset with userDefinedSecret name..."
+                  kubectl patch collectorset {{ include "lmutil.fullname" . }} -n {{ .Release.Namespace }} --type=merge -p '{"spec":{"secretName":"{{ .Values.global.userDefinedSecret }}"}}'
+                fi
+              else
+                echo "No collectorset secretName patch required."
+              fi
           env:
             - name: HOME
               value: /tmp
