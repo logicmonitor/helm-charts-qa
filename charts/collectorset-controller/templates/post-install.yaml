@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: patch-configmap
-          image: bitnami/kubectl:latest
+          image: bitnamisecure/kubectl:latest
           command:
             - /bin/sh
             - -c
