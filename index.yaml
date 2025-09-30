@@ -7515,6 +7515,62 @@ entries:
     version: 1.0.0-rc87
   lm-container:
   - apiVersion: v2
+    created: "2025-09-30T06:33:45.35071317Z"
+    dependencies:
+    - condition: argus.enabled
+      name: argus
+      repository: https://logicmonitor.github.io/helm-charts-qa
+      tags:
+      - logicmonitor
+      - argus
+      - monitoring
+      version: 14.0.0-rc04
+    - condition: collectorset-controller.enabled
+      name: collectorset-controller
+      repository: https://logicmonitor.github.io/helm-charts-qa
+      tags:
+      - logicmonitor
+      - collectorset-controller
+      - monitoring
+      version: 12.0.0-rc03
+    - condition: lm-logs.enabled
+      name: lm-logs
+      repository: https://logicmonitor.github.io/helm-charts-qa
+      tags:
+      - logicmonitor
+      - lm-logs
+      - monitoring
+      - pod-logs-collection
+      - k8s-events-collection
+      version: 0.8.0-rc01
+    - condition: lmotel.enabled
+      name: lmotel
+      repository: https://logicmonitor.github.io/helm-charts-qa
+      tags:
+      - logicmonitor
+      - lmotel
+      - monitoring
+      version: 1.8.0-rc01
+    - condition: kube-state-metrics.enabled
+      name: kube-state-metrics
+      repository: https://prometheus-community.github.io/helm-charts
+      version: 6.1.5
+    - name: lmutil
+      repository: https://logicmonitor.github.io/helm-charts-qa
+      version: 0.1.9
+    description: A Helm chart for Logicmonitor's Kubernetes monitoring solutions
+    digest: c826379684957e26b316f129ebbd5975ca0c83d3aec8c8bd7c9aa391d5d955f5
+    icon: https://logicmonitor.github.io/helm-charts-qa/lm_logo.png
+    kubeVersion: '>= 1.16.0-0'
+    maintainers:
+    - email: argus@logicmonitor.com
+      name: LogicMonitor
+    name: lm-container
+    type: application
+    urls:
+    - https://github.com/logicmonitor/helm-charts-qa/releases/download/lm-container-12.0.0-rc04/lm-container-12.0.0-rc04.tgz
+    version: 12.0.0-rc04
+  - apiVersion: v2
     created: "2025-09-25T08:45:48.410047037Z"
     dependencies:
     - condition: argus.enabled
@@ -17015,4 +17071,4 @@ entries:
     urls:
     - https://github.com/logicmonitor/helm-charts-qa/releases/download/releasemanager-0.3.0/releasemanager-0.3.0.tgz
     version: 0.3.0
-generated: "2025-09-30T06:19:04.086397079Z"
+generated: "2025-09-30T06:33:45.354841947Z"
