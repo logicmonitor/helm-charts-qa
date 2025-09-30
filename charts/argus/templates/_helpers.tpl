@@ -6,6 +6,7 @@ Common labels
 {{- define "argus.labels" -}}
 {{ include "lmutil.generic.labels" . }}
 app.kubernetes.io/component: discovery-agent
+argus.monitoring-mode: {{ .Values.monitoringMode | default "Essentials" | quote }}
 {{/*
 Adding app property to make it backward compatible in trasition phase.
 New datasources or existing datasources should use app.kubernetes.io/name property in its appliesto script
