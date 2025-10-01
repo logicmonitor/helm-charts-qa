@@ -24,7 +24,7 @@ spec:
             - |
               set -e
               echo "Patching config.yaml inside ConfigMap..."
-              kubectl get configmap {{ include "lmutil.fullname" . }} -n {{ .Release.Namespace }} -o json | jq -r '.data["config.yaml"]' | yq e -P - >> /tmp/new-config.yaml
+              kubectl get configmap {{ include "lmutil.fullname" . }} -n {{ .Release.Namespace }} -o yaml | yq '.data["config.yaml"]' >> /tmp/new-config.yaml
 
               echo "🔍 Checking for kube-state-metrics in namespace {{ .Release.Namespace }}..."
 
@@ -64,10 +64,15 @@ spec:
               METRICS_ENDPOINT="http://${SERVICE_NAME}.${KSM_NAMESPACE}.svc.cluster.local:${PORT}/metrics"
               echo "📡 kube-state-metrics endpoint: $METRICS_ENDPOINT"
 
+              echo "Before updating ConfigMap:"
               yq e -i ".ksmUrl = \"${METRICS_ENDPOINT}\"" /tmp/new-config.yaml
+              cat /tmp/new-config.yaml
 
-              kubectl patch configmap {{ include "lmutil.fullname" . }} -n {{ .Release.Namespace }} --type merge -p "$(jq -n --arg cfg "$(cat /tmp/new-config.yaml | sed 's/"/\\"/g')" '{data: {"config.yaml": $cfg}}')"
-              UPDATED=$(kubectl get configmap {{ include "lmutil.fullname" . }} -n {{ .Release.Namespace }} -o json | jq -r '.data["config.yaml"]')
+              # Use yq to create clean patch without quote escaping issues
+              yq eval -n '{"data": {"config.yaml": strload("/tmp/new-config.yaml")}}' -o json > /tmp/patch.json
+              kubectl patch configmap {{ include "lmutil.fullname" . }} -n {{ .Release.Namespace }} --type merge --patch-file /tmp/patch.json
+              
+              UPDATED=$(kubectl get configmap {{ include "lmutil.fullname" . }} -n {{ .Release.Namespace }} -o yaml | yq '.data["config.yaml"]')
 
               echo "ConfigMap patched successfully. $UPDATED"
 
