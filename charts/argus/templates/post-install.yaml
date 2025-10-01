@@ -64,9 +64,7 @@ spec:
               METRICS_ENDPOINT="http://${SERVICE_NAME}.${KSM_NAMESPACE}.svc.cluster.local:${PORT}/metrics"
               echo "📡 kube-state-metrics endpoint: $METRICS_ENDPOINT"
 
-              echo "Before updating ConfigMap:"
               yq e -i ".ksmUrl = \"${METRICS_ENDPOINT}\"" /tmp/new-config.yaml
-              cat /tmp/new-config.yaml
 
               # Use yq to create clean patch without quote escaping issues
               yq eval -n '{"data": {"config.yaml": strload("/tmp/new-config.yaml")}}' -o json > /tmp/patch.json
