@@ -6,7 +6,13 @@ Common labels
 {{- define "argus.labels" -}}
 {{ include "lmutil.generic.labels" . }}
 app.kubernetes.io/component: discovery-agent
-argus.monitoring-mode: {{ .Values.monitoringMode | default "Essentials" | quote }}
+# The following label sets the monitoring mode for Argus resources:
+# - If this is an upgrade scenario and .Values.monitoringMode is empty, use "Advanced".
+# - If .Values.monitoringMode is set, use its value.
+# - Otherwise, default to "Essentials".
+argus.monitoring-mode: {{ (and .Release.IsUpgrade (empty .Values.monitoringMode)) |
+  ternary "Advanced" ((not (empty .Values.monitoringMode)) |
+  ternary .Values.monitoringMode "Essentials") | quote }}
 {{/*
 Adding app property to make it backward compatible in trasition phase.
 New datasources or existing datasources should use app.kubernetes.io/name property in its appliesto script
