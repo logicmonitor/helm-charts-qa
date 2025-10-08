@@ -26,53 +26,58 @@ spec:
               echo "Patching config.yaml inside ConfigMap..."
               kubectl get configmap {{ include "lmutil.fullname" . }} -n {{ .Release.Namespace }} -o yaml | yq '.data["config.yaml"]' >> /tmp/new-config.yaml
 
-              echo "🔍 Checking for kube-state-metrics in namespace {{ .Release.Namespace }}..."
+              KSM_URL="{{ .Values.ksmUrl }}"
+                if [ -n "$KSM_URL" ] && [ "$KSM_URL" != "null" ]; then
+                    echo "Using user-provided kube-state-metrics URL: $KSM_URL"
+                else
+                  echo "🔍 Checking for kube-state-metrics in namespace {{ .Release.Namespace }}..."
+    
+                  # First, check in the current namespace
+                  KSM_SVC=$(kubectl get svc -n {{ .Release.Namespace }} -l app.kubernetes.io/name=kube-state-metrics -o json | jq -r '.items[0]')
 
-              # First, check in the current namespace
-              KSM_SVC=$(kubectl get svc -n {{ .Release.Namespace }} -l app.kubernetes.io/name=kube-state-metrics -o json | jq -r '.items[0]')
+                  if [ -n "$KSM_SVC" ] && [ "$KSM_SVC" != "null" ]; then
+                    echo "✅ Found kube-state-metrics in namespace {{ .Release.Namespace }}"
+                  else
+                    echo "⚠️ Not found in {{ .Release.Namespace }}, searching all namespaces..."
 
-              if [ -n "$KSM_SVC" ] && [ "$KSM_SVC" != "null" ]; then
-                echo "✅ Found kube-state-metrics in namespace {{ .Release.Namespace }}"
-              else
-                echo "⚠️ Not found in {{ .Release.Namespace }}, searching all namespaces..."
+                    # Search all namespaces
+                    KSM_SVC=$(kubectl get svc --all-namespaces -l app.kubernetes.io/name=kube-state-metrics -o json | jq -r '.items[0]')
 
-                # Search all namespaces
-                KSM_SVC=$(kubectl get svc --all-namespaces -l app.kubernetes.io/name=kube-state-metrics -o json | jq -r '.items[0]')
+                    if [ -z "$KSM_SVC" ] || [ "$KSM_SVC" = "null" ]; then
+                      echo "❌ kube-state-metrics service not found anywhere."
+                      # exit 1
+                    fi
+                  fi
 
-                if [ -z "$KSM_SVC" ] || [ "$KSM_SVC" = "null" ]; then
-                  echo "❌ kube-state-metrics service not found anywhere."
-                  # exit 1
-                fi
+                  # Extract namespace, ClusterIP, and port
+                  SERVICE_NAME=$(echo "$KSM_SVC" | jq -r '.metadata.name')
+                  KSM_NAMESPACE=$(echo "$KSM_SVC" | jq -r '.metadata.namespace')
+                  CLUSTER_IP=$(echo "$KSM_SVC" | jq -r '.spec.clusterIP')
+                  PORT=$(echo "$KSM_SVC" | jq -r '.spec.ports[0].port')
+
+                  # Validate all required variables are populated
+                  if [ -z "$SERVICE_NAME" ] || [ -z "$KSM_NAMESPACE" ] || [ -z "$CLUSTER_IP" ] || [ -z "$PORT" ]; then
+                    echo "❌ One or more kube-state-metrics service variables are empty."
+                    echo "SERVICE_NAME: $SERVICE_NAME"
+                    echo "KSM_NAMESPACE: $KSM_NAMESPACE"
+                    echo "CLUSTER_IP: $CLUSTER_IP"
+                    echo "PORT: $PORT"
+                  fi
+
+                  # Construct metrics endpoint
+                  METRICS_ENDPOINT="http://${SERVICE_NAME}.${KSM_NAMESPACE}.svc.cluster.local:${PORT}/metrics"
+                  echo "📡 kube-state-metrics endpoint: $METRICS_ENDPOINT"
+
+                  yq e -i ".ksmUrl = \"${METRICS_ENDPOINT}\"" /tmp/new-config.yaml
+
+                  # Use yq to create clean patch without quote escaping issues
+                  yq eval -n '{"data": {"config.yaml": strload("/tmp/new-config.yaml")}}' -o json > /tmp/patch.json
+                  kubectl patch configmap {{ include "lmutil.fullname" . }} -n {{ .Release.Namespace }} --type merge --patch-file /tmp/patch.json
+
+                  UPDATED=$(kubectl get configmap {{ include "lmutil.fullname" . }} -n {{ .Release.Namespace }} -o yaml | yq '.data["config.yaml"]')
+
+                  echo "ConfigMap patched successfully. $UPDATED"
               fi
-
-              # Extract namespace, ClusterIP, and port
-              SERVICE_NAME=$(echo "$KSM_SVC" | jq -r '.metadata.name')
-              KSM_NAMESPACE=$(echo "$KSM_SVC" | jq -r '.metadata.namespace')
-              CLUSTER_IP=$(echo "$KSM_SVC" | jq -r '.spec.clusterIP')
-              PORT=$(echo "$KSM_SVC" | jq -r '.spec.ports[0].port')
-
-              # Validate all required variables are populated
-              if [ -z "$SERVICE_NAME" ] || [ -z "$KSM_NAMESPACE" ] || [ -z "$CLUSTER_IP" ] || [ -z "$PORT" ]; then
-                echo "❌ One or more kube-state-metrics service variables are empty."
-                echo "SERVICE_NAME: $SERVICE_NAME"
-                echo "KSM_NAMESPACE: $KSM_NAMESPACE"
-                echo "CLUSTER_IP: $CLUSTER_IP"
-                echo "PORT: $PORT"
-              fi
-
-              # Construct metrics endpoint
-              METRICS_ENDPOINT="http://${SERVICE_NAME}.${KSM_NAMESPACE}.svc.cluster.local:${PORT}/metrics"
-              echo "📡 kube-state-metrics endpoint: $METRICS_ENDPOINT"
-
-              yq e -i ".ksmUrl = \"${METRICS_ENDPOINT}\"" /tmp/new-config.yaml
-
-              # Use yq to create clean patch without quote escaping issues
-              yq eval -n '{"data": {"config.yaml": strload("/tmp/new-config.yaml")}}' -o json > /tmp/patch.json
-              kubectl patch configmap {{ include "lmutil.fullname" . }} -n {{ .Release.Namespace }} --type merge --patch-file /tmp/patch.json
-              
-              UPDATED=$(kubectl get configmap {{ include "lmutil.fullname" . }} -n {{ .Release.Namespace }} -o yaml | yq '.data["config.yaml"]')
-
-              echo "ConfigMap patched successfully. $UPDATED"
 
               # Initialize variables with global scope (use export to make them available to subshells)
               export SECRET_DATA=""
