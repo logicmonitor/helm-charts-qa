@@ -10,9 +10,11 @@ app.kubernetes.io/component: discovery-agent
 # - If this is an upgrade scenario and .Values.monitoringMode is empty, use "Advanced".
 # - If .Values.monitoringMode is set, use its value.
 # - Otherwise, default to "Essentials".
-argus.monitoring-mode: {{ (and .Release.IsUpgrade (empty .Values.monitoringMode)) |
-  ternary "Advanced" ((not (empty .Values.monitoringMode)) |
-  ternary .Values.monitoringMode "Essentials") | quote }}
+{{- if or (has .Values.monitoringMode (list "Minimal" "Essentials" "Essential")) (and (eq .Values.monitoringMode "") (not (.Release.IsUpgrade))) }}
+argus.monitoring-mode: "Essentials"
+{{- else }}
+argus.monitoring-mode: "Advanced"
+{{- end}}
 {{/*
 Adding app property to make it backward compatible in trasition phase.
 New datasources or existing datasources should use app.kubernetes.io/name property in its appliesto script
