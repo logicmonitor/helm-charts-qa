@@ -6,10 +6,11 @@ Common labels
 {{- define "argus.labels" -}}
 {{ include "lmutil.generic.labels" . }}
 app.kubernetes.io/component: discovery-agent
-# The following label sets the monitoring mode for Argus resources:
-# - If this is an upgrade scenario and .Values.monitoringMode is empty, use "Advanced".
-# - If .Values.monitoringMode is set, use its value.
-# - Otherwise, default to "Essentials".
+{{/*
+The following label sets the monitoring mode for Argus resources:
+- If this is an upgrade scenario and .Values.monitoringMode is empty, use "Advanced".
+- If .Values.monitoringMode is set, use its value. Otherwise, default to "Essentials".
+*/}}
 {{- if or (has .Values.monitoringMode (list "Minimal" "Essentials" "Essential")) (and (eq .Values.monitoringMode "") (not (.Release.IsUpgrade))) }}
 argus.monitoring-mode: "Essentials"
 {{- else }}
