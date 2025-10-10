@@ -153,7 +153,8 @@
         "create": true
       },
       "serviceAccount": {
-        "create": true
+        "create": true,
+        "name": ""
       }
     }
   ],
@@ -2604,7 +2605,12 @@
       "default": {},
       "examples": [
         {
-          "create": true
+          "create": true,
+          "name": ""
+        },
+        {
+          "create": true,
+          "name": "custom-service-account"
         }
       ],
       "required": [
@@ -2619,6 +2625,17 @@
           "default": false,
           "examples": [
             true
+          ]
+        },
+        "name": {
+          "$comment": "tf:optional",
+          "$id": "#/properties/serviceAccount/properties/name",
+          "type": "string",
+          "title": "The name schema",
+          "description": "Custom service account name. If not specified, defaults to the fullname of the release.",
+          "default": "",
+          "examples": [
+            "custom-service-account"
           ]
         }
       },
