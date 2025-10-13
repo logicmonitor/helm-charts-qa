@@ -2354,6 +2354,12 @@
       },
       "additionalProperties": false
     },
+    "extraObjects": {
+      "$id": "#/properties/extraObjects",
+      "type": "array",
+      "additionalProperties": true,
+      "properties": {}
+    },
     "global": {
       "$id": "#/properties/global",
       "type": "object",
