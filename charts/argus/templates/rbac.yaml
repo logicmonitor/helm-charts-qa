@@ -184,6 +184,6 @@ roleRef:
   name: {{ include "lmutil.fullname" . }}
 subjects:
   - kind: ServiceAccount
-    name: {{ include "lmutil.serviceAccountName" . }}
+    name: {{ include "argus.serviceAccountName" . }}
     namespace: {{ template "lmutil.release.namespace" . }}
 {{- end -}}
