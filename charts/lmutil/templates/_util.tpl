@@ -97,17 +97,6 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 
-{{/*
-Create the name of the service account to use
-*/}}
-{{- define "lmutil.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create }}
-{{- default (include "lmutil.fullname" .) .Values.serviceAccount.name }}
-{{- else }}
-{{- default "default" .Values.serviceAccount.name }}
-{{- end }}
-{{- end }}
-
 {{- define "lmutil.generic.labels" }}
 helm.sh/chart: {{ template "lmutil.chart" . }}
 app.kubernetes.io/part-of: {{ include "lmutil.name" . }}
