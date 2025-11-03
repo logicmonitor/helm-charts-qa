@@ -229,6 +229,7 @@ global:
   collectorsetServiceNameSuffix: ""
   userDefinedSecret: ""
   imagePullSecrets: []
+  serviceAccountName: ""
 
 nameOverride: ""
 fullnameOverride: ""

@@ -52,6 +52,18 @@ logicmonitor.com/provider: lm-container
 {{- end }}
 
 
+{{- define "argus.serviceAccountName" -}}
+  {{- if .Values.serviceAccount.name -}}
+    {{ .Values.serviceAccount.name }}
+  {{- else if .Values.global.serviceAccountName -}}
+    {{ .Values.global.serviceAccountName }}
+  {{- else if .Values.serviceAccount.create -}}
+    {{ include "lmutil.fullname" . }}
+  {{- else -}}
+    default
+  {{- end -}}
+{{- end -}}
+
 {{- define "monitoring.disable" }}
 {{ $alwaysDisable := list }}
 {{- if or (has .Values.monitoringMode (list "Minimal" "Essentials" "Essential")) (and (eq .Values.monitoringMode "") (not (.Release.IsUpgrade))) }}

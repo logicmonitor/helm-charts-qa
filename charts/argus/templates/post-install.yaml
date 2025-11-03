@@ -282,4 +282,4 @@ spec:
             - name: HOME
               value: /tmp
       restartPolicy: Never
-      serviceAccountName: {{ include "lmutil.serviceAccountName" . }}
+      serviceAccountName: {{ include "argus.serviceAccountName" . }}

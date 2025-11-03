@@ -145,7 +145,8 @@
           "pullPolicy": "Always"
         },
         "collectorsetServiceNameSuffix": "",
-        "userDefinedSecret": ""
+        "userDefinedSecret": "",
+        "serviceAccountName": ""
       },
       "nameOverride": "",
       "fullnameOverride": "",
@@ -2542,6 +2543,13 @@
           "type": "string",
           "default": "",
           "description": "User can provide LM credentials in a Secret instead of plain text. The secret should contain 'accessID', 'accessKey', 'account' along with optional params e.g. 'etcdDiscoveryToken', proxy credentials"
+        },
+        "serviceAccountName": {
+          "$id": "#/properties/global/properties/serviceAccountName",
+          "type": "string",
+          "title": "User provided serviceAccount",
+          "default": "",
+          "description": "User can provide a serviceAccount name to be used by LM Container pods"
         }
       }
     },

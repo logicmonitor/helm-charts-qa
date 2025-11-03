@@ -22,7 +22,7 @@ spec:
         {{ include "argus.annotations" . | nindent 8 }}
     spec:
       securityContext: {{ include "lmutil.pod-sec-context-nonroot" (list . "lmutil.custom-pod-sec-context-nonroot") | nindent 8 }}
-      serviceAccountName: {{ include "lmutil.serviceAccountName" . }}
+      serviceAccountName: {{ include "argus.serviceAccountName" . }}
     {{ if .Values.affinity }}
       affinity:
 {{ toYaml .Values.affinity | nindent 8 }}
