@@ -73,6 +73,7 @@ global:
     repository: ""
     pullPolicy: Always
   userDefinedSecret: ""
+  serviceAccountName: ""
   companyDomain: ""
   imagePullSecrets: []
 

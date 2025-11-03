@@ -16,7 +16,9 @@
       "nameOverride": "",
       "fullnameOverride": "",
       "serviceAccount": {
-        "create": true
+        "create": true,
+        "name": "",
+        "collectorServiceAccountName": ""
       },
       "rbac": {
         "create": true
@@ -49,6 +51,7 @@
         "companyDomain": "",
         "collectorsetServiceNameSuffix": "",
         "userDefinedSecret": "",
+        "serviceAccountName": "",
         "proxy": {
           "url": "",
           "user": "",
@@ -206,6 +209,28 @@
           "default": false,
           "examples": [
             true
+          ]
+        },
+        "name": {
+          "$comment": "tf:optional",
+          "$id": "#/properties/serviceAccount/properties/name",
+          "type": "string",
+          "title": "The custom serviceAccount name schema",
+          "description": "Custom service account name. If not specified, defaults to the fullname of the release.",
+          "default": "",
+          "examples": [
+            "custom-service-account"
+          ]
+        },
+        "collectorServiceAccountName": {
+          "$comment": "tf:optional",
+          "$id": "#/properties/serviceAccount/properties/collectorServiceAccountName",
+          "type": "string",
+          "title": "The custom collector serviceAccount name schema",
+          "description": "Custom collector service account name. If not specified, defaults to the fullname of the release.",
+          "default": "",
+          "examples": [
+            "custom-service-account"
           ]
         }
       },
@@ -681,6 +706,13 @@
           "type": "string",
           "default": "",
           "description": "User can provide LM credentials in a Secret instead of plain text. The secret should contain 'accessID', 'accessKey', 'account' along with optional params e.g. 'etcdDiscoveryToken', proxy credentials"
+        },
+        "serviceAccountName": {
+          "$id": "#/properties/global/properties/serviceAccountName",
+          "type": "string",
+          "title": "User provided serviceAccount",
+          "default": "",
+          "description": "User can provide a serviceAccount name to be used by LM Container pods"
         },
         "companyDomain" : {
           "$comment" : "tf:optional",

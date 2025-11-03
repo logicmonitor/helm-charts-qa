@@ -67,6 +67,6 @@ roleRef:
   name: {{ include "lmutil.fullname" . }}
 subjects:
   - kind: ServiceAccount
-    name: {{ include "collectorset-controller.serviceAccountName" . }}
+    name: {{ default (include "collectorset-controller.serviceAccountName" .) .Values.serviceAccount.name }}
     namespace: {{ template "lmutil.release.namespace" . }}
 {{ end }}
