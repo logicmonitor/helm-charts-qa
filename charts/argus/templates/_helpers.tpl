@@ -60,7 +60,7 @@ logicmonitor.com/provider: lm-container
   {{- else if .Values.serviceAccount.create -}}
     {{ include "lmutil.fullname" . }}
   {{- else -}}
-    default
+    "default"
   {{- end -}}
 {{- end -}}
 
