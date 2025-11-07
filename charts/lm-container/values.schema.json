@@ -241,12 +241,6 @@
         },
         "additionalProperties": true
       }
-    },
-    "extraObjects": {
-      "$id": "#/properties/extraObjects",
-      "type": "array",
-      "additionalProperties": true,
-      "properties": {}
     }
   }
 }
