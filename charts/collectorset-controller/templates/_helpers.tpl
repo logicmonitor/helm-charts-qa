@@ -19,13 +19,13 @@ app: collectorset-controller
 
 {{/*
 Returns the collector ServiceAccount name based on precedence:
-1. if .Values.serviceAccount.collectorserviceAccountName is set, use it.
+1. if .Values.serviceAccount.collector.name is set, use it.
 2. Else If .Values.global.serviceAccount.name is set, use it.
 3. Else, use the default: "%s-collector" (include "lmutil.serviceAccountName" .)
 */}}
 {{- define "collectorset-controller.collectorServiceAccountName" -}}
-{{- if .Values.serviceAccount.collectorserviceAccountName -}}
-  {{ .Values.serviceAccount.collectorserviceAccountName }}
+{{- if .Values.serviceAccount.collector.name -}}
+  {{ .Values.serviceAccount.collector.name }}
 {{- else if .Values.global.serviceAccount.name -}}
   {{ .Values.global.serviceAccount.name }}
 {{- else -}}

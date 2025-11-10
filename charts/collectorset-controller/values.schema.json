@@ -18,7 +18,10 @@
       "serviceAccount": {
         "create": true,
         "name": "",
-        "collectorServiceAccountName": ""
+        "collector": {
+          "create": true,
+            "name": ""
+        }
       },
       "rbac": {
         "create": true
@@ -53,7 +56,11 @@
         "userDefinedSecret": "",
         "serviceAccount":{
           "create": true,
-          "name": ""
+          "name": "",
+          "collector": {
+            "create": true,
+            "name": ""
+          }
         },
         "proxy": {
           "url": "",
@@ -225,16 +232,45 @@
             "custom-service-account"
           ]
         },
-        "collectorServiceAccountName": {
+        "collector": {
           "$comment": "tf:optional",
-          "$id": "#/properties/serviceAccount/properties/collectorServiceAccountName",
-          "type": "string",
-          "title": "The custom collector serviceAccount name schema",
-          "description": "Custom collector service account name. If not specified, defaults to the fullname of the release.",
-          "default": "",
+          "$id": "#/properties/serviceAccount/properties/collector",
+          "type": "object",
+          "title": "The collector serviceAccount schema",
+          "description": "An explanation about the purpose of this instance.",
+          "default": {},
           "examples": [
-            "custom-service-account"
-          ]
+            {
+              "name": "custom-service-account"
+            }
+          ],
+          "required": [
+            "create"
+          ],
+          "properties": {
+            "create": {
+              "$comment": "tf:optional",
+              "$id": "#/properties/serviceAccount/properties/collector/properties/create",
+              "type": "boolean",
+              "title": "The create schema",
+              "description": "An explanation about the purpose of this instance.",
+              "default": false,
+              "examples": [
+                true
+              ]
+            },
+            "name": {
+              "$comment": "tf:optional",
+              "$id": "#/properties/serviceAccount/properties/collector/properties/name",
+              "type": "string",
+              "title": "The custom collector serviceAccount name schema",
+              "description": "Custom collector service account name. If not specified, defaults to the fullname of the release.",
+              "default": "",
+              "examples": [
+                "custom-service-account"
+              ]
+            }
+          }
         }
       },
       "additionalProperties": false

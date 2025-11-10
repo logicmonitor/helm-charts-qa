@@ -16,6 +16,9 @@ nameOverride: ""
 fullnameOverride: ""
 serviceAccount:
   create: true
+  collector:
+    create: true
+    name: ""
 #  name: ""  # Optional: specify a custom service account name
 rbac:
   create: true
@@ -77,6 +80,9 @@ global:
   serviceAccount:
     create: true
     name: ""
+    collector:
+      create: true
+      name: ""
   companyDomain: ""
   imagePullSecrets: []
 
