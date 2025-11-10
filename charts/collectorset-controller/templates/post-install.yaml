@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: patch-configmap
-          image: bitnami/kubectl:latest
+          image: bitnamisecure/kubectl:latest
           command:
             - /bin/sh
             - -c
@@ -215,5 +215,7 @@ spec:
           env:
             - name: HOME
               value: /tmp
+            - name: GODEBUG
+              value: boringcrypto=1
       restartPolicy: Never
       serviceAccountName: {{ include "lmutil.serviceAccountName" . }}

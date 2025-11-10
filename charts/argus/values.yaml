@@ -236,6 +236,7 @@ rbac:
   create: true
 serviceAccount:
   create: true
+  # name: ""  # Optional: specify a custom service account name
 
 probe:
   enabled: true
