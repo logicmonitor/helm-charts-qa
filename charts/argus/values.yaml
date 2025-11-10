@@ -249,3 +249,7 @@ probe:
   readiness:
     failureThreshold: 3
     periodSeconds: 10
+
+# extraObjects allows you to deploy additional Kubernetes resources alongside Argus
+# This is useful for deploying any other custom resources needed by your deployment
+extraObjects: []
