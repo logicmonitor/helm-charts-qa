@@ -16,6 +16,7 @@ nameOverride: ""
 fullnameOverride: ""
 serviceAccount:
   create: true
+#  name: ""  # Optional: specify a custom service account name
 rbac:
   create: true
 # The public etcd discovery token used to add etcd hosts to the cluster device group.
@@ -73,7 +74,9 @@ global:
     repository: ""
     pullPolicy: Always
   userDefinedSecret: ""
-  serviceAccountName: ""
+  serviceAccount:
+    create: true
+    name: ""
   companyDomain: ""
   imagePullSecrets: []
 

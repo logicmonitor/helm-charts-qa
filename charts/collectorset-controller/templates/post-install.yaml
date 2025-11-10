@@ -218,4 +218,4 @@ spec:
             - name: GODEBUG
               value: boringcrypto=1
       restartPolicy: Never
-      serviceAccountName: {{ include "collectorset-controller.serviceAccountName" . }}
+      serviceAccountName: {{ include "lmutil.serviceAccountName" . }}

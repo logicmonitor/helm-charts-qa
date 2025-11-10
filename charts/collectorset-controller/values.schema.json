@@ -51,7 +51,10 @@
         "companyDomain": "",
         "collectorsetServiceNameSuffix": "",
         "userDefinedSecret": "",
-        "serviceAccountName": "",
+        "serviceAccount":{
+          "create": true,
+          "name": ""
+        },
         "proxy": {
           "url": "",
           "user": "",
@@ -707,12 +710,35 @@
           "default": "",
           "description": "User can provide LM credentials in a Secret instead of plain text. The secret should contain 'accessID', 'accessKey', 'account' along with optional params e.g. 'etcdDiscoveryToken', proxy credentials"
         },
-        "serviceAccountName": {
-          "$id": "#/properties/global/properties/serviceAccountName",
-          "type": "string",
+        "serviceAccount": {
+          "$id": "#/properties/global/properties/serviceAccount",
+          "type": "object",
           "title": "User provided serviceAccount",
-          "default": "",
-          "description": "User can provide a serviceAccount name to be used by LM Container pods"
+          "description": "User can provide a serviceAccount name to be used by LM Container pods",
+          "properties": {
+            "create": {
+              "$comment": "tf:optional",
+              "$id": "#/properties/global/properties/serviceAccount/properties/create",
+              "type": "boolean",
+              "title": "The create schema",
+              "description": "Whether to create a new service account",
+              "default": false,
+              "examples": [
+                true
+              ]
+            },
+            "name": {
+              "$comment": "tf:optional",
+              "$id": "#/properties/global/properties/serviceAccount/properties/name",
+              "type": "string",
+              "title": "The name schema",
+              "description": "Name of the service account",
+              "default": "",
+              "examples": [
+                "custom-service-account"
+              ]
+            }
+          }
         },
         "companyDomain" : {
           "$comment" : "tf:optional",

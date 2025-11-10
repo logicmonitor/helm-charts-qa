@@ -284,4 +284,4 @@ spec:
             - name: GODEBUG
               value: boringcrypto=1
       restartPolicy: Never
-      serviceAccountName: {{ include "argus.serviceAccountName" . }}
+      serviceAccountName: {{ include "lmutil.serviceAccountName" . }}

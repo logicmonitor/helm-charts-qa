@@ -229,7 +229,9 @@ global:
   collectorsetServiceNameSuffix: ""
   userDefinedSecret: ""
   imagePullSecrets: []
-  serviceAccountName: ""
+  serviceAccount:
+    create: true
+    name: ""
 
 nameOverride: ""
 fullnameOverride: ""
