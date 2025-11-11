@@ -10,6 +10,9 @@ global:
     registry: ""
     pullPolicy: ""
   collectorsetServiceNameSuffix: "lm-container-collectorset-controller"
+  serviceAccount:
+    create: true
+#    name: "" # Optional: specify a custom service account name
 
 argus:
   enabled: true
