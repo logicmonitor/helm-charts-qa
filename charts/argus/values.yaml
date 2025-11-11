@@ -238,6 +238,7 @@ fullnameOverride: ""
 rbac:
   create: true
 serviceAccount:
+  name: ""
   create: true
   # name: ""  # Optional: specify a custom service account name
 

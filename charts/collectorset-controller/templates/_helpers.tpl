@@ -24,13 +24,15 @@ Returns the collector ServiceAccount name based on precedence:
 3. Else, use the default: "%s-collector" (include "lmutil.serviceAccountName" .)
 */}}
 {{- define "collectorset-controller.collectorServiceAccountName" -}}
-{{- if .Values.serviceAccount.collector.name -}}
-  {{ .Values.serviceAccount.collector.name }}
-{{- else if .Values.global.serviceAccount.name -}}
-  {{ .Values.global.serviceAccount.name }}
-{{- else -}}
-  {{ printf "%s-collector" (include "lmutil.serviceAccountName" .) }}
-{{- end -}}
+    {{- if .Values.serviceAccount.collector.name -}}
+        {{ .Values.serviceAccount.collector.name }}
+    {{- else if .Values.global.serviceAccount.name -}}
+        {{ .Values.global.serviceAccount.name }}
+    {{- else if .Values.serviceAccount.collector.create -}}
+        {{ printf "%s-collector" (include "lmutil.serviceAccountName" .) }}
+    {{- else -}}
+        {{ "default" | quote }}
+    {{- end -}}
 {{- end -}}
 
 
