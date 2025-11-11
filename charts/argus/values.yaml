@@ -229,12 +229,16 @@ global:
   collectorsetServiceNameSuffix: ""
   userDefinedSecret: ""
   imagePullSecrets: []
+  serviceAccount:
+    create: true
+    name: ""
 
 nameOverride: ""
 fullnameOverride: ""
 rbac:
   create: true
 serviceAccount:
+  name: ""
   create: true
   # name: ""  # Optional: specify a custom service account name
 

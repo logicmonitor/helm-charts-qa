@@ -23,6 +23,6 @@ data:
       url: {{ .Values.global.proxy.url }}
     {{- end }}
     ignoreSSL: {{ default false .Values.ignoreSSL }}
-    collectorServiceAccountName: {{ include "collectorset-controller.serviceAccountName" . }}-collector
+    collectorServiceAccountName: {{ include "collectorset-controller.collectorServiceAccountName" . }}
     secretName: {{ include "lmutil.secret-name" . }}
     isUpgrade: {{ .Release.IsUpgrade | default false }}
