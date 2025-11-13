@@ -18187,6 +18187,20 @@ entries:
   lmutil:
   - apiVersion: v2
     appVersion: 1.16.0
+    created: "2025-11-13T06:22:58.305854464Z"
+    description: A Helm chart for Kubernetes
+    digest: 29d1d95fd3cc2fc6f56e93ec5a7c4b362925cd945f3c05279049b9196eb24a05
+    icon: https://logicmonitor.github.io/helm-charts-qa/lm_logo.png
+    maintainers:
+    - email: argus@logicmonitor.com
+      name: LogicMonitor
+    name: lmutil
+    type: library
+    urls:
+    - https://github.com/logicmonitor/helm-charts-qa/releases/download/lmutil-0.1.10-rt01/lmutil-0.1.10-rt01.tgz
+    version: 0.1.10-rt01
+  - apiVersion: v2
+    appVersion: 1.16.0
     created: "2025-11-11T04:00:03.114033474Z"
     description: A Helm chart for Kubernetes
     digest: e107f2be815bcccf06e497ff592482e6e89e1ed1df20570ee396e538df9250e9
@@ -18339,4 +18353,4 @@ entries:
     urls:
     - https://github.com/logicmonitor/helm-charts-qa/releases/download/releasemanager-0.3.0/releasemanager-0.3.0.tgz
     version: 0.3.0
-generated: "2025-11-11T09:16:45.634416359Z"
+generated: "2025-11-13T06:22:58.314060781Z"
