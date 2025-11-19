@@ -95,11 +95,22 @@ probe:
   enabled: true
   grpcContainerProbeEnabled: true
   startup:
-    failureThreshold: 3
+    initialDelaySeconds: 300
     periodSeconds: 10
+    timeoutSeconds: 1
+    successThreshold: 1
+    failureThreshold: 30
+    terminationGracePeriodSeconds: 30
   liveness:
+    initialDelaySeconds: 300
+    periodSeconds: 30
+    timeoutSeconds: 1
+    successThreshold: 1
     failureThreshold: 3
-    periodSeconds: 10
+    terminationGracePeriodSeconds: 30
   readiness:
-    failureThreshold: 3
+    initialDelaySeconds: 300
     periodSeconds: 10
+    timeoutSeconds: 1
+    successThreshold: 1
+    failureThreshold: 3

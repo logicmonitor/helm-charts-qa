@@ -245,14 +245,25 @@ serviceAccount:
 probe:
   enabled: true
   startup:
+    initialDelaySeconds: 300
+    periodSeconds: 10
+    timeoutSeconds: 1
+    successThreshold: 1
     failureThreshold: 30
-    periodSeconds: 10
+    terminationGracePeriodSeconds: 30
   liveness:
-    failureThreshold: 3
+    initialDelaySeconds: 300
     periodSeconds: 30
-  readiness:
+    timeoutSeconds: 1
+    successThreshold: 1
     failureThreshold: 3
+    terminationGracePeriodSeconds: 30
+  readiness:
+    initialDelaySeconds: 300
     periodSeconds: 10
+    timeoutSeconds: 1
+    successThreshold: 1
+    failureThreshold: 3
 
 # extraObjects allows you to deploy additional Kubernetes resources alongside Argus
 # This is useful for deploying any other custom resources needed by your deployment

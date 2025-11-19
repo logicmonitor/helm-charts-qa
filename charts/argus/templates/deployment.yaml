@@ -57,20 +57,32 @@ spec:
             httpGet:
               path: /healthz
               port: 8080
-            failureThreshold: {{ .Values.probe.startup.failureThreshold }}
+            initialDelaySeconds: {{ .Values.probe.startup.initialDelaySeconds }}
             periodSeconds: {{ .Values.probe.startup.periodSeconds }}
+            timeoutSeconds: {{ .Values.probe.startup.timeoutSeconds }}
+            successThreshold: {{ .Values.probe.startup.successThreshold }}
+            failureThreshold: {{ .Values.probe.startup.failureThreshold }}
+            terminationGracePeriodSeconds: {{ .Values.probe.startup.terminationGracePeriodSeconds }}
           livenessProbe:
             httpGet:
               path: /healthz
               port: 8080
-            failureThreshold: {{ .Values.probe.liveness.failureThreshold }}
+            initialDelaySeconds: {{ .Values.probe.liveness.initialDelaySeconds }}
             periodSeconds: {{ .Values.probe.liveness.periodSeconds }}
+            timeoutSeconds: {{ .Values.probe.liveness.timeoutSeconds }}
+            successThreshold: {{ .Values.probe.liveness.successThreshold }}
+            failureThreshold: {{ .Values.probe.liveness.failureThreshold }}
+            terminationGracePeriodSeconds: {{ .Values.probe.liveness.terminationGracePeriodSeconds }}
           readinessProbe:
             httpGet:
               path: /healthz
               port: 8080
-            failureThreshold: {{ .Values.probe.readiness.failureThreshold }}
+            initialDelaySeconds: {{ .Values.probe.readiness.initialDelaySeconds }}
             periodSeconds: {{ .Values.probe.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.probe.readiness.timeoutSeconds }}
+            successThreshold: {{ .Values.probe.readiness.successThreshold }}
+            failureThreshold: {{ .Values.probe.readiness.failureThreshold }}
+            terminationGracePeriodSeconds: {{ .Values.probe.readiness.terminationGracePeriodSeconds }}
           {{ end }}
           env:
             - name: MY_POD_NAME
