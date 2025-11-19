@@ -23,6 +23,114 @@ If release name contains chart name it will be used as a full name.
 {{- end }}
 {{- end }}
 
+
+{{/*
+Did the user set global.userDefinedSecret?
+*/}}
+{{- define "lm-logs.userSecretSet" -}}
+{{- if .Values.global.userDefinedSecret }}true{{ end -}}
+{{- end -}}
+
+{{/*
+Return the credentials Secret name:
+- If global.userDefinedSecret is provided, use that.
+- Otherwise fall back to <fullname>-creds.
+*/}}
+{{- define "lm-logs.credsSecretName" -}}
+{{- if .Values.global.userDefinedSecret -}}
+{{- .Values.global.userDefinedSecret -}}
+{{- else -}}
+{{- printf "%s-creds" (include "fluentd.fullname" .) -}}
+{{- end -}}
+{{- end -}}
+
+{{/* True if we have any creds in any source (used by template fail-guard) */}}
+{{- define "lm-logs.credsProvided" -}}
+{{- $uds := default "" .Values.global.userDefinedSecret -}}
+{{- $ga := default "" .Values.global.accessID -}}
+{{- $gk := default "" .Values.global.accessKey -}}
+{{- $gb := default "" .Values.global.bearerToken -}}
+{{- $va := default "" .Values.lm_access_id -}}
+{{- $vk := default "" .Values.lm_access_key -}}
+{{- $vb := default "" .Values.lm_bearer_token -}}
+{{- if or (ne $uds "")
+          (and (ne $ga "") (ne $gk ""))
+          (ne $gb "")
+          (and (ne $va "") (ne $vk ""))
+          (ne $vb "") -}}true{{- end -}}
+{{- end -}}
+
+{{/*
+Emit a secretKeyRef block given a key name.
+Usage:
+  {{ include "lm-logs.secretKeyRef" (dict "ctx" . "key" "bearerToken") | nindent 10 }}
+*/}}
+{{- define "lm-logs.secretKeyRef" -}}
+name: {{ include "lm-logs.credsSecretName" .ctx }}
+key: {{ .key }}
+optional: true
+{{- end -}}
+
+{{/* Validate credentials + account at render time */}}
+{{- define "lm-logs.assertInputs" -}}
+{{- $ns := .Release.Namespace -}}
+{{- $mode := default "" .Values.authMode -}}
+{{- $uds  := default "" .Values.global.userDefinedSecret -}}
+
+{{- /* Fetch Secret if configured */ -}}
+{{- $sec := dict -}}
+{{- if ne $uds "" -}}
+  {{- $sec = lookup "v1" "Secret" $ns $uds | default dict -}}
+  {{- if not $sec }}
+    {{- fail (printf "global.userDefinedSecret=%q not found in namespace %q" $uds $ns) -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* Helper: does Secret contain a key? */ -}}
+{{- $hasSecKey := (and (ne $uds "")
+                        $sec.data
+                        (kindIs "map" $sec.data)) -}}
+{{- $secHas := dict -}}
+{{- if $hasSecKey -}}
+  {{- /* booleans for secret keys */ -}}
+  {{- $_ := set $secHas "account"        (hasKey $sec.data "account") -}}
+  {{- $_ := set $secHas "accessID"   (hasKey $sec.data "accessID") -}}
+  {{- $_ := set $secHas "accessKey"  (hasKey $sec.data "accessKey") -}}
+  {{- $_ := set $secHas "bearerToken" (hasKey $sec.data "bearerToken") -}}
+{{- end -}}
+
+{{- /* 1) Enforce account name presence (values OR global OR Secret) */ -}}
+{{- $hasAccount := or
+      (ne (default "" .Values.lm_company_name) "")
+      (ne (default "" .Values.global.account) "")
+      (and (ne $uds "") ($secHas.account | default false)) -}}
+{{- if not $hasAccount -}}
+  {{- fail "Account name missing: set either lm_company_name, or global.account, or provide Secret with 'account' key via global.userDefinedSecret." -}}
+{{- end -}}
+
+{{- /* 2) Enforce credentials per authMode */ -}}
+{{- if eq $mode "lmv1" -}}
+  {{- $haslmv1FromSecret := and (ne $uds "") ($secHas.accessID | default false) ($secHas.accessKey | default false) -}}
+  {{- $haslmv1FromGlobal := and (ne (default "" .Values.global.accessID) "")
+                                (ne (default "" .Values.global.accessKey) "") -}}
+  {{- $haslmv1FromValues := and (ne (default "" .Values.lm_access_id) "")
+                                (ne (default "" .Values.lm_access_key) "") -}}
+  {{- if not (or $haslmv1FromSecret $haslmv1FromGlobal $haslmv1FromValues) -}}
+    {{- fail "LM v1 auth selected (authMode=lmv1) but no lmv1 found. Provide either: Secret with 'accessId'+'accessKey', or global.accessID+global.accessKey, or lm_access_id+lm_access_key." -}}
+  {{- end -}}
+
+{{- else if eq $mode "bearer" -}}
+  {{- $hasBearerFromSecret := and (ne $uds "") ($secHas.bearerToken | default false) -}}
+  {{- $hasBearerFromValues := ne (default "" .Values.lm_bearer_token) "" -}}
+  {{- if not (or $hasBearerFromSecret $hasBearerFromValues) -}}
+    {{- fail "Bearer auth selected (authMode=bearer) but no token found. Provide either: Secret with 'lm_bearer_token' or lm_bearer_token in values." -}}
+  {{- end -}}
+
+{{- else -}}
+  {{- fail "authMode must be 'lmv1' or 'bearer'." -}}
+{{- end -}}
+{{- end -}}
+
 {{/*
 Adding validations for clustername for lm-logs to contain only lower alphanumeric or '-' and start and end with an alphanumeric character
 */}}
@@ -131,24 +239,72 @@ Return the appropriate apiVersion for rbac.
 "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
 {{- end -}}
 
+{{/* Emit auth lines. If .Values.authMode is set, honor it; else use your priority chain. */}}
+{{- define "lm-logs.authBlock" -}}
+{{- $mode := default "" .Values.authMode -}}
+{{- $uds := default "" .Values.global.userDefinedSecret -}}
+{{- $ga := default "" .Values.global.accessID -}}
+{{- $gk := default "" .Values.global.accessKey -}}
+{{- $gb := default "" .Values.global.bearerToken -}}
+{{- $va := default "" .Values.lm_access_id -}}
+{{- $vk := default "" .Values.lm_access_key -}}
+{{- $vb := default "" .Values.lm_bearer_token -}}
+
+{{- /* 0) Explicit override via authMode */ -}}
+{{- if eq $mode "lmv1" -}}
+  {{- /* Prefer SECRET (env) first; then values.yaml keys */ -}}
+  {{- if ne $uds "" -}}
+access_id "#{ENV['LM_ACCESS_ID']}"
+access_key "#{ENV['LM_ACCESS_KEY']}"
+  {{- else if and (ne $ga "") (ne $gk "") -}}
+access_id {{ $ga | quote }}
+access_key {{ $gk | quote }}
+  {{- else if and (ne $va "") (ne $vk "") -}}
+access_id {{ $va | quote }}
+access_key {{ $vk | quote }}
+  {{- end -}}
+
+{{- else if eq $mode "bearer" -}}
+  {{- /* Prefer SECRET (env) first; then values.yaml/global bearer */ -}}
+  {{- if ne $uds "" -}}
+bearer_token "#{ENV['LM_BEARER_TOKEN']}"
+  {{- else if ne $gb "" -}}
+bearer_token {{ $gb | quote }}
+  {{- else if ne $vb "" -}}
+bearer_token {{ $vb | quote }}
+  {{- end -}}
+
+{{- else -}}
+  {{- /* AUTO priority (unchanged): Secret(lmv1) → global lmv1 → global bearer → values lmv1 → values bearer */ -}}
+  {{- if ne $uds "" -}}
+access_id "#{ENV['LM_ACCESS_ID']}"
+access_key "#{ENV['LM_ACCESS_KEY']}"
+  {{- else if and (ne $ga "") (ne $gk "") -}}
+access_id {{ $ga | quote }}
+access_key {{ $gk | quote }}
+  {{- else if ne $gb "" -}}
+bearer_token {{ $gb | quote }}
+  {{- else if and (ne $va "") (ne $vk "") -}}
+access_id {{ $va | quote }}
+access_key {{ $vk | quote }}
+  {{- else if ne $vb "" -}}
+bearer_token {{ $vb | quote }}
+  {{- end -}}
+{{- end -}}
+{{- end -}}
+
 {{- define "fluentd.lmMatch" -}}
 <match {{ .tag }}>
   @type lm
-  company_name {{ if .context.Values.lm_company_name }}{{ .context.Values.lm_company_name }}{{ else }}{{ required "A valid .Values.lm_company_name or .Values.global.account entry is required!" .context.Values.global.account }}{{ end }}
+  company_name {{ if .context.Values.lm_company_name }}{{ .context.Values.lm_company_name }}{{ else }}"#{ENV['LM_ACCOUNT']}"{{ end }}
   company_domain {{ .context.Values.lm_company_domain | default .context.Values.global.companyDomain | default "logicmonitor.com" }}
   resource_mapping '{{ .resource_mapping }}'
   resource_type {{ .context.Values.fluent.resource_type | default "" }}
-  {{- if and (or .context.Values.lm_access_id .context.Values.global.accessID) (or .context.Values.lm_access_key .context.Values.global.accessKey) }}
-  access_id {{ .context.Values.lm_access_id | default .context.Values.global.accessID }}
-  access_key {{ .context.Values.lm_access_key | default .context.Values.global.accessKey }}
-  {{- else if .context.Values.lm_bearer_token }}
-  bearer_token {{ .context.Values.lm_bearer_token }}
-  {{- else }}
-  {{ required "Either specify valid lm_access_id and lm_access_key both or lm_bearer_token for authentication with LogicMonitor." .context.Values.lm_bearer_token }}
-  {{- end }}
+{{ include "lm-logs.authBlock" .context | nindent 2 }}
+
   debug false
   compression gzip
-  {{ include "logsource.userAgent" .context | nindent 8 }}
+  {{ include "logsource.userAgent" .context }}
   include_metadata {{ hasKey .context.Values.fluent "include_metadata" | ternary .context.Values.fluent.include_metadata true }}
   device_less_logs {{ .context.Values.fluent.device_less_logs | default false }}
   <buffer>
