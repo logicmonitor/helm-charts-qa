@@ -193,14 +193,25 @@ collector:
   probe:
     enabled: true
     startup:
-      failureThreshold: 30
-      periodSeconds: 20
+      initialDelaySeconds: 300
+      timeoutSeconds: 5
+      periodSeconds: 30
+      successThreshold: 1
+      failureThreshold: 20
+      terminationGracePeriodSeconds: 30
     liveness:
-      failureThreshold: 30
+      initialDelaySeconds: 300
+      timeoutSeconds: 5
       periodSeconds: 10
+      successThreshold: 1
+      failureThreshold: 30
+      terminationGracePeriodSeconds: 30
     readiness:
-      failureThreshold: 30
+      initialDelaySeconds: 300
+      timeoutSeconds: 5
       periodSeconds: 10
+      successThreshold: 1
+      failureThreshold: 30
 
 imagePullSecrets: []
 podSecurityContext: {}
@@ -245,14 +256,25 @@ serviceAccount:
 probe:
   enabled: true
   startup:
+    initialDelaySeconds: 300
+    periodSeconds: 10
+    timeoutSeconds: 1
+    successThreshold: 1
     failureThreshold: 30
-    periodSeconds: 10
+    terminationGracePeriodSeconds: 30
   liveness:
-    failureThreshold: 3
+    initialDelaySeconds: 300
     periodSeconds: 30
-  readiness:
+    timeoutSeconds: 1
+    successThreshold: 1
     failureThreshold: 3
+    terminationGracePeriodSeconds: 30
+  readiness:
+    initialDelaySeconds: 300
     periodSeconds: 10
+    timeoutSeconds: 1
+    successThreshold: 1
+    failureThreshold: 3
 
 # extraObjects allows you to deploy additional Kubernetes resources alongside Argus
 # This is useful for deploying any other custom resources needed by your deployment
