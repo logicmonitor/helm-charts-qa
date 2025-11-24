@@ -9,10 +9,10 @@ lm_company_name: ""
 lm_bearer_token: ""
 lm_company_domain: ""
 
-authMode: ""   # or "lmv1/bearer"
+authMode: ""  # or "lmv1/bearer"
 
 global:
-  userDefinedSecret: "" # Uncomment and set to use a custom secret for credentials
+  userDefinedSecret: ""  # Uncomment and set to use a custom secret for credentials
   # The referenced secret must contain the following keys (all base64 encoded):
   #   accessID
   #   accessKey
