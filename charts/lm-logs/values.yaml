@@ -77,7 +77,7 @@ volumes:
       path: /var/lib/docker/containers
   - name: journal
     hostPath:
-      path: /run/log/journal
+      path: /var/log/journal
 
 
 volumeMounts:
@@ -89,5 +89,5 @@ volumeMounts:
     mountPath: /var/lib/docker/containers
     readOnly: true
   - name: journal
-    mountPath: /run/log/journal
+    mountPath: /var/log/journal
     readOnly: true

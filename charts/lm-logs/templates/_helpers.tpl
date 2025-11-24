@@ -49,13 +49,11 @@ Return the credentials Secret name:
 {{- $uds := default "" .Values.global.userDefinedSecret -}}
 {{- $ga := default "" .Values.global.accessID -}}
 {{- $gk := default "" .Values.global.accessKey -}}
-{{- $gb := default "" .Values.global.bearerToken -}}
 {{- $va := default "" .Values.lm_access_id -}}
 {{- $vk := default "" .Values.lm_access_key -}}
 {{- $vb := default "" .Values.lm_bearer_token -}}
 {{- if or (ne $uds "")
           (and (ne $ga "") (ne $gk ""))
-          (ne $gb "")
           (and (ne $va "") (ne $vk ""))
           (ne $vb "") -}}true{{- end -}}
 {{- end -}}
@@ -86,16 +84,15 @@ optional: true
   {{- end -}}
 {{- end -}}
 
-{{- /* Helper: does Secret contain a key? */ -}}
+{{- /* Helper: what keys exist in Secret? */ -}}
 {{- $hasSecKey := (and (ne $uds "")
                         $sec.data
                         (kindIs "map" $sec.data)) -}}
 {{- $secHas := dict -}}
 {{- if $hasSecKey -}}
-  {{- /* booleans for secret keys */ -}}
-  {{- $_ := set $secHas "account"        (hasKey $sec.data "account") -}}
-  {{- $_ := set $secHas "accessID"   (hasKey $sec.data "accessID") -}}
-  {{- $_ := set $secHas "accessKey"  (hasKey $sec.data "accessKey") -}}
+  {{- $_ := set $secHas "account"     (hasKey $sec.data "account") -}}
+  {{- $_ := set $secHas "accessID"    (hasKey $sec.data "accessID") -}}
+  {{- $_ := set $secHas "accessKey"   (hasKey $sec.data "accessKey") -}}
   {{- $_ := set $secHas "bearerToken" (hasKey $sec.data "bearerToken") -}}
 {{- end -}}
 
@@ -105,7 +102,7 @@ optional: true
       (ne (default "" .Values.global.account) "")
       (and (ne $uds "") ($secHas.account | default false)) -}}
 {{- if not $hasAccount -}}
-  {{- fail "Account name missing: set either lm_company_name, or global.account, or provide Secret with 'account' key via global.userDefinedSecret." -}}
+  {{- fail "Account name missing: set lm_company_name or global.account, or provide Secret with key 'account' via global.userDefinedSecret." -}}
 {{- end -}}
 
 {{- /* 2) Enforce credentials per authMode */ -}}
@@ -116,14 +113,14 @@ optional: true
   {{- $haslmv1FromValues := and (ne (default "" .Values.lm_access_id) "")
                                 (ne (default "" .Values.lm_access_key) "") -}}
   {{- if not (or $haslmv1FromSecret $haslmv1FromGlobal $haslmv1FromValues) -}}
-    {{- fail "LM v1 auth selected (authMode=lmv1) but no lmv1 found. Provide either: Secret with 'accessId'+'accessKey', or global.accessID+global.accessKey, or lm_access_id+lm_access_key." -}}
+    {{- fail "LM v1 auth selected (authMode=lmv1) but no lmv1 found. Provide either: Secret with 'accessID'+'accessKey', or global.accessID+global.accessKey, or lm_access_id+lm_access_key." -}}
   {{- end -}}
 
 {{- else if eq $mode "bearer" -}}
   {{- $hasBearerFromSecret := and (ne $uds "") ($secHas.bearerToken | default false) -}}
   {{- $hasBearerFromValues := ne (default "" .Values.lm_bearer_token) "" -}}
   {{- if not (or $hasBearerFromSecret $hasBearerFromValues) -}}
-    {{- fail "Bearer auth selected (authMode=bearer) but no token found. Provide either: Secret with 'lm_bearer_token' or lm_bearer_token in values." -}}
+    {{- fail "Bearer auth selected (authMode=bearer) but no token found. Provide either: Secret with 'bearerToken' or lm_bearer_token in values." -}}
   {{- end -}}
 
 {{- else -}}
@@ -151,7 +148,8 @@ kubernetes.cluster_name {{ $cluster }}
 {{- end }}
 
 {{/*
-User-agent for log-ingest requests */}}
+User-agent for log-ingest requests
+*/}}
 {{- define "logsource.userAgent" -}}
 {{- $cluster := "" -}}
 {{- if .Values.kubernetes.cluster_name -}}
@@ -239,20 +237,20 @@ Return the appropriate apiVersion for rbac.
 "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
 {{- end -}}
 
-{{/* Emit auth lines. If .Values.authMode is set, honor it; else use your priority chain. */}}
+{{/*
+Emit auth lines. If .Values.authMode is set, honor it; else use auto priority.
+Auto priority: Secret(lmv1) → global lmv1 → values lmv1 → values bearer
+*/}}
 {{- define "lm-logs.authBlock" -}}
 {{- $mode := default "" .Values.authMode -}}
 {{- $uds := default "" .Values.global.userDefinedSecret -}}
 {{- $ga := default "" .Values.global.accessID -}}
 {{- $gk := default "" .Values.global.accessKey -}}
-{{- $gb := default "" .Values.global.bearerToken -}}
 {{- $va := default "" .Values.lm_access_id -}}
 {{- $vk := default "" .Values.lm_access_key -}}
 {{- $vb := default "" .Values.lm_bearer_token -}}
 
-{{- /* 0) Explicit override via authMode */ -}}
 {{- if eq $mode "lmv1" -}}
-  {{- /* Prefer SECRET (env) first; then values.yaml keys */ -}}
   {{- if ne $uds "" -}}
 access_id "#{ENV['LM_ACCESS_ID']}"
 access_key "#{ENV['LM_ACCESS_KEY']}"
@@ -265,25 +263,19 @@ access_key {{ $vk | quote }}
   {{- end -}}
 
 {{- else if eq $mode "bearer" -}}
-  {{- /* Prefer SECRET (env) first; then values.yaml/global bearer */ -}}
   {{- if ne $uds "" -}}
 bearer_token "#{ENV['LM_BEARER_TOKEN']}"
-  {{- else if ne $gb "" -}}
-bearer_token {{ $gb | quote }}
   {{- else if ne $vb "" -}}
 bearer_token {{ $vb | quote }}
   {{- end -}}
 
 {{- else -}}
-  {{- /* AUTO priority (unchanged): Secret(lmv1) → global lmv1 → global bearer → values lmv1 → values bearer */ -}}
   {{- if ne $uds "" -}}
 access_id "#{ENV['LM_ACCESS_ID']}"
 access_key "#{ENV['LM_ACCESS_KEY']}"
   {{- else if and (ne $ga "") (ne $gk "") -}}
 access_id {{ $ga | quote }}
 access_key {{ $gk | quote }}
-  {{- else if ne $gb "" -}}
-bearer_token {{ $gb | quote }}
   {{- else if and (ne $va "") (ne $vk "") -}}
 access_id {{ $va | quote }}
 access_key {{ $vk | quote }}
@@ -293,13 +285,18 @@ bearer_token {{ $vb | quote }}
 {{- end -}}
 {{- end -}}
 
+{{/*
+Fluentd <match> block with company_name priority:
+ENV['LM_ACCOUNT'] → global.account → lm_company_name
+*/}}
 {{- define "fluentd.lmMatch" -}}
 <match {{ .tag }}>
   @type lm
-  company_name {{ if .context.Values.lm_company_name }}{{ .context.Values.lm_company_name }}{{ else }}"#{ENV['LM_ACCOUNT']}"{{ end }}
+  {{ $fb := .context.Values.global.account | default .context.Values.lm_company_name | default "" }}
+  company_name "#{ENV['LM_ACCOUNT'].to_s != '' ? ENV['LM_ACCOUNT'] : '{{ $fb }}'}"
   company_domain {{ .context.Values.lm_company_domain | default .context.Values.global.companyDomain | default "logicmonitor.com" }}
   resource_mapping '{{ .resource_mapping }}'
-  resource_type {{ .context.Values.fluent.resource_type | default "" }}
+  resource_type {{ .context.Values.fluent.resource_type | default "k8s" }}
 {{ include "lm-logs.authBlock" .context | nindent 2 }}
 
   debug false
