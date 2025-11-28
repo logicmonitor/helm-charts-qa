@@ -137,16 +137,47 @@ This takes an array of three values:
 
 
 {{- define "lmutil.serviceAccountName" -}}
-  {{- if .Values.serviceAccount.name -}}
-    {{ .Values.serviceAccount.name }}
-  {{- else if .Values.global.serviceAccount.name -}}
-    {{ .Values.global.serviceAccount.name }}
-  {{- else if .Values.serviceAccount.create -}}
-    {{ include "lmutil.fullname" . }}
-  {{- else -}}
-    {{ "default" | quote }}
+{{- $globalSAName := "" -}}
+{{- if and (hasKey .Values "global") (hasKey .Values.global "serviceAccount") (hasKey .Values.global.serviceAccount "name") -}}
+  {{- $globalSAName = .Values.global.serviceAccount.name -}}
+{{- end -}}
+{{- if $globalSAName }}
+{{- $globalSAName }}
+{{- else if .Values.serviceAccount.create }}
+{{- default (include "lmutil.fullname" .) .Values.serviceAccount.name }}
+{{- else }}
+{{- default "default" .Values.serviceAccount.name }}
+{{- end }}
+{{- end }}
+
+{{/*
+Determine if this chart should create the service account
+If global.serviceAccount.name is set, only argus chart creates it
+Otherwise, each chart uses its own serviceAccount.create setting
+*/}}
+{{- define "lmutil.shouldCreateServiceAccount" -}}
+{{- $globalSAName := "" -}}
+{{- if .Values.global -}}
+  {{- if .Values.global.serviceAccount -}}
+    {{- if .Values.global.serviceAccount.name -}}
+      {{- $globalSAName = .Values.global.serviceAccount.name -}}
+    {{- end -}}
   {{- end -}}
 {{- end -}}
+{{- if $globalSAName -}}
+  {{- if eq .Chart.Name "argus" -}}
+    {{- printf "true" -}}
+  {{- else -}}
+    {{- printf "false" -}}
+  {{- end -}}
+{{- else -}}
+  {{- if .Values.serviceAccount.create -}}
+    {{- printf "true" -}}
+  {{- else -}}
+    {{- printf "false" -}}
+  {{- end -}}
+{{- end -}}
+{{- end }}
 
 
 {{/*
