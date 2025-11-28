@@ -10,9 +10,10 @@ global:
     registry: ""
     pullPolicy: ""
   collectorsetServiceNameSuffix: "lm-container-collectorset-controller"
+  # Set create: true to share a single ServiceAccount between subcharts
   serviceAccount:
-    create: true
-#    name: "" # Optional: specify a custom service account name
+    create: false
+    # name: "" # Specify custom name when create is true
 
 argus:
   enabled: true
