@@ -89,7 +89,14 @@
       },
       "filters": [],
       "patchJob": {
-        "ttlSecondsAfterFinished": 1800
+        "ttlSecondsAfterFinished": 1800,
+        "image": {
+          "registry": "",
+          "repository": "",
+          "name": "kubectl",
+          "tag": "latest",
+          "pullPolicy": ""
+        }
       },
       "selfMonitor": {
         "enable": false,
@@ -1427,12 +1434,17 @@
       "default": {},
       "examples": [
         {
-          "ttlSecondsAfterFinished": 1800
+          "ttlSecondsAfterFinished": 1800,
+          "image": {
+            "registry": "public.ecr.aws/logicmonitor",
+            "name": "kubectl",
+            "tag": "latest"
+          }
         }
       ],
       "required": [],
       "properties": {
-          "ttlSecondsAfterFinished": {
+        "ttlSecondsAfterFinished": {
           "$comment": "tf:optional",
           "$id": "#/properties/patchJob/properties/ttlSecondsAfterFinished",
           "type": "integer",
@@ -1440,10 +1452,93 @@
           "description": "Specifies the time-to-live (in seconds) for the patchJob resource after it has completed execution. Once this duration has passed, the job and its associated pods will be automatically cleaned up by Kubernetes",
           "default": 1800,
           "examples": [
-              60,
-              1800
+            60,
+            1800
           ]
-          }
+        },
+        "image": {
+          "$id": "#/properties/patchJob/properties/image",
+          "$comment": "tf:optional",
+          "type": "object",
+          "title": "Patch Job Image Schema",
+          "description": "The kubectl image used by the post-install patch job. Allows customers to use their own registry.",
+          "default": {},
+          "examples": [
+            {
+              "registry": "public.ecr.aws",
+              "repository": "logicmonitor",
+              "name": "kubectl",
+              "tag": "v1.0.0",
+              "pullPolicy": "IfNotPresent"
+            }
+          ],
+          "properties": {
+            "registry": {
+              "$id": "#/properties/patchJob/properties/image/properties/registry",
+              "$comment": "tf:optional",
+              "type": "string",
+              "title": "Patch Job Image Registry",
+              "description": "The Docker Registry for the kubectl image. Falls back to global.image.registry if not set.",
+              "default": "",
+              "examples": [
+                "public.ecr.aws"
+              ]
+            },
+            "repository": {
+              "$id": "#/properties/patchJob/properties/image/properties/repository",
+              "$comment": "tf:optional",
+              "type": "string",
+              "title": "Patch Job Image Repository",
+              "description": "The Docker Repository for the kubectl image. Only used when registry is not set (defaults to 'logicmonitor'). When using a custom registry, leave empty unless you need an additional path segment.",
+              "default": "",
+              "examples": [
+                "logicmonitor",
+                ""
+              ]
+            },
+            "name": {
+              "$id": "#/properties/patchJob/properties/image/properties/name",
+              "$comment": "tf:optional",
+              "type": "string",
+              "title": "Patch Job Image Name",
+              "description": "The Docker Image Name for kubectl.",
+              "default": "kubectl",
+              "examples": [
+                "kubectl"
+              ]
+            },
+            "tag": {
+              "$id": "#/properties/patchJob/properties/image/properties/tag",
+              "$comment": "tf:optional",
+              "type": "string",
+              "title": "Patch Job Image Tag",
+              "description": "The Docker Image Tag for kubectl.",
+              "default": "latest",
+              "examples": [
+                "latest",
+                "v1.0.0"
+              ]
+            },
+            "pullPolicy": {
+              "$id": "#/properties/patchJob/properties/image/properties/pullPolicy",
+              "$comment": "tf:optional",
+              "type": "string",
+              "title": "Patch Job Image Pull Policy",
+              "description": "The image pull policy for the kubectl image. Falls back to global.image.pullPolicy or IfNotPresent.",
+              "default": "",
+              "enum": [
+                "Always",
+                "IfNotPresent",
+                "Never",
+                ""
+              ],
+              "examples": [
+                "IfNotPresent"
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
       },
       "additionalProperties": false
     },
