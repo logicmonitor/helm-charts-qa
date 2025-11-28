@@ -123,7 +123,6 @@ app: collector
 "{{ $repo }}/{{ .Values.collector.image.name }}"
 {{- end -}}
 
-
 {{/*
 Collector Pod security context
 */}}
