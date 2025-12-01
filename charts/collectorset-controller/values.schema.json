@@ -16,12 +16,7 @@
       "nameOverride": "",
       "fullnameOverride": "",
       "serviceAccount": {
-        "create": true,
-        "name": "",
-        "collector": {
-          "create": true,
-            "name": ""
-        }
+        "create": true
       },
       "rbac": {
         "create": true
@@ -54,14 +49,6 @@
         "companyDomain": "",
         "collectorsetServiceNameSuffix": "",
         "userDefinedSecret": "",
-        "serviceAccount":{
-          "create": true,
-          "name": "",
-          "collector": {
-            "create": true,
-            "name": ""
-          }
-        },
         "proxy": {
           "url": "",
           "user": "",
@@ -220,57 +207,6 @@
           "examples": [
             true
           ]
-        },
-        "name": {
-          "$comment": "tf:optional",
-          "$id": "#/properties/serviceAccount/properties/name",
-          "type": "string",
-          "title": "The custom serviceAccount name schema",
-          "description": "Custom service account name. If not specified, defaults to the fullname of the release.",
-          "default": "",
-          "examples": [
-            "custom-service-account"
-          ]
-        },
-        "collector": {
-          "$comment": "tf:optional",
-          "$id": "#/properties/serviceAccount/properties/collector",
-          "type": "object",
-          "title": "The collector serviceAccount schema",
-          "description": "An explanation about the purpose of this instance.",
-          "default": {},
-          "examples": [
-            {
-              "name": "custom-service-account"
-            }
-          ],
-          "required": [
-            "create"
-          ],
-          "properties": {
-            "create": {
-              "$comment": "tf:optional",
-              "$id": "#/properties/serviceAccount/properties/collector/properties/create",
-              "type": "boolean",
-              "title": "The create schema",
-              "description": "An explanation about the purpose of this instance.",
-              "default": false,
-              "examples": [
-                true
-              ]
-            },
-            "name": {
-              "$comment": "tf:optional",
-              "$id": "#/properties/serviceAccount/properties/collector/properties/name",
-              "type": "string",
-              "title": "The custom collector serviceAccount name schema",
-              "description": "Custom collector service account name. If not specified, defaults to the fullname of the release.",
-              "default": "",
-              "examples": [
-                "custom-service-account"
-              ]
-            }
-          }
         }
       },
       "additionalProperties": false
@@ -745,36 +681,6 @@
           "type": "string",
           "default": "",
           "description": "User can provide LM credentials in a Secret instead of plain text. The secret should contain 'accessID', 'accessKey', 'account' along with optional params e.g. 'etcdDiscoveryToken', proxy credentials"
-        },
-        "serviceAccount": {
-          "$id": "#/properties/global/properties/serviceAccount",
-          "type": "object",
-          "title": "User provided serviceAccount",
-          "description": "User can provide a serviceAccount name to be used by LM Container pods",
-          "properties": {
-            "create": {
-              "$comment": "tf:optional",
-              "$id": "#/properties/global/properties/serviceAccount/properties/create",
-              "type": "boolean",
-              "title": "The create schema",
-              "description": "Whether to create a new service account",
-              "default": false,
-              "examples": [
-                true
-              ]
-            },
-            "name": {
-              "$comment": "tf:optional",
-              "$id": "#/properties/global/properties/serviceAccount/properties/name",
-              "type": "string",
-              "title": "The name schema",
-              "description": "Name of the service account",
-              "default": "",
-              "examples": [
-                "custom-service-account"
-              ]
-            }
-          }
         },
         "companyDomain" : {
           "$comment" : "tf:optional",
