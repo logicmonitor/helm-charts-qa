@@ -169,3 +169,42 @@ Check if the user provided secret contains mandatory fields i.e.accessID, access
 {{- required "A valid account is required in the provided secret" .secretdata.account }}
 {{- end }}
 {{- end }}
+
+{{/*
+Patch Job image (kubectl) - allows customers to use their own registry
+Used by post-install jobs in argus and collectorset-controller subcharts
+When registry is provided, repository is only included if explicitly set.
+Examples:
+  - Default: bitnami/kubectl:latest
+  - registry: public.ecr.aws/logicmonitor → public.ecr.aws/logicmonitor/kubectl:latest
+  - registry: public.ecr.aws/logicmonitor, repository: myrepo → public.ecr.aws/logicmonitor/myrepo/kubectl:latest
+*/}}
+{{- define "lmutil.patchjob-image" -}}
+{{- $registry := "" -}}
+{{- $repo := "" -}}
+{{- $name := "kubectl" -}}
+{{- $tag := "v1.29.3" -}}
+{{- if .Values.patchJob.image.registry -}}
+{{- $registry = .Values.patchJob.image.registry -}}
+{{- else if .Values.global.image.registry -}}
+{{- $registry = .Values.global.image.registry -}}
+{{- end -}}
+{{- if .Values.patchJob.image.repository -}}
+{{- $repo = .Values.patchJob.image.repository -}}
+{{- else if eq $registry "" -}}
+{{- $repo = "logicmonitor" -}}
+{{- end -}}
+{{- if .Values.patchJob.image.name -}}
+{{- $name = .Values.patchJob.image.name -}}
+{{- end -}}
+{{- if .Values.patchJob.image.tag -}}
+{{- $tag = .Values.patchJob.image.tag -}}
+{{- end -}}
+{{- if and (ne $registry "") (ne $repo "") -}}
+"{{ $registry }}/{{ $repo }}/{{ $name }}:{{ $tag }}"
+{{- else if ne $registry "" -}}
+"{{ $registry }}/{{ $name }}:{{ $tag }}"
+{{- else -}}
+"{{ $repo }}/{{ $name }}:{{ $tag }}"
+{{- end -}}
+{{- end -}}
