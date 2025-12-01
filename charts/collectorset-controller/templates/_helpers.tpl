@@ -17,24 +17,6 @@ app: collectorset-controller
 {{- end }}
 {{- end }}
 
-{{/*
-Returns the collector ServiceAccount name based on precedence:
-1. if .Values.serviceAccount.collector.name is set, use it.
-2. Else If .Values.global.serviceAccount.name is set, use it.
-3. Else, use the default: "%s-collector" (include "lmutil.serviceAccountName" .)
-*/}}
-{{- define "collectorset-controller.collectorServiceAccountName" -}}
-    {{- if .Values.serviceAccount.collector.name -}}
-        {{ .Values.serviceAccount.collector.name }}
-    {{- else if .Values.global.serviceAccount.name -}}
-        {{ .Values.global.serviceAccount.name }}
-    {{- else if .Values.serviceAccount.collector.create -}}
-        {{ printf "%s-collector" (include "lmutil.serviceAccountName" .) }}
-    {{- else -}}
-        {{ "default" | quote }}
-    {{- end -}}
-{{- end -}}
-
 
 {{/*
 Common Annotations
@@ -46,6 +28,16 @@ logicmonitor.com/provider: lm-container
 {{- end }}
 {{- end }}
 
+{{/*
+Create the name of the service account to use
+*/}}
+{{- define "collectorset-controller.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create }}
+{{- default (include "lmutil.fullname" .) .Values.serviceAccount.name }}
+{{- else }}
+{{- default "default" .Values.serviceAccount.name }}
+{{- end }}
+{{- end }}
 
 {{- define "csc-image" -}}
 {{- $registry := "" -}}
