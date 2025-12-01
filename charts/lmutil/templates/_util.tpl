@@ -137,16 +137,49 @@ This takes an array of three values:
 
 
 {{- define "lmutil.serviceAccountName" -}}
-  {{- if .Values.serviceAccount.name -}}
-    {{ .Values.serviceAccount.name }}
-  {{- else if .Values.global.serviceAccount.name -}}
-    {{ .Values.global.serviceAccount.name }}
-  {{- else if .Values.serviceAccount.create -}}
-    {{ include "lmutil.fullname" . }}
-  {{- else -}}
-    {{ "default" | quote }}
+{{- $globalSAName := "" -}}
+{{- if and (hasKey .Values "global") (hasKey .Values.global "serviceAccount") (hasKey .Values.global.serviceAccount "name") -}}
+  {{- $globalSAName = .Values.global.serviceAccount.name -}}
+{{- end -}}
+{{- if .Values.serviceAccount.name -}}
+{{- .Values.serviceAccount.name -}}
+{{- else if $globalSAName -}}
+{{- $globalSAName -}}
+{{- else if .Values.serviceAccount.create -}}
+{{- include "lmutil.fullname" . -}}
+{{- else -}}
+{{- "default" -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Determine if this chart should create the service account
+If global.serviceAccount.name is set, only argus chart creates it
+Otherwise, each chart uses its own serviceAccount.create setting
+*/}}
+{{- define "lmutil.shouldCreateServiceAccount" -}}
+{{- $globalSAName := "" -}}
+{{- if .Values.global -}}
+  {{- if .Values.global.serviceAccount -}}
+    {{- if .Values.global.serviceAccount.name -}}
+      {{- $globalSAName = .Values.global.serviceAccount.name -}}
+    {{- end -}}
   {{- end -}}
 {{- end -}}
+{{- if $globalSAName -}}
+  {{- if eq .Chart.Name "argus" -}}
+    {{- printf "true" -}}
+  {{- else -}}
+    {{- printf "false" -}}
+  {{- end -}}
+{{- else -}}
+  {{- if .Values.serviceAccount.create -}}
+    {{- printf "true" -}}
+  {{- else -}}
+    {{- printf "false" -}}
+  {{- end -}}
+{{- end -}}
+{{- end }}
 
 
 {{/*
@@ -172,3 +205,42 @@ Check if the user provided secret contains mandatory fields i.e.accessID, access
 {{- required "A valid account is required in the provided secret" .secretdata.account }}
 {{- end }}
 {{- end }}
+
+{{/*
+Patch Job image (kubectl) - allows customers to use their own registry
+Used by post-install jobs in argus and collectorset-controller subcharts
+When registry is provided, repository is only included if explicitly set.
+Examples:
+  - Default: bitnami/kubectl:latest
+  - registry: public.ecr.aws/logicmonitor → public.ecr.aws/logicmonitor/kubectl:latest
+  - registry: public.ecr.aws/logicmonitor, repository: myrepo → public.ecr.aws/logicmonitor/myrepo/kubectl:latest
+*/}}
+{{- define "lmutil.patchjob-image" -}}
+{{- $registry := "" -}}
+{{- $repo := "" -}}
+{{- $name := "kubectl" -}}
+{{- $tag := "v1.29.3" -}}
+{{- if .Values.patchJob.image.registry -}}
+{{- $registry = .Values.patchJob.image.registry -}}
+{{- else if .Values.global.image.registry -}}
+{{- $registry = .Values.global.image.registry -}}
+{{- end -}}
+{{- if .Values.patchJob.image.repository -}}
+{{- $repo = .Values.patchJob.image.repository -}}
+{{- else if eq $registry "" -}}
+{{- $repo = "logicmonitor" -}}
+{{- end -}}
+{{- if .Values.patchJob.image.name -}}
+{{- $name = .Values.patchJob.image.name -}}
+{{- end -}}
+{{- if .Values.patchJob.image.tag -}}
+{{- $tag = .Values.patchJob.image.tag -}}
+{{- end -}}
+{{- if and (ne $registry "") (ne $repo "") -}}
+"{{ $registry }}/{{ $repo }}/{{ $name }}:{{ $tag }}"
+{{- else if ne $registry "" -}}
+"{{ $registry }}/{{ $name }}:{{ $tag }}"
+{{- else -}}
+"{{ $repo }}/{{ $name }}:{{ $tag }}"
+{{- end -}}
+{{- end -}}
