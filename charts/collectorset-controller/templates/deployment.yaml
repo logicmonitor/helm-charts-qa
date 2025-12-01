@@ -22,7 +22,7 @@ spec:
         {{- include "collectorset-controller.annotations" . | nindent 8 }}
     spec:
       securityContext: {{ include "lmutil.pod-sec-context-nonroot" (list . "lmutil.custom-pod-sec-context-nonroot") | nindent 8 }}
-      serviceAccountName: {{ include "lmutil.serviceAccountName" . }}
+      serviceAccountName: {{ include "collectorset-controller.serviceAccountName" . }}
     {{- with .Values.affinity }}
       affinity:
       {{ toYaml . | nindent 8 }}
