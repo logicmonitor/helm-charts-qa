@@ -217,7 +217,7 @@ Examples:
 {{- $registry := "" -}}
 {{- $repo := "" -}}
 {{- $name := "kubectl" -}}
-{{- $tag := "latest" -}}
+{{- $tag := "v1.29.3" -}}
 {{- if .Values.patchJob.image.registry -}}
 {{- $registry = .Values.patchJob.image.registry -}}
 {{- else if .Values.global.image.registry -}}
