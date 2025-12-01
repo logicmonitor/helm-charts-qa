@@ -141,14 +141,16 @@ This takes an array of three values:
 {{- if and (hasKey .Values "global") (hasKey .Values.global "serviceAccount") (hasKey .Values.global.serviceAccount "name") -}}
   {{- $globalSAName = .Values.global.serviceAccount.name -}}
 {{- end -}}
-{{- if $globalSAName }}
-{{- $globalSAName }}
-{{- else if .Values.serviceAccount.create }}
-{{- default (include "lmutil.fullname" .) .Values.serviceAccount.name }}
-{{- else }}
-{{- default "default" .Values.serviceAccount.name }}
-{{- end }}
-{{- end }}
+{{- if .Values.serviceAccount.name -}}
+{{- .Values.serviceAccount.name -}}
+{{- else if $globalSAName -}}
+{{- $globalSAName -}}
+{{- else if .Values.serviceAccount.create -}}
+{{- include "lmutil.fullname" . -}}
+{{- else -}}
+{{- "default" -}}
+{{- end -}}
+{{- end -}}
 
 {{/*
 Determine if this chart should create the service account
