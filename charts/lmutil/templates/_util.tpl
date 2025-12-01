@@ -97,6 +97,17 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 
+{{/*
+Create the name of the service account to use
+*/}}
+{{- define "lmutil.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create }}
+{{- default (include "lmutil.fullname" .) .Values.serviceAccount.name }}
+{{- else }}
+{{- default "default" .Values.serviceAccount.name }}
+{{- end }}
+{{- end }}
+
 {{- define "lmutil.generic.labels" }}
 helm.sh/chart: {{ template "lmutil.chart" . }}
 app.kubernetes.io/part-of: {{ include "lmutil.name" . }}
@@ -135,20 +146,6 @@ This takes an array of three values:
 {{- include "lmutil.merge" (append . "lmutil.default-container-sec-context-nonroot" ) -}}
 {{- end -}}
 
-
-{{- define "lmutil.serviceAccountName" -}}
-  {{- if .Values.serviceAccount.name -}}
-    {{ .Values.serviceAccount.name }}
-  {{- else if .Values.global.serviceAccount.name -}}
-    {{ .Values.global.serviceAccount.name }}
-  {{- else if .Values.serviceAccount.create -}}
-    {{ include "lmutil.fullname" . }}
-  {{- else -}}
-    {{ "default" | quote }}
-  {{- end -}}
-{{- end -}}
-
-
 {{/*
 Return secret name to be used based on the userDefinedSecret.
 */}}
@@ -172,3 +169,41 @@ Check if the user provided secret contains mandatory fields i.e.accessID, access
 {{- required "A valid account is required in the provided secret" .secretdata.account }}
 {{- end }}
 {{- end }}
+
+{{/*
+Constructs the Patch Job image (kubectl) - allows customers to use their own registry
+Used by post-install jobs in argus and collectorset-controller subcharts
+When registry is provided, repository is only included if explicitly set.
+Examples:
+  - Default: logicmonitor/kubectl:v1.29.3
+  - registry: public.ecr.aws/logicmonitor → public.ecr.aws/logicmonitor/kubectl:v1.29.3
+*/}}
+{{- define "lmutil.patchjob-image" -}}
+{{- $registry := "" -}}
+{{- $repo := "" -}}
+{{- $name := "kubectl" -}}
+{{- $tag := "v1.29.3" -}}
+{{- if .Values.patchJob.image.registry -}}
+{{- $registry = .Values.patchJob.image.registry -}}
+{{- else if .Values.global.image.registry -}}
+{{- $registry = .Values.global.image.registry -}}
+{{- end -}}
+{{- if .Values.patchJob.image.repository -}}
+{{- $repo = .Values.patchJob.image.repository -}}
+{{- else if eq $registry "" -}}
+{{- $repo = "logicmonitor" -}}
+{{- end -}}
+{{- if .Values.patchJob.image.name -}}
+{{- $name = .Values.patchJob.image.name -}}
+{{- end -}}
+{{- if .Values.patchJob.image.tag -}}
+{{- $tag = .Values.patchJob.image.tag -}}
+{{- end -}}
+{{- if and (ne $registry "") (ne $repo "") -}}
+"{{ $registry }}/{{ $repo }}/{{ $name }}:{{ $tag }}"
+{{- else if ne $registry "" -}}
+"{{ $registry }}/{{ $name }}:{{ $tag }}"
+{{- else -}}
+"{{ $repo }}/{{ $name }}:{{ $tag }}"
+{{- end -}}
+{{- end -}}
