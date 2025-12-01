@@ -171,13 +171,12 @@ Check if the user provided secret contains mandatory fields i.e.accessID, access
 {{- end }}
 
 {{/*
-Patch Job image (kubectl) - allows customers to use their own registry
+Constructs the Patch Job image (kubectl) - allows customers to use their own registry
 Used by post-install jobs in argus and collectorset-controller subcharts
 When registry is provided, repository is only included if explicitly set.
 Examples:
-  - Default: bitnami/kubectl:latest
-  - registry: public.ecr.aws/logicmonitor → public.ecr.aws/logicmonitor/kubectl:latest
-  - registry: public.ecr.aws/logicmonitor, repository: myrepo → public.ecr.aws/logicmonitor/myrepo/kubectl:latest
+  - Default: logicmonitor/kubectl:v1.29.3
+  - registry: public.ecr.aws/logicmonitor → public.ecr.aws/logicmonitor/kubectl:v1.29.3
 */}}
 {{- define "lmutil.patchjob-image" -}}
 {{- $registry := "" -}}
