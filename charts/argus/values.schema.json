@@ -94,7 +94,7 @@
           "registry": "",
           "repository": "",
           "name": "kubectl",
-          "tag": "latest",
+          "tag": "",
           "pullPolicy": ""
         }
       },
@@ -1435,7 +1435,7 @@
             "registry": "",
             "repository": "",
             "name": "kubectl",
-            "tag": "latest",
+            "tag": "",
             "pullPolicy": ""
           }
         }
@@ -1494,9 +1494,9 @@
               "$id": "#/properties/patchJob/properties/image/properties/tag",
               "type": "string",
               "title": "The tag schema",
-              "description": "Container image tag for patchJob",
-              "default": "latest",
-              "examples": ["latest", "v1.29.3"]
+              "description": "Container image tag for patchJob. Defaults to version defined in lmutil.patchjob-image template",
+              "default": "",
+              "examples": ["v1.29.3"]
             },
             "pullPolicy": {
               "$comment": "tf:optional",
