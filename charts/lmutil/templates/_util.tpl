@@ -173,14 +173,14 @@ Check if the user provided secret contains mandatory fields i.e.accessID, access
 {{/*
 Constructs the Patch Job image (kubectl) - allows customers to use their own registry
 Used by post-install jobs in argus and collectorset-controller subcharts
-When registry is provided, repository is only included if explicitly set.
+Repository defaults to "logicmonitor" unless explicitly overridden.
 Examples:
   - Default: logicmonitor/kubectl:v1.29.3
-  - registry: public.ecr.aws/logicmonitor → public.ecr.aws/logicmonitor/kubectl:v1.29.3
+  - registry: public.ecr.aws → public.ecr.aws/logicmonitor/kubectl:v1.29.3
 */}}
 {{- define "lmutil.patchjob-image" -}}
 {{- $registry := "" -}}
-{{- $repo := "" -}}
+{{- $repo := "logicmonitor" -}}
 {{- $name := "kubectl" -}}
 {{- $tag := "v1.29.3" -}}
 {{- if .Values.patchJob.image.registry -}}
@@ -190,8 +190,8 @@ Examples:
 {{- end -}}
 {{- if .Values.patchJob.image.repository -}}
 {{- $repo = .Values.patchJob.image.repository -}}
-{{- else if eq $registry "" -}}
-{{- $repo = "logicmonitor" -}}
+{{- else if .Values.global.image.repository -}}
+{{- $repo = .Values.global.image.repository -}}
 {{- end -}}
 {{- if .Values.patchJob.image.name -}}
 {{- $name = .Values.patchJob.image.name -}}
@@ -199,10 +199,8 @@ Examples:
 {{- if .Values.patchJob.image.tag -}}
 {{- $tag = .Values.patchJob.image.tag -}}
 {{- end -}}
-{{- if and (ne $registry "") (ne $repo "") -}}
+{{- if ne $registry "" -}}
 "{{ $registry }}/{{ $repo }}/{{ $name }}:{{ $tag }}"
-{{- else if ne $registry "" -}}
-"{{ $registry }}/{{ $name }}:{{ $tag }}"
 {{- else -}}
 "{{ $repo }}/{{ $name }}:{{ $tag }}"
 {{- end -}}
