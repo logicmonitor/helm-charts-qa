@@ -443,6 +443,44 @@
         { "enum": ["bearer", "lmv1"] },
         { "type": "string", "maxLength": 0 }
       ]
+    },
+    "fluentd": {
+      "type": "object",
+      "description": "Fluentd configuration for lm-logs.",
+      "properties": {
+        "existingConfigMap": {
+          "type": "string",
+          "description": "Name of an existing ConfigMap that provides fluent.conf and (optionally) extra config files. If set, the chart will not create its own Fluentd ConfigMap."
+        },
+        "enableTplRendering": {
+          "type": "boolean",
+          "description": "If true, render fluentd.config and fluentd.extraFiles contents through Helm tpl(). Set to false if your configs contain '{{ }}' that should not be templated.",
+          "default": true
+        },
+        "config": {
+          "type": "string",
+          "description": "Main Fluentd configuration content, rendered to fluent.conf."
+        },
+        "extraFiles": {
+          "type": "object",
+          "description": "Map of filename to Fluentd configuration content. Files are mounted under fluentd.extraConfigsPath.",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "default": {}
+        },
+        "configPath": {
+          "type": "string",
+          "description": "Container path where fluent.conf is mounted.",
+          "default": "/fluentd/etc/fluent.conf"
+        },
+        "extraConfigsPath": {
+          "type": "string",
+          "description": "Container directory where extra Fluentd config files are mounted.",
+          "default": "/fluentd/etc/conf.d"
+        }
+      },
+      "additionalProperties": true
     }
   },
   "additionalProperties": false,

@@ -1,10 +1,13 @@
 {{- /* Accept any of: userDefinedSecret, bearerToken value, or id+key values */ -}}
-{{- if not (include "lm-logs.credsProvided" .) -}}
-{{- fail "Provide credentials via Secret (global.userDefinedSecret) or via global.* / lm_* values." -}}
-{{- end -}}
-{{- include "lm-logs.assertInputs" . -}}
-kind: ConfigMap
+  {{- if not (include "lm-logs.credsProvided" .) -}}
+  {{- fail "Provide credentials via Secret (global.userDefinedSecret) or via global.* / lm_* values." -}}
+  {{- end -}}
+  {{- include "lm-logs.assertInputs" . -}}
+
+  {{- /* Only create this ConfigMap if the user did NOT supply fluentd.existingConfigMap */ -}}
+  {{- if not .Values.fluentd.existingConfigMap }}
 apiVersion: v1
+kind: ConfigMap
 metadata:
   name: {{ include "fluentd.fullname" . }}
   labels:
@@ -13,105 +16,27 @@ metadata:
     {{- include "fluentd.annotations" . | nindent 4 }}
 data:
   fluent.conf: |
-    @include kubernetes.conf
-    {{- if .Values.useSystemdConf }}
-    @include systemd.conf
+    {{- if .Values.fluentd.enableTplRendering }}
+    {{- tpl (.Values.fluentd.config | toString) . | nindent 4 }}
+    {{- else }}
+    {{- .Values.fluentd.config | nindent 4 }}
     {{- end }}
 
-    <system>
-      log_level "#{ENV['FLUENT_LOG_LEVEL'] || 'warn'}"
-    </system>
-
-    <label @PROCESS_AFTER_CONCAT>
-      {{- if .Values.useSystemdConf }}
-      <filter {{ .Values.systemd.tag | default "systemd.al2023" }}>
-        @type record_transformer
-        enable_ruby
-        <record>
-          message ${record["MESSAGE"]}
-          timestamp ${record["__REALTIME_TIMESTAMP"]}
-          source_tag {{ .Values.systemd.tag | default "systemd.al2023" }}
-          {{- if .Values.fluent.device_less_logs }}
-          resource.service.name ${ENV['K8S_NODE_NAME']}
-          {{- end }}
-          {{- if or .Values.kubernetes.cluster_name .Values.global.clusterName }}
-          {{ include "kubernetes.cluster_name" . | nindent 10 }}
-          {{- end }}
-        </record>
-        remove_keys MESSAGE
-      </filter>
-      {{- end }}
-
-      <filter kubernetes.**>
-        @type kubernetes_metadata
-        @id filter_kube_metadata
-        kubernetes_url "#{ENV['FLUENT_FILTER_KUBERNETES_URL'] || 'https://' + ENV.fetch('KUBERNETES_SERVICE_HOST') + ':' + ENV.fetch('KUBERNETES_SERVICE_PORT') + '/api'}"
-        verify_ssl "#{ENV['KUBERNETES_VERIFY_SSL'] || true}"
-        ca_file "#{ENV['KUBERNETES_CA_FILE']}"
-        skip_labels "#{ENV['FLUENT_KUBERNETES_METADATA_SKIP_LABELS'] || 'false'}"
-        skip_container_metadata "#{ENV['FLUENT_KUBERNETES_METADATA_SKIP_CONTAINER_METADATA'] || 'false'}"
-        skip_master_url "#{ENV['FLUENT_KUBERNETES_METADATA_SKIP_MASTER_URL'] || 'false'}"
-        skip_namespace_metadata "#{ENV['FLUENT_KUBERNETES_METADATA_SKIP_NAMESPACE_METADATA'] || 'false'}"
-      </filter>
-
-      <filter kubernetes.**>
-        @type record_transformer
-        enable_ruby
-        <record>
-          message ${record["log"]} ${record["message"]}
-          timestamp ${record["time"]}
-          {{- if or .Values.kubernetes.cluster_name .Values.global.clusterName }}
-          {{ include "kubernetes.cluster_name" . | nindent 8 }}
-          {{- end }}
-          {{- if .Values.fluent.device_less_logs }}
-          resource.service.name '${record.dig("kubernetes","labels","app") != nil ? record.dig("kubernetes","labels","app") : record.dig("kubernetes","labels","app_kubernetes_io/name") != nil ? record.dig("kubernetes","labels","app_kubernetes_io/name") : record.dig("kubernetes","container_name") != nil ? record.dig("kubernetes","container_name") : record.dig("kubernetes","pod_name") != nil ? record.dig("kubernetes","pod_name") : "unknown"}'
-          resource.service.namespace ${record["kubernetes"]["namespace_name"]}
-          {{- end }}
-        </record>
-        remove_keys log
-      </filter>
-
-      {{ include "fluentd.lmMatch" (dict "tag" "kubernetes.**" "resource_mapping" "{\"kubernetes.pod_name\": \"auto.name\"}" "context" .) | nindent 6 }}
-      {{- if .Values.useSystemdConf }}
-      {{ include "fluentd.lmMatch" (dict "tag" (.Values.systemd.tag | default "systemd.al2023") "resource_mapping" "{\"_HOSTNAME\": \"system.hostname\"}" "context" .) | nindent 6 }}
-      {{- end }}
-    </label>
-
-  kubernetes.conf: |
-    <source>
-      @type tail
-      @id in_tail_container_logs
-      path /var/log/containers/*.log
-      pos_file /var/log/fluentd-containers.log.pos
-      tag "#{ENV['FLUENT_CONTAINER_TAIL_TAG'] || 'kubernetes.*'}"
-      exclude_path "#{ENV['FLUENT_CONTAINER_TAIL_EXCLUDE_PATH'] || '/var/log/containers/{{ .Chart.Name }}*.log' }"
-      <parse>
-        @type "#{ENV['FLUENT_CONTAINER_TAIL_PARSER_TYPE'] || 'multi_format'}"
-        <pattern>
-          format json
-          keep_time_key true
-          time_format %Y-%m-%dT%H:%M:%S.%NZ
-        </pattern>
-        <pattern>
-          format syslog
-        </pattern>
-        <pattern>
-          format none
-        </pattern>
-      </parse>
-    </source>
-
-    <filter kubernetes.**>
-      @type concat
-      key {{ .Values.kubernetes.multiline_concat_key }}
-      separator ""
-      multiline_start_regexp {{ .Values.kubernetes.multiline_start_regexp }}
-      timeout_label @PROCESS_AFTER_CONCAT
-    </filter>
-
-    <match kubernetes.**>
-      @type relabel
-      @label @PROCESS_AFTER_CONCAT
-    </match>
-
-    {{ include "fluentd.systemdConfBlock" (dict "context" .) | indent 2 }}
+  {{- range $name, $content := .Values.fluentd.extraFiles }}
+  {{ $name }}: |
+    {{- if $.Values.fluentd.enableTplRendering }}
+{{ tpl ($content | toString) $ | nindent 4 }}
+    {{- else }}
+{{ $content | nindent 4 }}
+    {{- end }}
+  {{- end }}
+  {{- /* If systemd is enabled AND user didn't already define systemd.conf in extraFiles */ -}}
+  {{- if and .Values.useSystemdConf (not (hasKey .Values.fluentd.extraFiles "systemd.conf")) }}
+  systemd.conf: |
+    {{- if .Values.systemd.conf }}
+{{ .Values.systemd.conf | nindent 4 }}
+    {{- else }}
+{{ include "fluentd.systemdConfBlock" (dict "context" .) | nindent 4 }}
+    {{- end }}
+  {{- end }}
+{{- end }}
