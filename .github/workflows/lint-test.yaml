@@ -65,6 +65,37 @@ jobs:
         if: steps.list-changed.outputs.arguschanged == 'true'
         run: |
           kubectl apply -f charts/collectorset-controller/crds/collectorset.yaml
-          ct install --config ct.yaml --charts charts/argus
+          
+          # Start background debug logging
+          (
+            sleep 60  # Wait for install to start
+            echo "=== DEBUG: Pods ==="
+            kubectl get pods -A
+            echo "=== DEBUG: Describe Argus Pods ==="
+            kubectl describe pods -A -l app.kubernetes.io/name=argus || true
+            echo "=== DEBUG: Argus Pod Logs ==="
+            kubectl logs -A -l app.kubernetes.io/name=argus --all-containers --tail=100 || true
+            echo "=== DEBUG: Post-install Job ==="
+            kubectl get jobs -A
+            kubectl describe jobs -A | head -100 || true
+            kubectl logs -A -l app.kubernetes.io/job=config-updater --tail=100 || true
+            echo "=== DEBUG: Events ==="
+            kubectl get events -A --sort-by='.lastTimestamp' | tail -50
+          ) &
+          
+          ct install --config ct.yaml --charts charts/argus || {
+            echo "=== INSTALL FAILED - Collecting diagnostics ==="
+            echo "=== Pods ==="
+            kubectl get pods -A
+            echo "=== Describe all pods ==="
+            kubectl describe pods -A
+            echo "=== All logs ==="
+            kubectl logs -A -l app.kubernetes.io/name=argus --all-containers || true
+            kubectl logs -A -l app.kubernetes.io/job=config-updater || true
+            echo "=== Events ==="
+            kubectl get events -A --sort-by='.lastTimestamp'
+            exit 1
+          }
+          
           kubectl delete -f charts/collectorset-controller/crds/collectorset.yaml
 
