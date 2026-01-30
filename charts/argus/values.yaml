@@ -130,6 +130,14 @@ lm:
       nodes: []
       etcd: []
 filters: []
+jobs:
+  tenantId: "argus"
+  eventMode: "logs"
+  logIngestWorker:
+    poolSize: 10
+    bufferSize: 100
+    batchSize: 10
+    flushIntervalMs: 2000
 patchJob:
   ttlSecondsAfterFinished: 1800  # delete this job from cluster after 30 mins
   image:

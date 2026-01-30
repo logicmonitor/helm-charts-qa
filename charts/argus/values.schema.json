@@ -88,6 +88,16 @@
         }
       },
       "filters": [],
+      "jobs": {
+        "tenantId": "argus",
+        "eventMode": "logs",
+        "logIngestWorker": {
+          "poolSize": 10,
+          "bufferSize": 100,
+          "batchSize": 10,
+          "flushIntervalMs": 2000
+        }
+      },
       "patchJob": {
         "ttlSecondsAfterFinished": 1800,
         "image": {
@@ -1507,6 +1517,103 @@
               "default": "",
               "enum": ["Always", "IfNotPresent", "Never", ""],
               "examples": ["IfNotPresent"]
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "jobs": {
+      "$id": "#/properties/jobs",
+      "$comment": "tf:optional",
+      "type": "object",
+      "title": "Jobs Configuration Schema",
+      "description": "Configuration for Argus jobs including event mode and log ingest worker settings.",
+      "default": {},
+      "examples": [
+        {
+          "tenantId": "argus",
+          "eventMode": "logs",
+          "logIngestWorker": {
+            "poolSize": 2,
+            "bufferSize": 100,
+            "batchSize": 10,
+            "flushIntervalMs": 2000
+          }
+        }
+      ],
+      "required": [],
+      "properties": {
+        "tenantId": {
+          "$comment": "tf:optional",
+          "$id": "#/properties/jobs/properties/tenantId",
+          "type": "string",
+          "title": "Tenant ID",
+          "description": "The tenant ID for jobs.",
+          "default": "argus",
+          "examples": ["argus"]
+        },
+        "eventMode": {
+          "$comment": "tf:optional",
+          "$id": "#/properties/jobs/properties/eventMode",
+          "type": "string",
+          "title": "Event Mode",
+          "description": "The event mode for jobs.",
+          "default": "logs",
+          "examples": ["logs"]
+        },
+        "logIngestWorker": {
+          "$comment": "tf:optional",
+          "$id": "#/properties/jobs/properties/logIngestWorker",
+          "type": "object",
+          "title": "Log Ingest Worker Configuration",
+          "description": "Configuration for the log ingest worker.",
+          "default": {},
+          "examples": [
+            {
+              "poolSize": 2,
+              "bufferSize": 100,
+              "batchSize": 10,
+              "flushIntervalMs": 2000
+            }
+          ],
+          "properties": {
+            "poolSize": {
+              "$comment": "tf:optional",
+              "$id": "#/properties/jobs/properties/logIngestWorker/properties/poolSize",
+              "type": "integer",
+              "title": "Pool Size",
+              "description": "The pool size for the log ingest worker.",
+              "default": 10,
+              "examples": [5, 10, 20]
+            },
+            "bufferSize": {
+              "$comment": "tf:optional",
+              "$id": "#/properties/jobs/properties/logIngestWorker/properties/bufferSize",
+              "type": "integer",
+              "title": "Buffer Size",
+              "description": "The buffer size for the log ingest worker.",
+              "default": 100,
+              "examples": [100, 500, 1000]
+            },
+            "batchSize": {
+              "$comment": "tf:optional",
+              "$id": "#/properties/jobs/properties/logIngestWorker/properties/batchSize",
+              "type": "integer",
+              "title": "Batch Size",
+              "description": "The batch size for the log ingest worker.",
+              "default": 10,
+              "examples": [10, 50, 100]
+            },
+            "flushIntervalMs": {
+              "$comment": "tf:optional",
+              "$id": "#/properties/jobs/properties/logIngestWorker/properties/flushIntervalMs",
+              "type": "integer",
+              "title": "Flush Interval (ms)",
+              "description": "The flush interval in milliseconds for the log ingest worker.",
+              "default": 2000,
+              "examples": [1000, 2000, 5000]
             }
           },
           "additionalProperties": false
