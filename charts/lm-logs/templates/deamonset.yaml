@@ -55,7 +55,7 @@ spec:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
             {{- toYaml .Values.volumeMounts | nindent 12 }}
-            {{- if eq ( .Values.fluent.buffer.type) "file" }}
+            {{- if eq (default "memory" .Values.fluent.buffer.type) "file" }}
             - name: fluentbuffer
               mountPath: {{ .Values.fluent.buffer.file.mountPath | default "/fluentd/buffer" }}
             {{- end }}
