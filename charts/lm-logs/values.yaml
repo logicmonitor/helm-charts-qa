@@ -54,12 +54,12 @@ fluent:
     file:
       path: /fluentd/buffer/lm-logs     # prefix path for chunks
       mountPath: /fluentd/buffer        # mount point inside container
-      sizeLimit: 16Gi                  # optional emptyDir size limit
+      sizeLimit: 10Gi                  # optional emptyDir size limit
 
       flush_interval: 1s
       chunk_limit_size: 8m
       flush_thread_count: 8
-      total_limit_size: 15g
+      total_limit_size: 8gb
       compress: text   # text|gzip
 
 systemd:

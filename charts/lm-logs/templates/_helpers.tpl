@@ -321,7 +321,7 @@ ENV['LM_ACCOUNT'] → global.account → lm_company_name
     flush_interval {{ .context.Values.fluent.buffer.file.flush_interval | default "1s" }}
     chunk_limit_size {{ .context.Values.fluent.buffer.file.chunk_limit_size | default "8m" }}
     flush_thread_count {{ .context.Values.fluent.buffer.file.flush_thread_count | default "8" }}
-    total_limit_size {{ .context.Values.fluent.buffer.file.total_limit_size | default "16g" }}
+    total_limit_size {{ .context.Values.fluent.buffer.file.total_limit_size | default "8g" }}
     compress {{ .context.Values.fluent.buffer.file.compress | default "text" }}
     {{- else }}
     flush_interval {{ .context.Values.fluent.buffer.memory.flush_interval | default "1s" }}
