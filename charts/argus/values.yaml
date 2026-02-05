@@ -132,8 +132,8 @@ lm:
 filters: []
 jobs:
   # Event mode: how job events should be processed
-  # Options: "logs" (forward as logs) or "devices" (create device for monitoring)
-  eventMode: "devices"
+  # Options: "logs" (forward as logs) or "resources" (create device for monitoring)
+  eventMode: "resources"
   # LogicMonitor tenant identifier for multi-tenant environments
   # This is added as a property (tenant.identifier) on the jobs device
   tenantIdentifier: "argus"

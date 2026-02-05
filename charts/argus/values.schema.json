@@ -1571,9 +1571,9 @@
           "type": "string",
           "title": "Event Mode",
           "description": "Event mode: how job events should be processed. Options: 'logs' (forward as logs) or 'device' (create device for monitoring).",
-          "default": "devices",
-          "enum": ["logs", "devices", ""],
-          "examples": ["logs", "devices"]
+          "default": "resources",
+          "enum": ["logs", "resources", ""],
+          "examples": ["logs", "resources"]
         },
         "tenantIdentifier": {
           "$comment": "tf:optional",
