@@ -303,7 +303,7 @@
           "type": "boolean"
         },
         "resource_type": {
-          "type" : "string"
+          "type": "string"
         },
         "buffer": {
           "type": "object",
@@ -321,6 +321,51 @@
                 },
                 "flush_thread_count": {
                   "type": "integer"
+                },
+                "total_limit_size": {
+                  "type": "string",
+                  "description": "Total memory buffer size limit (e.g. 512m)"
+                },
+                "compress": {
+                  "type": "string",
+                  "enum": ["text", "gzip"],
+                  "description": "Compression type for memory buffer"
+                }
+              }
+            },
+            "file": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "path": {
+                  "type": "string",
+                  "description": "Prefix path for fluentd buffer chunks"
+                },
+                "mountPath": {
+                  "type": "string",
+                  "description": "Mount point inside container"
+                },
+                "flush_interval": {
+                  "type": "string"
+                },
+                "chunk_limit_size": {
+                  "type": "string"
+                },
+                "flush_thread_count": {
+                  "type": "integer"
+                },
+                "total_limit_size": {
+                  "type": "string",
+                  "description": "Total file buffer size limit (e.g. 16g)"
+                },
+                "compress": {
+                  "type": "string",
+                  "enum": ["text", "gzip"],
+                  "description": "Compression type for file buffer"
+                },
+                "sizeLimit": {
+                  "type": "string",
+                  "description": "Optional emptyDir size limit"
                 }
               }
             }
