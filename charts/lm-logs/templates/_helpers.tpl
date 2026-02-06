@@ -312,7 +312,8 @@ ENV['LM_ACCOUNT'] → global.account → lm_company_name
   {{ include "logsource.userAgent" .context }}
   include_metadata {{ hasKey .context.Values.fluent "include_metadata" | ternary .context.Values.fluent.include_metadata true }}
   device_less_logs {{ .context.Values.fluent.device_less_logs | default false }}
-  {{- $bufType := (default "memory" .context.Values.fluent.buffer.type) -}}
+  
+  {{- $bufType := (default "memory" .context.Values.fluent.buffer.type) }}
   <buffer>
     @type {{ $bufType }}
 
