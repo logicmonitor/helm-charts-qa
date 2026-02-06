@@ -89,8 +89,24 @@
       },
       "filters": [],
       "jobs": {
-        "tenantId": "argus",
         "eventMode": "logs",
+        "tenantIdentifier": "argus",
+        "labelsMaxLength": 150,
+        "annotationsMaxLength": 150,
+        "excludeKeys": [
+          "metadata.managedFields",
+          "metadata.selfLink",
+          "metadata.generation",
+          "metadata.resourceVersion",
+          "spec.template.spec.containers",
+          "spec.template.spec.initContainers",
+          "spec.template.spec.volumes",
+          "spec.template.metadata.managedFields",
+          "spec.selector",
+          "status.conditions",
+          "status.uncountedTerminatedPods"
+        ],
+        "disableIngestEvents": [],
         "logIngestWorker": {
           "poolSize": 10,
           "bufferSize": 100,
@@ -1533,10 +1549,14 @@
       "default": {},
       "examples": [
         {
-          "tenantId": "argus",
           "eventMode": "logs",
+          "tenantIdentifier": "my-tenant-id",
+          "labelsMaxLength": 150,
+          "annotationsMaxLength": 150,
+          "excludeKeys": ["metadata.managedFields", "metadata.selfLink"],
+          "disableIngestEvents": [],
           "logIngestWorker": {
-            "poolSize": 2,
+            "poolSize": 10,
             "bufferSize": 100,
             "batchSize": 10,
             "flushIntervalMs": 2000
@@ -1545,34 +1565,95 @@
       ],
       "required": [],
       "properties": {
-        "tenantId": {
-          "$comment": "tf:optional",
-          "$id": "#/properties/jobs/properties/tenantId",
-          "type": "string",
-          "title": "Tenant ID",
-          "description": "The tenant ID for jobs.",
-          "default": "argus",
-          "examples": ["argus"]
-        },
         "eventMode": {
           "$comment": "tf:optional",
           "$id": "#/properties/jobs/properties/eventMode",
           "type": "string",
           "title": "Event Mode",
-          "description": "The event mode for jobs.",
-          "default": "logs",
-          "examples": ["logs"]
+          "description": "Event mode: how job events should be processed. Options: 'logs' (forward as logs) or 'device' (create device for monitoring).",
+          "default": "resources",
+          "enum": ["logs", "resources", ""],
+          "examples": ["logs", "resources"]
+        },
+        "tenantIdentifier": {
+          "$comment": "tf:optional",
+          "$id": "#/properties/jobs/properties/tenantIdentifier",
+          "type": "string",
+          "title": "Tenant Identifier",
+          "description": "LogicMonitor tenant identifier for multi-tenant environments. This is added as a property (tenant.identifier) on the jobs device. Optional - if not specified, no tenant property is set.",
+          "default": "",
+          "examples": ["my-tenant-id", "argus"]
+        },
+        "labelsMaxLength": {
+          "$comment": "tf:optional",
+          "$id": "#/properties/jobs/properties/labelsMaxLength",
+          "type": "integer",
+          "title": "Labels Max Length",
+          "description": "Maximum length of label values to include in logs. Labels with values exceeding this length are excluded from log ingestion. Set to 0 or negative to include all labels regardless of length.",
+          "default": 150,
+          "examples": [150, 200, 0]
+        },
+        "annotationsMaxLength": {
+          "$comment": "tf:optional",
+          "$id": "#/properties/jobs/properties/annotationsMaxLength",
+          "type": "integer",
+          "title": "Annotations Max Length",
+          "description": "Maximum length of annotation values to include in logs. Annotations with values exceeding this length are excluded from log ingestion. Set to 0 or negative to include all annotations regardless of length.",
+          "default": 150,
+          "examples": [150, 200, 0]
+        },
+        "excludeKeys": {
+          "$comment": "tf:optional,yamlencode",
+          "$id": "#/properties/jobs/properties/excludeKeys",
+          "type": "array",
+          "title": "Exclude Keys",
+          "description": "JSON paths to exclude from log ingestion. If specified, this list REPLACES the defaults - include all keys you want to exclude.",
+          "default": [
+            "metadata.managedFields",
+            "metadata.selfLink",
+            "metadata.generation",
+            "metadata.resourceVersion",
+            "spec.template.spec.containers",
+            "spec.template.spec.initContainers",
+            "spec.template.spec.volumes",
+            "spec.template.metadata.managedFields",
+            "spec.selector",
+            "status.conditions",
+            "status.uncountedTerminatedPods"
+          ],
+          "items": {
+            "type": "string"
+          },
+          "examples": [
+            ["metadata.managedFields", "metadata.selfLink"]
+          ]
+        },
+        "disableIngestEvents": {
+          "$comment": "tf:optional,yamlencode",
+          "$id": "#/properties/jobs/properties/disableIngestEvents",
+          "type": "array",
+          "title": "Disable Ingest Events",
+          "description": "Event types to NOT ingest as logs (blacklist approach). Valid values: 'add', 'update', 'delete'. Default: [] (empty - all events are ingested).",
+          "default": [],
+          "items": {
+            "type": "string",
+            "enum": ["add", "update", "delete"]
+          },
+          "examples": [
+            ["update"],
+            ["add", "delete"]
+          ]
         },
         "logIngestWorker": {
           "$comment": "tf:optional",
           "$id": "#/properties/jobs/properties/logIngestWorker",
           "type": "object",
           "title": "Log Ingest Worker Configuration",
-          "description": "Configuration for the log ingest worker.",
+          "description": "Log ingest worker configuration (only used when eventMode is 'logs').",
           "default": {},
           "examples": [
             {
-              "poolSize": 2,
+              "poolSize": 10,
               "bufferSize": 100,
               "batchSize": 10,
               "flushIntervalMs": 2000
@@ -1602,7 +1683,7 @@
               "$id": "#/properties/jobs/properties/logIngestWorker/properties/batchSize",
               "type": "integer",
               "title": "Batch Size",
-              "description": "The batch size for the log ingest worker.",
+              "description": "Number of logs to combine in a single API request. When this many logs are collected, they will be sent together.",
               "default": 10,
               "examples": [10, 50, 100]
             },
@@ -1611,7 +1692,7 @@
               "$id": "#/properties/jobs/properties/logIngestWorker/properties/flushIntervalMs",
               "type": "integer",
               "title": "Flush Interval (ms)",
-              "description": "The flush interval in milliseconds for the log ingest worker.",
+              "description": "Maximum time in milliseconds to wait before flushing logs. Even if batch size is not reached, logs will be sent after this interval.",
               "default": 2000,
               "examples": [1000, 2000, 5000]
             }
