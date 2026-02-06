@@ -66,7 +66,7 @@ spec:
         {{- toYaml .Values.volumes | nindent 8 }}
         {{- if eq (default "memory" .Values.fluent.buffer.type) "file" }}
         - name: fluentbuffer
-           emptyDir:
+          emptyDir:
             {{- if .Values.fluent.buffer.file.sizeLimit }}
             sizeLimit: {{ .Values.fluent.buffer.file.sizeLimit }}
             {{- end }}
