@@ -309,6 +309,11 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["memory", "file"],
+              "description": "Fluentd buffer type"
+            },
             "memory": {
               "type": "object",
               "additionalProperties": false,
