@@ -71,7 +71,7 @@ data:
         remove_keys log
       </filter>
 
-      {{ include "fluentd.lmMatch" (dict "tag" "kubernetes.**" "resource_mapping" "{\"kubernetes.pod_name\": \"auto.name\"}" "context" .) | nindent 6 }}
+      {{ include "fluentd.lmMatch" (dict "tag" "kubernetes.**" "resource_mapping" "{\"kubernetes.pod_name\": \"auto.name\", \"kubernetes.namespace_name\": \"auto.namespace\", \"kubernetes.cluster_name\": \"auto.clustername\"}" "context" .) | nindent 6 }}
       {{- if .Values.useSystemdConf }}
       {{ include "fluentd.lmMatch" (dict "tag" (.Values.systemd.tag | default "systemd.al2023") "resource_mapping" "{\"_HOSTNAME\": \"system.hostname\"}" "context" .) | nindent 6 }}
       {{- end }}
