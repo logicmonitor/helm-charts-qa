@@ -2,6 +2,25 @@ apiVersion: v1
 entries:
   argus:
   - apiVersion: v2
+    appVersion: v18.0.0-rc04
+    created: "2026-02-18T08:01:41.39524326Z"
+    dependencies:
+    - name: lmutil
+      repository: https://logicmonitor.github.io/helm-charts-qa
+      version: 0.1.10-rt04
+    description: Automated Kubernetes monitoring
+    digest: 3e9ad61d0c45bdc3a8e3e6fb53612bf9045c62ee09cdceee9f13baca8bd0a5db
+    home: https://logicmonitor.github.io/helm-charts-qa
+    icon: https://logicmonitor.github.io/helm-charts-qa/lm_logo.png
+    kubeVersion: '>= 1.16.0-0'
+    maintainers:
+    - email: argus@logicmonitor.com
+      name: LogicMonitor
+    name: argus
+    urls:
+    - https://github.com/logicmonitor/helm-charts-qa/releases/download/argus-15.0.2-rc01/argus-15.0.2-rc01.tgz
+    version: 15.0.2-rc01
+  - apiVersion: v2
     appVersion: v18.0.0-rt02
     created: "2026-02-13T04:38:58.126583385Z"
     dependencies:
@@ -20570,4 +20589,4 @@ entries:
     urls:
     - https://github.com/logicmonitor/helm-charts-qa/releases/download/releasemanager-0.3.0/releasemanager-0.3.0.tgz
     version: 0.3.0
-generated: "2026-02-16T06:46:09.426712442Z"
+generated: "2026-02-18T08:01:41.401330094Z"
