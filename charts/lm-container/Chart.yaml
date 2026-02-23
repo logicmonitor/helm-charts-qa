@@ -58,7 +58,7 @@ dependencies:
   - condition: kube-state-metrics.enabled
     name: kube-state-metrics
     repository: https://prometheus-community.github.io/helm-charts
-    version: 6.3.0
+    version: 7.1.0
   - name: lmutil
     repository: https://logicmonitor.github.io/helm-charts-qa
     # uncomment to test umbrella chart in while developing
