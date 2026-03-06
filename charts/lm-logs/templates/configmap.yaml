@@ -17,6 +17,9 @@ data:
     {{- if .Values.useSystemdConf }}
     @include systemd.conf
     {{- end }}
+    {{- range $filename, $_ := .Values.fluent.extraFiles }}
+    @include {{ $filename }}
+    {{- end }}
 
     <system>
       log_level "#{ENV['FLUENT_LOG_LEVEL'] || 'warn'}"
@@ -54,6 +57,10 @@ data:
         skip_namespace_metadata "#{ENV['FLUENT_KUBERNETES_METADATA_SKIP_NAMESPACE_METADATA'] || 'false'}"
       </filter>
 
+      {{- if .Values.fluent.extraFilters }}
+{{ .Values.fluent.extraFilters | indent 6 }}
+      {{- end }}
+
       <filter kubernetes.**>
         @type record_transformer
         enable_ruby
@@ -78,6 +85,10 @@ data:
       {{ include "fluentd.lmMatch" (dict "tag" (.Values.systemd.tag | default "systemd.al2023") "resource_mapping" "{\"_HOSTNAME\": \"system.hostname\"}" "context" .) | nindent 6 }}
       {{- end }}
     </label>
+
+    {{- if .Values.fluent.extraConfig }}
+{{ .Values.fluent.extraConfig | indent 4 }}
+    {{- end }}
 
   kubernetes.conf: |
     <source>
@@ -117,3 +128,8 @@ data:
     </match>
 
     {{ include "fluentd.systemdConfBlock" (dict "context" .) | indent 2 }}
+
+  {{- range $filename, $content := .Values.fluent.extraFiles }}
+  {{ $filename }}: |
+{{ $content | indent 4 }}
+  {{- end }}

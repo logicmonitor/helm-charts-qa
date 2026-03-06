@@ -43,6 +43,45 @@ fluent:
   device_less_logs: false
   include_metadata: true
   resource_type: ""
+
+  # Extra Fluentd filters injected after kubernetes_metadata enrichment,
+  # inside <label @PROCESS_AFTER_CONCAT>. Use for include/exclude filtering.
+  #
+  # Example – drop logs from kube-system namespace:
+  #   extraFilters: |
+  #     <filter kubernetes.**>
+  #       @type grep
+  #       <exclude>
+  #         key $.kubernetes.namespace_name
+  #         pattern /^kube-system$/
+  #       </exclude>
+  #     </filter>
+  #
+  # Example – keep only logs matching a pattern:
+  #   extraFilters: |
+  #     <filter kubernetes.**>
+  #       @type grep
+  #       <regexp>
+  #         key message
+  #         pattern /ERROR|WARN/
+  #       </regexp>
+  #     </filter>
+  extraFilters: ""
+
+  # Extra top-level Fluentd config appended to fluent.conf (outside <label>).
+  # Use for additional <source>, <match>, or <label> blocks.
+  extraConfig: ""
+
+  # Additional .conf files rendered into the ConfigMap and @included in fluent.conf.
+  # Keys are filenames, values are raw Fluentd config content.
+  # Example:
+  #   extraFiles:
+  #     custom-output.conf: |
+  #       <match custom.**>
+  #         @type stdout
+  #       </match>
+  extraFiles: {}
+
   buffer:
     type: memory
     memory:
@@ -107,3 +146,6 @@ volumeMounts:
   - name: journal
     mountPath: /var/log/journal
     readOnly: true
+
+extraVolumes: []
+extraVolumeMounts: []
