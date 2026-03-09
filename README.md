@@ -12,9 +12,13 @@ New Helm repository for LogicMonitor helm charts
 
 ![Release Builds](https://github.com/logicmonitor/helm-charts-qa/actions/workflows/release.yml/badge.svg?branch=main) ![Pages Build Deployment](https://github.com/logicmonitor/helm-charts-qa/actions/workflows/pages/pages-build-deployment/badge.svg)
 <br>
+![lm-container](https://img.shields.io/github/v/release/logicmonitor/helm-charts-qa?filter=lm-container-*&label=lm-container&sort=semver) ![argus](https://img.shields.io/github/v/release/logicmonitor/helm-charts-qa?filter=argus-*&label=argus&sort=semver) ![collectorset-controller](https://img.shields.io/github/v/release/logicmonitor/helm-charts-qa?filter=collectorset-controller-*&label=collectorset-controller&sort=semver) ![lm-logs](https://img.shields.io/github/v/release/logicmonitor/helm-charts-qa?filter=lm-logs-*&label=lm-logs&sort=semver) ![lmotel](https://img.shields.io/github/v/release/logicmonitor/helm-charts-qa?filter=lmotel-*&label=lmotel&sort=semver)
+<br>
 ![Open Pull Requests](https://img.shields.io/github/issues-pr/logicmonitor/helm-charts-qa) ![Open Issues](https://img.shields.io/github/issues/logicmonitor/helm-charts-qa)
 
 ## Getting started
+
+**Latest Helm Chart Versions:** See the badges above for current chart versions, or run `helm search repo logicmonitor-qa` after adding the repo.
 
 Add helm repository using following command:
 ```bash
