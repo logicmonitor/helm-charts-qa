@@ -310,19 +310,6 @@
           "default": "",
           "description": "Raw Fluentd filter config injected after kubernetes_metadata enrichment inside <label @PROCESS_AFTER_CONCAT>. Use for grep include/exclude filters."
         },
-        "extraConfig": {
-          "type": "string",
-          "default": "",
-          "description": "Raw Fluentd config appended to the end of fluent.conf at the top level. Use for additional sources, matches, or labels."
-        },
-        "extraFiles": {
-          "type": "object",
-          "default": {},
-          "description": "Map of filename to raw Fluentd config. Each entry becomes a ConfigMap data key and is @included in fluent.conf.",
-          "additionalProperties": {
-            "type": "string"
-          }
-        },
         "buffer": {
           "type": "object",
           "additionalProperties": false,
