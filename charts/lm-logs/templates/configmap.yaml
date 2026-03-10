@@ -54,6 +54,7 @@ data:
       </filter>
 
       {{- if .Values.fluent.extraFilters }}
+      {{- include "lm-logs.validateExtraFilters" . -}}
 {{ .Values.fluent.extraFilters | indent 6 }}
       {{- end }}
 
