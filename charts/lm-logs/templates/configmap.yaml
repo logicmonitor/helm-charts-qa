@@ -17,7 +17,6 @@ data:
     {{- if .Values.useSystemdConf }}
     @include systemd.conf
     {{- end }}
-
     <system>
       log_level "#{ENV['FLUENT_LOG_LEVEL'] || 'warn'}"
     </system>
@@ -53,6 +52,11 @@ data:
         skip_master_url "#{ENV['FLUENT_KUBERNETES_METADATA_SKIP_MASTER_URL'] || 'false'}"
         skip_namespace_metadata "#{ENV['FLUENT_KUBERNETES_METADATA_SKIP_NAMESPACE_METADATA'] || 'false'}"
       </filter>
+
+      {{- if .Values.fluent.extraFilters }}
+      {{- include "lm-logs.validateExtraFilters" . -}}
+{{ .Values.fluent.extraFilters | indent 6 }}
+      {{- end }}
 
       <filter kubernetes.**>
         @type record_transformer
