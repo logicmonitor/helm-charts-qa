@@ -54,8 +54,8 @@ data:
       </filter>
 
       {{- if .Values.fluent.extraFilters }}
-      {{- include "lm-logs.validateExtraFilters" . -}}
-{{ .Values.fluent.extraFilters | indent 6 }}
+      {{- include "lm-logs.validateExtraFilters" . }}
+{{ .Values.fluent.extraFilters | nindent 6 }}
       {{- end }}
 
       <filter kubernetes.**>

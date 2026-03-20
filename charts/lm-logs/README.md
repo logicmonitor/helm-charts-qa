@@ -4,6 +4,9 @@ This chart deploy a fluentd based daemonset to collect and forward logs to Logic
 #### Prerequisite
 - LogicMonitor Collector [installed and monitoring your Kubernetes Cluster](https://www.logicmonitor.com/support/monitoring/containers/kubernetes/adding-your-kubernetes-cluster-into-monitoring).
 
+#### Required Configuration
+- **Cluster name** — You must set either `kubernetes.cluster_name` or `global.clusterName`. This is required for resource mapping so logs can be associated with the correct devices in LogicMonitor. The chart will fail at install/upgrade time if neither is set.
+
 #### Deploy
 
 Install the lm-logs chart, filling in the required values.
@@ -13,6 +16,7 @@ helm install -n <namespace> \
 --set lm_company_name="<lm_company_name>" \
 --set lm_access_id="<lm_access_id>" \
 --set lm_access_key="<lm_access_key>" \
+--set kubernetes.cluster_name="<cluster_name>" \
 lm-logs logicmonitor/lm-logs
 ```
 
@@ -39,6 +43,7 @@ The following tables lists the configurable parameters of the lm-logs chart and 
 | `global.fullnameOverride`   | Global storage class for dynamic provisioning   | `""`                                                    |
 | `global.lm_company_name`    | LogicMonitor account name                       | `nil`                                                   |
 | `global.userDefinedSecret`  | User Defined Secret for LM credentials          | `""`                                                    |
+| `global.clusterName`        | Cluster name for resource mapping (required if `kubernetes.cluster_name` not set) | `""`                                                    |
 | `global.lm_company_domain`  | LogicMonitor company domain name                | `logicmonitor.com`                                      |
 | `global.lm_access_id`       | LogicMonitor API Token Access ID                | `nil`                                                   |
 | `global.lm_access_key`      | LogicMonitor API Token Access Key               | `nil`                                                   |
@@ -58,7 +63,7 @@ The following tables lists the configurable parameters of the lm-logs chart and 
 | `affinity`                  | Affinity for pod assignment		                | `{}`  (evaluated as a template)                         |
 | `env`                       | Map to add extra environment variables	        | `{}`                                                    |
 | `kubernetes.multiline_start_regexp` | Regexp to match beginning of multiline	| `/^\[(\d{4}-)?\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3}.*\]/` |
-| `kubernetes.cluster_name`       | ClusterName given while adding k8s cluster  	| `""`                                                |
+| `kubernetes.cluster_name`       | Cluster name for resource mapping (required). Use the same name as when adding the k8s cluster to LM. Can also be set via `global.clusterName`.  	| `""`                                                |
 | `kubernetes.multiline_concat_key`       | Key to look for fluentD to concatenate multiline logs   	| `"log"`                     |
 
 
@@ -115,7 +120,8 @@ To solve this we need to install lm-logs with following command :
 helm upgrade --install -n <namespace> \
 --set lm_company_name="<company>" \
 --set lm_access_id="<access_id>" \
---set lm_access_key="<access_key"> \
+--set lm_access_key="<access_key>" \
+--set kubernetes.cluster_name="<cluster_name>" \
 --set env.FLUENT_CONTAINER_TAIL_PARSER_TYPE="cri" \
 --set kubernetes.multiline_concat_key="message" \
 lm-logs logicmonitor/lm-logs

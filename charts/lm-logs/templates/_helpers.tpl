@@ -134,6 +134,17 @@ optional: true
 {{- else -}}
   {{- fail "authMode must be 'lmv1' or 'bearer'." -}}
 {{- end -}}
+
+{{- /* 3) Enforce cluster name presence (required for resource mapping) */ -}}
+{{- $cluster := "" -}}
+{{- if .Values.kubernetes.cluster_name -}}
+  {{- $cluster = .Values.kubernetes.cluster_name -}}
+{{- else if .Values.global.clusterName -}}
+  {{- $cluster = .Values.global.clusterName -}}
+{{- end -}}
+{{- if eq $cluster "" -}}
+  {{- fail "Cluster name missing: set kubernetes.cluster_name or global.clusterName." -}}
+{{- end -}}
 {{- end -}}
 
 {{/*

@@ -567,6 +567,28 @@
           }
         }
       ]
+    },
+    {
+      "anyOf": [
+        {
+          "required": ["kubernetes"],
+          "properties": {
+            "kubernetes": {
+              "type": "object",
+              "required": ["cluster_name"]
+            }
+          }
+        },
+        {
+          "required": ["global"],
+          "properties": {
+            "global": {
+              "type": "object",
+              "required": ["clusterName"]
+            }
+          }
+        }
+      ]
     }
   ],
   "definitions": {
