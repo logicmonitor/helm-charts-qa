@@ -63,7 +63,7 @@ The following tables lists the configurable parameters of the lm-logs chart and 
 | `affinity`                  | Affinity for pod assignment		                | `{}`  (evaluated as a template)                         |
 | `env`                       | Map to add extra environment variables	        | `{}`                                                    |
 | `kubernetes.multiline_start_regexp` | Regexp to match beginning of multiline	| `/^\[(\d{4}-)?\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3}.*\]/` |
-| `kubernetes.cluster_name`       | Cluster name for resource mapping (required). Use the same name as when adding the k8s cluster to LM. Can also be set via `global.clusterName`.  	| `""`                                                |
+| `kubernetes.cluster_name`       | ClusterName given while adding k8s cluster  	| `""`                                                |
 | `kubernetes.multiline_concat_key`       | Key to look for fluentD to concatenate multiline logs   	| `"log"`                     |
 
 
