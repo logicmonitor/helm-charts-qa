@@ -6,3 +6,4 @@ global:
   account: "dummyaccount"
   accessID: "dummyid"
   accessKey: "dummykey"
+  clusterName: "ci-test-cluster"
