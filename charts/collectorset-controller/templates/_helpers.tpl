@@ -61,51 +61,52 @@ Create the name of the service account to use
 
 {{/*
 LM Credentials and Proxy Details.
-envconfig prefix is "collectorset-controller" (see k8s-collectorset-controller GetConfig).
-Optional keys use secretKeyRef.optional. CSC-specific proxy keys map to COLLECTORSET-CONTROLLER_CSC_PROXY_* .
+envconfig prefix is "collectorset-controller"; primary keys look like COLLECTORSET-CONTROLLER_ACCOUNT but
+hyphens in env names are unreliable in some runtimes. Use envconfig's alternate keys (envconfig tag value),
+which match what Process() looks up second — same as ACCESS_ID, ACCOUNT, COMPANY_DOMAIN, CSC_PROXY_USER, etc.
 */}}
 
 {{- define "lm-credentials-and-proxy-details" -}}
-- name: COLLECTORSET-CONTROLLER_ACCESS_ID
+- name: ACCESS_ID
   valueFrom:
     secretKeyRef:
       name: {{ include "lmutil.secret-name" . }}
       key: accessID
-- name: COLLECTORSET-CONTROLLER_ACCESS_KEY
+- name: ACCESS_KEY
   valueFrom:
     secretKeyRef:
       name: {{ include "lmutil.secret-name" . }}
       key: accessKey
-- name: COLLECTORSET-CONTROLLER_ACCOUNT
+- name: ACCOUNT
   valueFrom:
     secretKeyRef:
       name: {{ include "lmutil.secret-name" . }}
       key: account
-- name: COLLECTORSET-CONTROLLER_COMPANY_DOMAIN
+- name: COMPANY_DOMAIN
   valueFrom:
     secretKeyRef:
       name: {{ include "lmutil.secret-name" . }}
       key: companyDomain
       optional: true
-- name: COLLECTORSET-CONTROLLER_PROXY_USER
+- name: PROXY_USER
   valueFrom:
     secretKeyRef:
       name: {{ include "lmutil.secret-name" . }}
       key: proxyUser
       optional: true
-- name: COLLECTORSET-CONTROLLER_PROXY_PASS
+- name: PROXY_PASS
   valueFrom:
     secretKeyRef:
       name: {{ include "lmutil.secret-name" . }}
       key: proxyPass
       optional: true
-- name: COLLECTORSET-CONTROLLER_CSC_PROXY_USER
+- name: CSC_PROXY_USER
   valueFrom:
     secretKeyRef:
       name: {{ include "lmutil.secret-name" . }}
       key: cscProxyUser
       optional: true
-- name: COLLECTORSET-CONTROLLER_CSC_PROXY_PASS
+- name: CSC_PROXY_PASS
   valueFrom:
     secretKeyRef:
       name: {{ include "lmutil.secret-name" . }}
