@@ -34,7 +34,9 @@ spec:
   {{- $proxyUser := .Values.collector.proxy.user | default "" }}
   {{- $globalProxyUser := .Values.global.proxy.user | default "" }}
   {{- $userDefinedSecret := .Values.global.userDefinedSecret | default "" }}
-  {{- if and (or $proxyUser $globalProxyUser) (empty $userDefinedSecret) }}
+  {{- if $userDefinedSecret }}
+  secretName: {{ $userDefinedSecret }}
+  {{- else if or $proxyUser $globalProxyUser }}
   secretName: {{ include "lmutil.fullname" . }}-collector
   {{- end }}
   {{- if .Values.collector.proxy.url }}

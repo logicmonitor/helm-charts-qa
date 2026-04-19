@@ -61,39 +61,54 @@ Create the name of the service account to use
 
 {{/*
 LM Credentials and Proxy Details.
-The user can provide proxy details in values.yaml or by creating user defined secret.
-Argus proxy takes precendence over the global proxy. We need to check if the user defined secret contains
-Argus proxy details or not, for this we're using Lookup function in helm.
+envconfig prefix is "collectorset-controller" (see k8s-collectorset-controller GetConfig).
+Optional keys use secretKeyRef.optional. CSC-specific proxy keys map to COLLECTORSET-CONTROLLER_CSC_PROXY_* .
 */}}
 
 {{- define "lm-credentials-and-proxy-details" -}}
-- name: ACCESS_ID
+- name: COLLECTORSET-CONTROLLER_ACCESS_ID
   valueFrom:
     secretKeyRef:
       name: {{ include "lmutil.secret-name" . }}
       key: accessID
-- name: ACCESS_KEY
+- name: COLLECTORSET-CONTROLLER_ACCESS_KEY
   valueFrom:
     secretKeyRef:
       name: {{ include "lmutil.secret-name" . }}
       key: accessKey
-- name: ACCOUNT
+- name: COLLECTORSET-CONTROLLER_ACCOUNT
   valueFrom:
     secretKeyRef:
       name: {{ include "lmutil.secret-name" . }}
       key: account
-{{- if or .Values.proxy.user .Values.global.proxy.user }}
-- name: PROXY_USER
+- name: COLLECTORSET-CONTROLLER_COMPANY_DOMAIN
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "lmutil.secret-name" . }}
+      key: companyDomain
+      optional: true
+- name: COLLECTORSET-CONTROLLER_PROXY_USER
   valueFrom:
     secretKeyRef:
       name: {{ include "lmutil.secret-name" . }}
       key: proxyUser
-{{- end }}
-{{- if or .Values.proxy.pass .Values.global.proxy.pass }}
-- name: PROXY_PASS
+      optional: true
+- name: COLLECTORSET-CONTROLLER_PROXY_PASS
   valueFrom:
     secretKeyRef:
       name: {{ include "lmutil.secret-name" . }}
       key: proxyPass
-{{- end }}
+      optional: true
+- name: COLLECTORSET-CONTROLLER_CSC_PROXY_USER
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "lmutil.secret-name" . }}
+      key: cscProxyUser
+      optional: true
+- name: COLLECTORSET-CONTROLLER_CSC_PROXY_PASS
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "lmutil.secret-name" . }}
+      key: cscProxyPass
+      optional: true
 {{- end }}

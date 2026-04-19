@@ -160,39 +160,61 @@ capabilities:
 
 {{/*
 LM Credentials and Proxy Details.
-The user can provide proxy details in values.yaml or by creating user defined secret.
-Argus proxy takes precendence over the global proxy. We need to check if the user defined secret contains
-Argus proxy details or not, for this we're using Lookup function in helm.
+All credentials come from lmutil.secret-name; optional keys use secretKeyRef.optional so missing keys are omitted.
+Argus-specific proxy (argusProxyUser/argusProxyPass) maps to ARGUS_ARGUS_PROXY_USER / ARGUS_ARGUS_PROXY_PASS (envconfig prefix + tag).
+Component precedence is resolved in argus at runtime.
 */}}
 
 {{- define "lm-credentials-and-proxy-details" -}}
-- name: ACCESS_ID
+- name: ARGUS_ACCESS_ID
   valueFrom:
     secretKeyRef:
       name: {{ include "lmutil.secret-name" . }}
       key: accessID
-- name: ACCESS_KEY
+- name: ARGUS_ACCESS_KEY
   valueFrom:
     secretKeyRef:
       name: {{ include "lmutil.secret-name" . }}
       key: accessKey
-- name: ACCOUNT
+- name: ARGUS_ACCOUNT
   valueFrom:
     secretKeyRef:
       name: {{ include "lmutil.secret-name" . }}
       key: account
-{{- if or .Values.proxy.user .Values.global.proxy.user }}
-- name: PROXY_USER
+- name: ARGUS_COMPANY_DOMAIN
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "lmutil.secret-name" . }}
+      key: companyDomain
+      optional: true
+- name: ARGUS_ETCD_DISCOVERY_TOKEN
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "lmutil.secret-name" . }}
+      key: etcdDiscoveryToken
+      optional: true
+- name: ARGUS_PROXY_USER
   valueFrom:
     secretKeyRef:
       name: {{ include "lmutil.secret-name" . }}
       key: proxyUser
-{{- end }}
-{{- if or .Values.proxy.pass .Values.global.proxy.pass }}
-- name: PROXY_PASS
+      optional: true
+- name: ARGUS_PROXY_PASS
   valueFrom:
     secretKeyRef:
       name: {{ include "lmutil.secret-name" . }}
       key: proxyPass
-{{- end }}
+      optional: true
+- name: ARGUS_ARGUS_PROXY_USER
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "lmutil.secret-name" . }}
+      key: argusProxyUser
+      optional: true
+- name: ARGUS_ARGUS_PROXY_PASS
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "lmutil.secret-name" . }}
+      key: argusProxyPass
+      optional: true
 {{- end }}
