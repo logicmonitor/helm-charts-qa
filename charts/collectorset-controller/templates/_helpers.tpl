@@ -61,9 +61,9 @@ Create the name of the service account to use
 
 {{/*
 LM Credentials and Proxy Details.
-The user can provide proxy details in values.yaml or by creating user defined secret.
-Argus proxy takes precendence over the global proxy. We need to check if the user defined secret contains
-Argus proxy details or not, for this we're using Lookup function in helm.
+envconfig prefix is "collectorset-controller"; primary keys look like COLLECTORSET-CONTROLLER_ACCOUNT but
+hyphens in env names are unreliable in some runtimes. Use envconfig's alternate keys (envconfig tag value),
+which match what Process() looks up second — same as ACCESS_ID, ACCOUNT, COMPANY_DOMAIN, CSC_PROXY_USER, etc.
 */}}
 
 {{- define "lm-credentials-and-proxy-details" -}}
@@ -82,18 +82,34 @@ Argus proxy details or not, for this we're using Lookup function in helm.
     secretKeyRef:
       name: {{ include "lmutil.secret-name" . }}
       key: account
-{{- if or .Values.proxy.user .Values.global.proxy.user }}
+- name: COMPANY_DOMAIN
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "lmutil.secret-name" . }}
+      key: companyDomain
+      optional: true
 - name: PROXY_USER
   valueFrom:
     secretKeyRef:
       name: {{ include "lmutil.secret-name" . }}
       key: proxyUser
-{{- end }}
-{{- if or .Values.proxy.pass .Values.global.proxy.pass }}
+      optional: true
 - name: PROXY_PASS
   valueFrom:
     secretKeyRef:
       name: {{ include "lmutil.secret-name" . }}
       key: proxyPass
-{{- end }}
+      optional: true
+- name: CSC_PROXY_USER
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "lmutil.secret-name" . }}
+      key: cscProxyUser
+      optional: true
+- name: CSC_PROXY_PASS
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "lmutil.secret-name" . }}
+      key: cscProxyPass
+      optional: true
 {{- end }}
