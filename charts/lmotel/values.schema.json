@@ -3,9 +3,80 @@
 	"title": "LMOTEL Helm Chart Configuration Schema", 
 	"type": "object",
 	"required": [
-		"lm"
+		"lm",
+		"authMode"
 	],
 	"additionalProperties": false,
+	"allOf": [
+		{
+			"anyOf": [
+				{
+					"properties": {
+						"lm": {
+							"type": "object",
+							"required": ["bearer_token"]
+						}
+					}
+				},
+				{
+					"properties": {
+						"lm": {
+							"type": "object",
+							"required": ["access_id", "access_key"]
+						}
+					}
+				},
+				{
+					"required": ["global"],
+					"properties": {
+						"global": {
+							"type": "object",
+							"required": ["userDefinedSecret"]
+						}
+					}
+				},
+				{
+					"required": ["global"],
+					"properties": {
+						"global": {
+							"type": "object",
+							"required": ["accessID", "accessKey"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"anyOf": [
+				{
+					"properties": {
+						"lm": {
+							"type": "object",
+							"required": ["account"]
+						}
+					}
+				},
+				{
+					"required": ["global"],
+					"properties": {
+						"global": {
+							"type": "object",
+							"required": ["account"]
+						}
+					}
+				},
+				{
+					"required": ["global"],
+					"properties": {
+						"global": {
+							"type": "object",
+							"required": ["userDefinedSecret"]
+						}
+					}
+				}
+			]
+		}
+	],
 	"properties": {
 		"enabled": {
 			"$id": "#/properties/enabled",
@@ -22,15 +93,19 @@
 			],
 			"default": 1
 		},
+		"authMode": {
+			"$id": "#/properties/authMode",
+			"description": "Authentication mode for LogicMonitor: use bearer for lm.bearer_token / Secret key lm_bearer_token; use lmv1 for access ID + access key (lm.* or global.* / Secret keys lm_access_key with ConfigMap access ID).",
+			"oneOf": [
+				{ "enum": ["bearer", "lmv1"] },
+				{ "type": "string", "maxLength": 0 }
+			]
+		},
 		"lm": {
 			"$id": "#properties/lm", 
 			"title": "lm", 
 			"type": "object",
 			"required": [
-				"account",
-				"bearer_token",
-				"access_id",
-				"access_key",
 				"otel_name"
 			],
 			"properties": {
@@ -639,6 +714,16 @@
 				  "lmqauat"
 				],
 				"$comment": "ui:account-ignore"
+			  },
+			  "userDefinedSecret": {
+				"$id": "#/properties/global/properties/userDefinedSecret",
+				"type": "string",
+				"title": "Existing Kubernetes Secret name",
+				"description": "Name of a Secret in the release namespace with LM credentials (base64-encoded keys): account, and either bearerToken or accessID+accessKey. Align authMode with bearer vs lmv1. When set, the chart does not create a chart-managed credentials Secret and pods read these keys like lm-logs.",
+				"default": "",
+				"examples": [
+				  "lmotel-credentials"
+				]
 			  }
 			}
 		}

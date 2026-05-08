@@ -60,6 +60,22 @@ helm install -n <namespace> \
 lmotel logicmonitor/lmotel
 ```
 
+#### User Defined Secret for LM credentials
+You can create a kubernetes secret with your LM credentials and pass the secret name to the chart.
+The secret must contain the following keys:
+- account
+- accessID
+- accessKey
+- bearerToken (if accessKey/accessID is not present in the secret)
+  Also, the authMode needs to be set accordingly. If the secret contains accessID/accessKey, authMode should be set to lmv1, otherwise bearer (similarly it should be set for the configurable parameters).
+
+Example install:
+
+``` console
+  --set global.userDefinedSecret=<your-secret-name> \
+  --set authMode=bearer
+```
+
 To enable logs add the following option
 ``` console
 --set logs.enable=true \
@@ -86,6 +102,8 @@ or
 Optional Values:
 - **replicaCount (default: `1`):** Number of replicas of lmotel kubernetes pod.
 - **otel_version (default: `""`):** Lmotel collector version.
+- **global.userDefinedSecret (default: `""`):** User Defined Secret for LM credentials
+- **authMode (default: `lmv1`):** Mode to use for authenticating requests sent to LM. Can be lmv1/bearer 
 - **arguments :** command line arguments for lmotel, can be passed as {--log-level, DEBUG}, other options can be added using comma separated values.
 ---
 

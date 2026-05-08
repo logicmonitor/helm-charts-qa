@@ -60,3 +60,107 @@ Check Ingress stability
 {{- define "ingress.isStable" -}}
   {{- eq (include "ingress.apiVersion" .) "networking.k8s.io/v1" -}}
 {{- end -}}
+
+{{/*
+Did the user set global.userDefinedSecret?
+*/}}
+{{- define "lmotel.userSecretSet" -}}
+{{- if .Values.global.userDefinedSecret }}true{{ end -}}
+{{- end -}}
+
+{{/*
+Return the credentials Secret name:
+- If global.userDefinedSecret is provided, use that.
+- Otherwise fall back to chart-managed Secret <fullname>.
+*/}}
+{{- define "lmotel.credsSecretName" -}}
+{{- if .Values.global.userDefinedSecret -}}
+{{- .Values.global.userDefinedSecret -}}
+{{- else -}}
+{{- include "lmutil.fullname" . -}}
+{{- end -}}
+{{- end -}}
+
+{{/* True if we have any creds in any source (used by template fail-guard) */}}
+{{- define "lmotel.credsProvided" -}}
+{{- $uds := default "" .Values.global.userDefinedSecret -}}
+{{- $ga := default "" .Values.global.accessID -}}
+{{- $gk := default "" .Values.global.accessKey -}}
+{{- $va := default "" .Values.lm.access_id -}}
+{{- $vk := default "" .Values.lm.access_key -}}
+{{- $vb := default "" .Values.lm.bearer_token -}}
+{{- if or (ne $uds "")
+          (and (ne $ga "") (ne $gk ""))
+          (and (ne $va "") (ne $vk ""))
+          (ne $vb "") -}}true{{- end -}}
+{{- end -}}
+
+{{/*
+Emit a secretKeyRef block given a key name.
+Usage:
+  {{ include "lmotel.secretKeyRef" (dict "ctx" . "key" "bearerToken") | nindent 10 }}
+*/}}
+{{- define "lmotel.secretKeyRef" -}}
+name: {{ include "lmotel.credsSecretName" .ctx }}
+key: {{ .key }}
+optional: true
+{{- end -}}
+
+{{/* Validate credentials + account at render time */}}
+{{- define "lmotel.assertInputs" -}}
+{{- $ns := .Release.Namespace -}}
+{{- $mode := default "" .Values.authMode -}}
+{{- $uds  := default "" .Values.global.userDefinedSecret -}}
+
+{{- /* Fetch Secret if configured */ -}}
+{{- $sec := dict -}}
+{{- if ne $uds "" -}}
+  {{- $sec = lookup "v1" "Secret" $ns $uds | default dict -}}
+  {{- if not $sec }}
+    {{- fail (printf "global.userDefinedSecret=%q not found in namespace %q" $uds $ns) -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* Helper: what keys exist in Secret? */ -}}
+{{- $hasSecKey := (and (ne $uds "")
+                        $sec.data
+                        (kindIs "map" $sec.data)) -}}
+{{- $secHas := dict -}}
+{{- if $hasSecKey -}}
+  {{- $_ := set $secHas "account"     (hasKey $sec.data "account") -}}
+  {{- $_ := set $secHas "accessID"    (hasKey $sec.data "accessID") -}}
+  {{- $_ := set $secHas "accessKey"   (hasKey $sec.data "accessKey") -}}
+  {{- $_ := set $secHas "bearerToken" (hasKey $sec.data "bearerToken") -}}
+{{- end -}}
+
+{{- /* 1) Enforce account name presence (values OR global OR Secret) */ -}}
+{{- $hasAccount := or
+      (ne (default "" .Values.lm.account) "")
+      (ne (default "" .Values.global.account) "")
+      (and (ne $uds "") ($secHas.account | default false)) -}}
+{{- if not $hasAccount -}}
+  {{- fail "Account name missing: set lm.account or global.account, or provide Secret with key 'account' via global.userDefinedSecret." -}}
+{{- end -}}
+
+{{- /* 2) Enforce credentials per authMode */ -}}
+{{- if eq $mode "lmv1" -}}
+  {{- $haslmv1FromSecret := and (ne $uds "") ($secHas.accessID | default false) ($secHas.accessKey | default false) -}}
+  {{- $haslmv1FromGlobal := and (ne (default "" .Values.global.accessID) "")
+                                (ne (default "" .Values.global.accessKey) "") -}}
+  {{- $haslmv1FromValues := and (ne (default "" .Values.lm.access_id) "")
+                                (ne (default "" .Values.lm.access_key) "") -}}
+  {{- if not (or $haslmv1FromSecret $haslmv1FromGlobal $haslmv1FromValues) -}}
+    {{- fail "LM v1 auth selected (authMode=lmv1) but no lmv1 found. Provide either: Secret with 'accessID'+'accessKey', or global.accessID+global.accessKey, or lm.access_id+lm.access_key." -}}
+  {{- end -}}
+
+{{- else if eq $mode "bearer" -}}
+  {{- $hasBearerFromSecret := and (ne $uds "") ($secHas.bearerToken | default false) -}}
+  {{- $hasBearerFromValues := ne (default "" .Values.lm.bearer_token) "" -}}
+  {{- if not (or $hasBearerFromSecret $hasBearerFromValues) -}}
+    {{- fail "Bearer auth selected (authMode=bearer) but no token found. Provide either: Secret with 'bearerToken' or lm.bearer_token in values." -}}
+  {{- end -}}
+
+{{- else -}}
+  {{- fail "authMode must be 'lmv1' or 'bearer'." -}}
+{{- end -}}
+{{- end -}}

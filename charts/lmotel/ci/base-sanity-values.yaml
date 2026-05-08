@@ -1,3 +1,5 @@
+authMode: "lmv1"
+
 lm:
   # The LogicMonitor API key ID.
   access_id: "dummy"
@@ -7,3 +9,8 @@ lm:
   account: "dummy"
   # The LMOTEL Collector name.
   otel_name: "dummy"
+
+global:
+  account: "dummyaccount"
+  accessID: "dummyid"
+  accessKey: "dummykey"
