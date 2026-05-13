@@ -3,8 +3,7 @@
 	"title": "LMOTEL Helm Chart Configuration Schema", 
 	"type": "object",
 	"required": [
-		"lm",
-		"authMode"
+		"lm"
 	],
 	"additionalProperties": false,
 	"allOf": [
@@ -92,14 +91,6 @@
 				1
 			],
 			"default": 1
-		},
-		"authMode": {
-			"$id": "#/properties/authMode",
-			"description": "Authentication mode for LogicMonitor: use bearer for lm.bearer_token / Secret key lm_bearer_token; use lmv1 for access ID + access key (lm.* or global.* / Secret keys lm_access_key with ConfigMap access ID).",
-			"oneOf": [
-				{ "enum": ["bearer", "lmv1"] },
-				{ "type": "string", "maxLength": 0 }
-			]
 		},
 		"lm": {
 			"$id": "#properties/lm", 
@@ -719,7 +710,7 @@
 				"$id": "#/properties/global/properties/userDefinedSecret",
 				"type": "string",
 				"title": "Existing Kubernetes Secret name",
-				"description": "Name of a Secret in the release namespace with LM credentials (base64-encoded keys): account, and either bearerToken or accessID+accessKey. Align authMode with bearer vs lmv1. When set, the chart does not create a chart-managed credentials Secret and pods read these keys like lm-logs.",
+				"description": "Name of a Secret in the release namespace with LM credentials (base64-encoded keys): account, and either bearerToken or accessID+accessKey (at least one complete LMv1 pair or bearer token). Optional key https_proxy is exposed as container env HTTPS_PROXY via secretKeyRef when set; otherwise use envVars.HTTPS_PROXY.",
 				"default": "",
 				"examples": [
 				  "lmotel-credentials"

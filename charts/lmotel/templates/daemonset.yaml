@@ -92,9 +92,19 @@ spec:
                   optional: true
             - name: LOGICMONITOR_OTEL_NAMESPACE
               value: {{ include "lmutil.release.namespace" . }}
+            {{- if .Values.global.userDefinedSecret }}
+            - name: HTTPS_PROXY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.global.userDefinedSecret }}
+                  key: https_proxy
+                  optional: true
+            {{- end }}
           {{- range $key, $val := .Values.envVars }}
+          {{- if or (not $.Values.global.userDefinedSecret) (ne $key "HTTPS_PROXY") }}
             - name: {{ $key }}
               value: {{ $val | quote }}
+          {{- end }}
           {{- end }}
           {{- if .Values.external_config.lmconfig }}
           args: 

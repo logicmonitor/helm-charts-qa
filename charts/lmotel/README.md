@@ -66,25 +66,33 @@ The secret must contain the following keys:
 - account
 - accessID
 - accessKey
-- bearerToken (if accessKey/accessID is not present in the secret)
-  Also, the authMode needs to be set accordingly. If the secret contains accessID/accessKey, authMode should be set to lmv1, otherwise bearer (similarly it should be set for the configurable parameters).
+- bearerToken (for bearer-only auth), and/or accessID + accessKey (for LMv1). At least one complete set is required; the collector prefers LMv1 when both LMv1 credentials and a bearer token are present.
 
 Example install:
 
 ``` console
+helm install -n <namespace> \
   --set global.userDefinedSecret=<your-secret-name> \
-  --set authMode=bearer
+  --set lm.otel_name=<lmotel_collector_name> \
+  lmotel logicmonitor/lmotel
 ```
+
+When lmotel is installed as a dependency of **lm-container**, set `global.userDefinedSecret` on the **parent** release (for example in `lm-container-configuration.yaml`). Helm merges that root `global` into lmotel and it overrides `lmotel.global.userDefinedSecret` for the same key, so one umbrella-level Secret name stays authoritative.
 
 To enable logs add the following option
 ``` console
 --set logs.enable=true \
 ```
 
-To enable proxy support add the following option
+To enable proxy support:
+
+- **Without `global.userDefinedSecret`:** set a plain value (same as before):
+
 ``` console
---set envVars.HTTPS_PROXY=<proxy_server_ip:port> \
+--set envVars.HTTPS_PROXY=<proxy_server_ip_or_url> \
 ```
+
+- **With `global.userDefinedSecret`:** add a Secret data key **`https_proxy`** (base64-encoded value). The chart sets container env **`HTTPS_PROXY`** from that key via `secretKeyRef` (`optional: true`). In that case **`envVars.HTTPS_PROXY` is ignored** if set, to avoid duplicate env names.
 
 ---
 Required Values:
@@ -102,8 +110,7 @@ or
 Optional Values:
 - **replicaCount (default: `1`):** Number of replicas of lmotel kubernetes pod.
 - **otel_version (default: `""`):** Lmotel collector version.
-- **global.userDefinedSecret (default: `""`):** User Defined Secret for LM credentials
-- **authMode (default: `lmv1`):** Mode to use for authenticating requests sent to LM. Can be lmv1/bearer 
+- **global.userDefinedSecret (default: `""`):** Existing Secret for LM credentials (keys account, and either accessID+accessKey and/or bearerToken). At least one complete LMv1 pair or bearer token must be present; the collector prefers LMv1 when both are available. Optional key **`https_proxy`** supplies `HTTPS_PROXY` in the pod when this Secret is used.
 - **arguments :** command line arguments for lmotel, can be passed as {--log-level, DEBUG}, other options can be added using comma separated values.
 ---
 

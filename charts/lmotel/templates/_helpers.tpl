@@ -106,10 +106,14 @@ key: {{ .key }}
 optional: true
 {{- end -}}
 
-{{/* Validate credentials + account at render time */}}
+{{/*
+Validate credentials + account at render time.
+Collector uses LMv1 first, then bearer; chart requires at least one complete set:
+- LMv1: accessID+accessKey in user Secret, or global.accessID+global.accessKey, or lm.access_id+lm.access_key
+- Bearer: bearerToken in user Secret, or lm.bearer_token
+*/}}
 {{- define "lmotel.assertInputs" -}}
 {{- $ns := .Release.Namespace -}}
-{{- $mode := default "" .Values.authMode -}}
 {{- $uds  := default "" .Values.global.userDefinedSecret -}}
 
 {{- /* Fetch Secret if configured */ -}}
@@ -142,25 +146,16 @@ optional: true
   {{- fail "Account name missing: set lm.account or global.account, or provide Secret with key 'account' via global.userDefinedSecret." -}}
 {{- end -}}
 
-{{- /* 2) Enforce credentials per authMode */ -}}
-{{- if eq $mode "lmv1" -}}
-  {{- $haslmv1FromSecret := and (ne $uds "") ($secHas.accessID | default false) ($secHas.accessKey | default false) -}}
-  {{- $haslmv1FromGlobal := and (ne (default "" .Values.global.accessID) "")
-                                (ne (default "" .Values.global.accessKey) "") -}}
-  {{- $haslmv1FromValues := and (ne (default "" .Values.lm.access_id) "")
-                                (ne (default "" .Values.lm.access_key) "") -}}
-  {{- if not (or $haslmv1FromSecret $haslmv1FromGlobal $haslmv1FromValues) -}}
-    {{- fail "LM v1 auth selected (authMode=lmv1) but no lmv1 found. Provide either: Secret with 'accessID'+'accessKey', or global.accessID+global.accessKey, or lm.access_id+lm.access_key." -}}
-  {{- end -}}
-
-{{- else if eq $mode "bearer" -}}
-  {{- $hasBearerFromSecret := and (ne $uds "") ($secHas.bearerToken | default false) -}}
-  {{- $hasBearerFromValues := ne (default "" .Values.lm.bearer_token) "" -}}
-  {{- if not (or $hasBearerFromSecret $hasBearerFromValues) -}}
-    {{- fail "Bearer auth selected (authMode=bearer) but no token found. Provide either: Secret with 'bearerToken' or lm.bearer_token in values." -}}
-  {{- end -}}
-
-{{- else -}}
-  {{- fail "authMode must be 'lmv1' or 'bearer'." -}}
+{{- /* 2) At least one complete credential set (LMv1 pair OR bearer) */ -}}
+{{- $hasLMv1FromSecret := and (ne $uds "") ($secHas.accessID | default false) ($secHas.accessKey | default false) -}}
+{{- $hasLMv1FromGlobal := and (ne (default "" .Values.global.accessID) "")
+                              (ne (default "" .Values.global.accessKey) "") -}}
+{{- $hasLMv1FromValues := and (ne (default "" .Values.lm.access_id) "")
+                              (ne (default "" .Values.lm.access_key) "") -}}
+{{- $hasBearerFromSecret := and (ne $uds "") ($secHas.bearerToken | default false) -}}
+{{- $hasBearerFromValues := ne (default "" .Values.lm.bearer_token) "" -}}
+{{- $hasCreds := or $hasLMv1FromSecret $hasLMv1FromGlobal $hasLMv1FromValues $hasBearerFromSecret $hasBearerFromValues -}}
+{{- if not $hasCreds -}}
+  {{- fail "No complete LM credentials: provide LMv1 (accessID+accessKey in Secret, or global.accessID+global.accessKey, or lm.access_id+lm.access_key) and/or bearer (bearerToken in Secret or lm.bearer_token). Collector prefers LMv1 when both are available." -}}
 {{- end -}}
 {{- end -}}

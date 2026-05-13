@@ -1,5 +1,3 @@
-authMode: "lmv1"
-
 lm:
   # The LogicMonitor API key ID.
   access_id: "dummy"

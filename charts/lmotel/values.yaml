@@ -4,9 +4,6 @@
 
 replicaCount: 1
 
-# Authentication mode: lmv1 (access ID + key) or bearer (bearer token). Align with credentials you supply in values or global.userDefinedSecret.
-authMode: "lmv1"
-
 lm:
   account: ""
   bearer_token: ""
