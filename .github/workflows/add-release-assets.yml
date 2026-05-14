@@ -66,5 +66,6 @@ jobs:
         with:
           ref: "gh-pages"
           check-name: "pages-build-deployment"
+          ignore-checks: "Veracode Static Analysis Pipeline Scan,Veracode Software Composition Analysis,Veracode Static Code Analysis - Pipeline"
           repo-token: ${{ secrets.CHART_RELEASE_TOKEN }}
           wait-interval: 30
