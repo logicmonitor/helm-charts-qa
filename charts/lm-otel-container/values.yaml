@@ -1,0 +1,111 @@
+# Optional override for resource names (must be DNS-1123 compliant)
+fullnameOverride: ""
+
+# Required: LogicMonitor portal subdomain (e.g. "mycompany" -> mycompany.logicmonitor.com)
+portalName: ""
+
+# How cluster_name is attached to exported metrics (explicit vs cloud resourcedetection)
+clusterIdentity:
+  mode: explicit
+  resourcedetection:
+    detectors:
+      - eks
+      - gcp
+      - azure
+      - aks
+    timeout: 5s
+  fallbackClusterName: ""
+
+# Required when clusterIdentity.mode is explicit; optional when mode is cloudAuto
+clusterName: ""
+
+auth:
+  bearerToken: ""
+  existingSecret: ""
+  secretKey: "bearer-token"
+
+agent:
+  enabled: true
+  image:
+    repository: otel/opentelemetry-collector-contrib
+    tag: "0.149.0"
+    pullPolicy: IfNotPresent
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  priorityClassName: ""
+  collectionInterval: 30s
+  metricGroups:
+    - node
+    - pod
+    - container
+
+clusterCollector:
+  enabled: true
+  replicas: 1
+  image:
+    repository: otel/opentelemetry-collector-contrib
+    tag: "0.149.0"
+    pullPolicy: IfNotPresent
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  priorityClassName: ""
+
+ksm:
+  # External KSM scrape target "host:port" (e.g. kube-state-metrics.monitoring.svc:8080).
+  # When non-empty, set ksm.bundled.enabled to false (validation enforces this).
+  url: ""
+  bundled:
+    enabled: true
+  scrapeInterval: 30s
+  extraArgs: []
+
+filtering:
+  includeNamespaces: []
+  excludeNamespaces: []
+  includeResources: []
+  excludeResources: []
+  includeMetrics: []
+  excludeMetrics: []
+
+metadata:
+  labels:
+    extractAll: true
+    allowlist: []
+  annotations:
+    monitorKey: "logicmonitor.com/monitor"
+    disabledValue: "false"
+    enabled: true
+    # Resource attribute name populated by k8sattributes from the annotation key above
+    resourceAttributeName: "logicmonitor.monitor"
+
+exporter:
+  compression: gzip
+  timeout: 30s
+  retry:
+    enabled: true
+    maxElapsedTime: 300s
+  sendingQueue:
+    enabled: true
+    queueSize: 512
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
+rbac:
+  create: true
+
+operatorFramework:
+  enabled: false
+
+# kube-state-metrics sub-chart (bundled when ksm.bundled.enabled true and ksm.url empty).
+# Layer 1 filtering: namespaces/resources restrict what KSM emits (see filtering.*).
+kube-state-metrics:
+  # Leave enabled management to parent Chart.yaml condition (ksm.bundled.enabled).
+  prometheusScrape: false
+  resources: {}

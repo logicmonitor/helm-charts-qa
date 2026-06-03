@@ -1,0 +1,192 @@
+{{- if and .Values.clusterCollector.enabled (or .Values.ksm.url .Values.ksm.bundled.enabled) }}
+{{- $hasFilter := or (not (empty .Values.filtering.excludeNamespaces)) (not (empty .Values.filtering.includeNamespaces)) (not (empty .Values.filtering.excludeMetrics)) (not (empty .Values.filtering.includeMetrics)) }}
+{{- $ksmRelabel := or (not (empty .Values.filtering.excludeNamespaces)) (not (empty .Values.filtering.includeNamespaces)) (not (empty .Values.filtering.excludeMetrics)) (not (empty .Values.filtering.includeMetrics)) }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "lm-otel-container.fullname" . }}-cluster-otel-config
+  labels:
+    {{- include "lm-otel-container.cluster.labels" . | nindent 4 }}
+data:
+  config.yaml: |
+    extensions:
+      health_check:
+        endpoint: 0.0.0.0:13133
+
+    receivers:
+      prometheus:
+        config:
+          scrape_configs:
+            - job_name: kube-state-metrics
+              scrape_interval: {{ .Values.ksm.scrapeInterval }}
+              static_configs:
+                - targets:
+                    - {{ include "lm-otel-container.ksmScrapeTarget" . | quote }}
+{{- if $ksmRelabel }}
+              metric_relabel_configs:
+{{- range .Values.filtering.excludeNamespaces }}
+                - source_labels: [namespace]
+                  regex: {{ printf "^%s$" . | quote }}
+                  action: drop
+{{- end }}
+{{- if not (empty .Values.filtering.includeNamespaces) }}
+                - source_labels: [namespace]
+                  regex: {{ printf "^(%s)$" (join "|" .Values.filtering.includeNamespaces) | quote }}
+                  action: keep
+{{- end }}
+{{- if not (empty .Values.filtering.excludeMetrics) }}
+{{- range .Values.filtering.excludeMetrics }}
+                - source_labels: [__name__]
+                  regex: {{ . | quote }}
+                  action: drop
+{{- end }}
+{{- end }}
+{{- if not (empty .Values.filtering.includeMetrics) }}
+                - source_labels: [__name__]
+                  regex: {{ printf "^(%s)$" (join "|" .Values.filtering.includeMetrics) | quote }}
+                  action: keep
+{{- end }}
+{{- end }}
+
+    processors:
+{{- if eq .Values.clusterIdentity.mode "cloudAuto" }}
+      resourcedetection/cloud:
+        detectors:
+          {{- toYaml .Values.clusterIdentity.resourcedetection.detectors | nindent 10 }}
+        timeout: {{ .Values.clusterIdentity.resourcedetection.timeout }}
+      transform/clusteridentity:
+        error_mode: ignore
+        metric_statements:
+          - context: resource
+            statements:
+              - set(attributes["cluster_name"], attributes["aws.eks.cluster.arn"]) where attributes["cluster_name"] == nil and attributes["aws.eks.cluster.arn"] != nil
+              - set(attributes["cluster_name"], attributes["azure.resourcegroup.name"]) where attributes["cluster_name"] == nil and attributes["azure.resourcegroup.name"] != nil
+              - set(attributes["cluster_name"], attributes["k8s.cluster.name"]) where attributes["cluster_name"] == nil and attributes["k8s.cluster.name"] != nil
+{{- if .Values.clusterIdentity.fallbackClusterName }}
+      resource/fallback:
+        attributes:
+          - key: cluster_name
+            value: ${env:LM_CLUSTER_FALLBACK}
+            action: insert
+{{- end }}
+{{- else }}
+      resource/cluster:
+        attributes:
+          - key: cluster_name
+            value: {{ .Values.clusterName | quote }}
+            action: upsert
+{{- end }}
+
+      k8sattributes:
+        auth_type: serviceAccount
+        passthrough: false
+        extract:
+          metadata:
+            - k8s.namespace.name
+            - k8s.pod.name
+            - k8s.pod.uid
+            - k8s.node.name
+            - k8s.deployment.name
+            - k8s.statefulset.name
+            - k8s.daemonset.name
+            - k8s.job.name
+            - k8s.cronjob.name
+{{- if .Values.metadata.labels.extractAll }}
+          labels:
+            - tag_name: kubernetes.label.$$1
+              key_regex: "(.*)"
+              from: pod
+{{- else }}
+          labels:
+{{- range .Values.metadata.labels.allowlist }}
+            - tag_name: kubernetes.label.{{ . }}
+              key: {{ . | quote }}
+              from: pod
+{{- end }}
+{{- end }}
+{{- if .Values.metadata.annotations.enabled }}
+          annotations:
+            - tag_name: {{ .Values.metadata.annotations.resourceAttributeName | quote }}
+              key: {{ .Values.metadata.annotations.monitorKey | quote }}
+              from: pod
+{{- end }}
+
+      transform/ksmnormalize:
+        error_mode: ignore
+        metric_statements:
+          - context: datapoint
+            statements:
+              - set(resource.attributes["k8s.namespace.name"], attributes["namespace"]) where attributes["namespace"] != nil
+              - set(resource.attributes["k8s.pod.name"], attributes["pod"]) where attributes["pod"] != nil
+              - set(resource.attributes["k8s.deployment.name"], attributes["deployment"]) where attributes["deployment"] != nil
+
+{{- if $hasFilter }}
+      filter/main:
+        error_mode: ignore
+        metrics:
+          datapoint:
+{{- range .Values.filtering.excludeNamespaces }}
+            - 'resource.attributes["k8s.namespace.name"] == {{ . | quote }}'
+{{- end }}
+{{- if not (empty .Values.filtering.includeNamespaces) }}
+            - 'resource.attributes["k8s.namespace.name"] != nil and not ({{ include "lm-otel-container.ottlNamespaceOrEquals" .Values.filtering.includeNamespaces }})'
+{{- end }}
+{{- range .Values.filtering.excludeMetrics }}
+            - 'IsMatch(metric.name, {{ . | quote }})'
+{{- end }}
+{{- if not (empty .Values.filtering.includeMetrics) }}
+            - 'not IsMatch(metric.name, {{ printf "^(%s)$" (join "|" .Values.filtering.includeMetrics) | quote }})'
+{{- end }}
+{{- end }}
+
+{{- if and .Values.metadata.annotations.enabled (ne .Values.metadata.annotations.disabledValue "") }}
+      filter/annotations:
+        error_mode: ignore
+        metrics:
+          datapoint:
+            - 'resource.attributes["{{ .Values.metadata.annotations.resourceAttributeName }}"] == "{{ .Values.metadata.annotations.disabledValue }}"'
+{{- end }}
+
+    exporters:
+      otlphttp:
+        metrics_endpoint: {{ include "lm-otel-container.metricsEndpoint" . | quote }}
+        headers:
+          Authorization: Bearer ${env:LM_BEARER_TOKEN}
+        compression: {{ .Values.exporter.compression }}
+        timeout: {{ .Values.exporter.timeout }}
+{{- if .Values.exporter.retry.enabled }}
+        retry_on_failure:
+          enabled: true
+          max_elapsed_time: {{ .Values.exporter.retry.maxElapsedTime }}
+{{- end }}
+{{- if .Values.exporter.sendingQueue.enabled }}
+        sending_queue:
+          enabled: true
+          queue_size: {{ .Values.exporter.sendingQueue.queueSize }}
+{{- end }}
+
+    service:
+      extensions: [health_check]
+      pipelines:
+        metrics:
+          receivers: [prometheus]
+          processors:
+{{- if eq .Values.clusterIdentity.mode "cloudAuto" }}
+            - resourcedetection/cloud
+            - transform/clusteridentity
+{{- if .Values.clusterIdentity.fallbackClusterName }}
+            - resource/fallback
+{{- end }}
+{{- else }}
+            - resource/cluster
+{{- end }}
+            - k8sattributes
+            - transform/ksmnormalize
+{{- if $hasFilter }}
+            - filter/main
+{{- end }}
+{{- if and .Values.metadata.annotations.enabled (ne .Values.metadata.annotations.disabledValue "") }}
+            - filter/annotations
+{{- end }}
+          exporters: [otlphttp]
+{{- end }}

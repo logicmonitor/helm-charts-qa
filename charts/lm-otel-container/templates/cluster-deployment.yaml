@@ -1,0 +1,68 @@
+{{- if and .Values.clusterCollector.enabled (or .Values.ksm.url .Values.ksm.bundled.enabled) }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "lm-otel-container.fullname" . }}-cluster
+  labels:
+    {{- include "lm-otel-container.cluster.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.clusterCollector.replicas }}
+  selector:
+    matchLabels:
+      {{- include "lm-otel-container.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: otel-cluster
+  template:
+    metadata:
+      labels:
+        {{- include "lm-otel-container.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: otel-cluster
+    spec:
+      serviceAccountName: {{ include "lm-otel-container.serviceAccountName" . }}
+      {{- with .Values.clusterCollector.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.clusterCollector.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.clusterCollector.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.clusterCollector.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+      containers:
+        - name: otelcol
+          image: {{ printf "%s:%s" .Values.clusterCollector.image.repository .Values.clusterCollector.image.tag | quote }}
+          imagePullPolicy: {{ .Values.clusterCollector.image.pullPolicy }}
+          args:
+            - --config=/etc/otelcol-contrib/config.yaml
+          env:
+            - name: LM_BEARER_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "lm-otel-container.secretName" . }}
+                  key: {{ .Values.auth.secretKey }}
+            {{- if and (eq .Values.clusterIdentity.mode "cloudAuto") .Values.clusterIdentity.fallbackClusterName }}
+            - name: LM_CLUSTER_FALLBACK
+              value: {{ .Values.clusterIdentity.fallbackClusterName | quote }}
+            {{- end }}
+          ports:
+            - name: health
+              containerPort: 13133
+              protocol: TCP
+          {{- with .Values.clusterCollector.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: otel-config
+              mountPath: /etc/otelcol-contrib
+              readOnly: true
+      volumes:
+        - name: otel-config
+          configMap:
+            name: {{ include "lm-otel-container.fullname" . }}-cluster-otel-config
+{{- end }}

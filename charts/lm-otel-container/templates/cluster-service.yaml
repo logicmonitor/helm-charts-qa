@@ -1,0 +1,18 @@
+{{- if and .Values.clusterCollector.enabled (or .Values.ksm.url .Values.ksm.bundled.enabled) }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "lm-otel-container.fullname" . }}-cluster
+  labels:
+    {{- include "lm-otel-container.cluster.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "lm-otel-container.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: otel-cluster
+  ports:
+    - name: health
+      port: 13133
+      targetPort: health
+      protocol: TCP
+{{- end }}

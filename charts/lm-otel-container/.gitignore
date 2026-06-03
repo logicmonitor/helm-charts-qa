@@ -1,0 +1,20 @@
+# Packaged charts (helm package / dependency archives)
+*.tgz
+
+# Helm local cache (some setups)
+.helm/
+
+# OS noise
+.DS_Store
+Thumbs.db
+
+# Editors / swap files
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+
+# Temporary / local scratch
+tmp/
+*.log

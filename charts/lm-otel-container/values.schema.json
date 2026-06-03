@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft-2020-12/schema",
+  "type": "object",
+  "required": ["portalName", "clusterIdentity"],
+  "properties": {
+    "portalName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "clusterName": {
+      "type": "string"
+    },
+    "clusterIdentity": {
+      "type": "object",
+      "required": ["mode"],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["explicit", "cloudAuto"]
+        }
+      }
+    },
+    "auth": {
+      "type": "object",
+      "properties": {
+        "bearerToken": { "type": "string" },
+        "existingSecret": { "type": "string" },
+        "secretKey": { "type": "string", "minLength": 1 }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "clusterIdentity": {
+            "properties": { "mode": { "const": "explicit" } },
+            "required": ["mode"]
+          }
+        },
+        "required": ["clusterIdentity"]
+      },
+      "then": {
+        "properties": {
+          "clusterName": { "type": "string", "minLength": 1 }
+        },
+        "required": ["clusterName"]
+      }
+    }
+  ]
+}

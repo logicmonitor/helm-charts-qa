@@ -1,0 +1,9 @@
+portalName: "testportal"
+clusterName: "ci-test-cluster"
+
+auth:
+  bearerToken: "dummy-bearer-token-for-ci"
+
+ksm:
+  bundled:
+    enabled: true
