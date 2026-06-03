@@ -10,7 +10,7 @@ keywords:
   - metrics
   - logicmonitor
 maintainers:
-  - name: lm-otel-container
+  - name: logicmonitor
 dependencies:
   - name: kube-state-metrics
     version: "~7.0"
