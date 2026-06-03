@@ -1,6 +1,3 @@
-# Packaged charts (helm package / dependency archives)
-*.tgz
-
 # Helm local cache (some setups)
 .helm/
 

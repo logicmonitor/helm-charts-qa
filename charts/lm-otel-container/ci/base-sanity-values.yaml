@@ -1,5 +1,7 @@
 portalName: "testportal"
 clusterName: "ci-test-cluster"
+clusterIdentity:
+  mode: explicit
 
 auth:
   bearerToken: "dummy-bearer-token-for-ci"
