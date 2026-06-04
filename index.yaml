@@ -22699,6 +22699,30 @@ entries:
     urls:
     - https://github.com/logicmonitor/helm-charts-qa/releases/download/lm-logs-0.3.4-rc01/lm-logs-0.3.4-rc01.tgz
     version: 0.3.4-rc01
+  lm-otel-container:
+  - apiVersion: v2
+    appVersion: 0.149.0
+    created: "2026-06-04T04:37:52.265958658Z"
+    dependencies:
+    - condition: ksm.bundled.enabled
+      name: kube-state-metrics
+      repository: https://prometheus-community.github.io/helm-charts
+      version: 7.2.2
+    description: OpenTelemetry Collectors for Kubernetes metrics export to LogicMonitor
+      via OTLP/HTTP
+    digest: 56d0347518608ff0791c5420bb6cb4b0cfb87670d14e250bd7b74272a04855a8
+    keywords:
+    - opentelemetry
+    - kubernetes
+    - metrics
+    - logicmonitor
+    maintainers:
+    - name: logicmonitor
+    name: lm-otel-container
+    type: application
+    urls:
+    - https://github.com/logicmonitor/helm-charts-qa/releases/download/lm-otel-container-0.1.0-rc01/lm-otel-container-0.1.0-rc01.tgz
+    version: 0.1.0-rc01
   lmotel:
   - apiVersion: v2
     appVersion: v2.0.10
@@ -22996,4 +23020,4 @@ entries:
     urls:
     - https://github.com/logicmonitor/helm-charts-qa/releases/download/releasemanager-0.3.0/releasemanager-0.3.0.tgz
     version: 0.3.0
-generated: "2026-06-01T15:39:37.362935348Z"
+generated: "2026-06-04T04:37:52.27186515Z"
