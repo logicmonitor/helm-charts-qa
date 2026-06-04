@@ -1,0 +1,41 @@
+{{- if .Values.rbac.create }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "lm-otel-container.fullname" . }}
+  labels:
+    {{- include "lm-otel-container.labels" . | nindent 4 }}
+rules:
+  # Core API (k8sattributes + kubeletstats node/pod discovery)
+  - apiGroups: [""]
+    resources:
+      - namespaces
+      - nodes
+      - nodes/metrics
+      - nodes/proxy
+      - nodes/stats
+      - pods
+      - replicationcontrollers
+      - persistentvolumeclaims
+      - persistentvolumes
+      - endpoints
+      - services
+    verbs: ["get", "list", "watch"]
+  # Apps / workload metadata
+  - apiGroups: ["apps"]
+    resources:
+      - deployments
+      - replicasets
+      - daemonsets
+      - statefulsets
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["batch"]
+    resources:
+      - jobs
+      - cronjobs
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["networking.k8s.io"]
+    resources:
+      - ingresses
+    verbs: ["get", "list", "watch"]
+{{- end }}

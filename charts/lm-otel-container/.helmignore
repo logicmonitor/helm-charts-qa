@@ -1,0 +1,14 @@
+# VCS
+.git/
+.gitignore
+.history/
+
+# Editor
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Docs (not part of chart package)
+prompt.md
+uploads/

@@ -1,0 +1,26 @@
+1. Thank you for installing {{ .Chart.Name }} {{ .Chart.Version }}.
+
+2. LogicMonitor OTLP metrics endpoint:
+   {{ include "lm-otel-container.metricsEndpoint" . }}
+
+3. Cluster identity mode: {{ .Values.clusterIdentity.mode }}
+{{- if eq .Values.clusterIdentity.mode "explicit" }}
+   cluster_name comes from clusterName={{ .Values.clusterName | quote }}
+{{- else }}
+   cluster_name is derived at runtime via resourcedetection + transform (and optional fallbackClusterName).
+   Validate exported metrics contain resource attribute cluster_name after deploy — cloudAuto needs cloud metadata endpoints.
+{{- end }}
+
+4. Bearer token is loaded from Secret {{ include "lm-otel-container.secretName" . }} (key {{ .Values.auth.secretKey }}).
+
+5. kube-state-metrics scrape target for the cluster collector:
+{{- if .Values.ksm.url }}
+   External: {{ .Values.ksm.url }}
+{{- else }}
+   Bundled sub-chart service: {{ include "lm-otel-container.ksmScrapeTarget" . }}
+   Mirror filtering.includeNamespaces / filtering.includeResources into kube-state-metrics.namespaces / kube-state-metrics.resources when tightening Layer 1 emission.
+{{- end }}
+
+6. OpenTelemetry Collector health checks (cluster Service): {{ include "lm-otel-container.fullname" . }}-cluster:13133
+
+7. Operator readiness: configs are split per role (agent vs clusterCollector). operatorFramework.enabled is reserved for a future OpenTelemetry Operator migration.
