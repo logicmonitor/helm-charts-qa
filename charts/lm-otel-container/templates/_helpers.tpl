@@ -68,14 +68,10 @@ ServiceAccount name
 {{- end }}
 
 {{/*
-Secret holding Bearer token (created by chart or existing)
+Secret holding Bearer token (must exist before install)
 */}}
 {{- define "lm-otel-container.secretName" -}}
-{{- if .Values.auth.existingSecret }}
 {{- .Values.auth.existingSecret }}
-{{- else }}
-{{- printf "%s-auth" (include "lm-otel-container.fullname" .) }}
-{{- end }}
 {{- end }}
 
 {{/*
@@ -104,13 +100,8 @@ Fail fast validation — invoked from templates/validate.yaml
 {{- if not .Values.portalName }}
 {{- fail "lm-otel-container: portalName is required" }}
 {{- end }}
-{{- $hasToken := and .Values.auth.bearerToken (ne .Values.auth.bearerToken "") }}
-{{- $hasExisting := and .Values.auth.existingSecret (ne .Values.auth.existingSecret "") }}
-{{- if and $hasToken $hasExisting }}
-{{- fail "lm-otel-container: set either auth.bearerToken or auth.existingSecret, not both" }}
-{{- end }}
-{{- if not (or $hasToken $hasExisting) }}
-{{- fail "lm-otel-container: provide auth.bearerToken or auth.existingSecret" }}
+{{- if not (and .Values.auth.existingSecret (ne .Values.auth.existingSecret "")) }}
+{{- fail "lm-otel-container: auth.existingSecret is required (create a Secret with the bearer token before install)" }}
 {{- end }}
 {{- if eq .Values.clusterIdentity.mode "explicit" }}
 {{- if not .Values.clusterName }}

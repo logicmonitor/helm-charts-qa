@@ -20,8 +20,9 @@ clusterIdentity:
 clusterName: ""
 
 auth:
-  bearerToken: ""
+  # Required: name of a pre-created Secret containing the LogicMonitor bearer token
   existingSecret: ""
+  # Key within existingSecret that holds the bearer token value
   secretKey: "bearer-token"
 
 agent:

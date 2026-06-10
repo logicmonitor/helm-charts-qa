@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
-  "required": ["portalName", "clusterIdentity"],
+  "required": ["portalName", "clusterIdentity", "auth"],
   "properties": {
     "portalName": {
       "type": "string",
@@ -22,9 +22,9 @@
     },
     "auth": {
       "type": "object",
+      "required": ["existingSecret"],
       "properties": {
-        "bearerToken": { "type": "string" },
-        "existingSecret": { "type": "string" },
+        "existingSecret": { "type": "string", "minLength": 1 },
         "secretKey": { "type": "string", "minLength": 1 }
       }
     }

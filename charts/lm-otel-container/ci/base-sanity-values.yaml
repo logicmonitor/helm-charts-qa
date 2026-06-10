@@ -4,7 +4,7 @@ clusterIdentity:
   mode: explicit
 
 auth:
-  bearerToken: "dummy-bearer-token-for-ci"
+  existingSecret: "lm-otel-container-auth"
 
 ksm:
   bundled:
