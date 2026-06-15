@@ -78,7 +78,8 @@ Secret holding Bearer token (must exist before install)
 LogicMonitor OTLP/HTTP metrics endpoint URL
 */}}
 {{- define "lm-otel-container.metricsEndpoint" -}}
-{{- printf "https://%s.logicmonitor.com/rest/api/v1/metrics" .Values.portalName }}
+{{- $domain := .Values.portalDomain | default "logicmonitor.com" }}
+{{- printf "https://%s.%s/rest/api/v1/metrics" .Values.portalName $domain }}
 {{- end }}
 
 {{/*
