@@ -11,7 +11,7 @@
    Validate exported metrics contain resource attribute cluster_name after deploy — cloudAuto needs cloud metadata endpoints.
 {{- end }}
 
-4. Bearer token is loaded from Secret {{ include "lm-otel-container.secretName" . }} (key {{ .Values.auth.secretKey }}).
+4. Bearer token is loaded from pre-created Secret {{ include "lm-otel-container.secretName" . }} (key {{ .Values.auth.secretKey }}).
 
 5. kube-state-metrics scrape target for the cluster collector:
 {{- if .Values.ksm.url }}
