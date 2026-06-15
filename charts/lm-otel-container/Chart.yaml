@@ -2,7 +2,7 @@ apiVersion: v2
 name: lm-otel-container
 description: OpenTelemetry Collectors for Kubernetes metrics export to LogicMonitor via OTLP/HTTP
 type: application
-version: 0.1.0-rc01
+version: 0.1.0-rc02
 appVersion: "0.149.0"
 keywords:
   - opentelemetry

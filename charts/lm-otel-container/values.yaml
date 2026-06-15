@@ -4,6 +4,10 @@ fullnameOverride: ""
 # Required: LogicMonitor portal subdomain (e.g. "mycompany" -> mycompany.logicmonitor.com)
 portalName: ""
 
+# Base domain the portal subdomain is appended to. Override for GovCloud or other
+# environments where the domain differs (e.g. "mycompany.<portalDomain>").
+portalDomain: "logicmonitor.com"
+
 # How cluster_name is attached to exported metrics (explicit vs cloud resourcedetection)
 clusterIdentity:
   mode: explicit
