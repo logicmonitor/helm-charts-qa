@@ -56,8 +56,8 @@ otel:
 logs:
   enabled: false
   type: logs
-  logType: container_logs # pod_logs | container_logs
-  startAt: end # beginning | end
+  logType: container_logs          # pod_logs | container_logs
+  startAt: end                     # beginning | end
   # Extra filelog exclude globs. The chart always excludes its own agent and
   # cluster collector pod logs to avoid stdout/debug exporter feedback loops.
   exclude: []
@@ -222,7 +222,7 @@ debugExporter:
   enabled: false
   # basic prints batch counts, normal prints one-line records, detailed prints
   # full telemetry records.
-  verbosity: basic # basic | normal | detailed
+  verbosity: basic            # basic | normal | detailed
   # With useInternalLogger=false, output_paths controls stdout/stderr directly.
   # Set useInternalLogger=true to route through the collector's internal logger.
   useInternalLogger: false
