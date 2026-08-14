@@ -4,9 +4,124 @@ fullnameOverride: ""
 # Required: LogicMonitor portal subdomain (e.g. "mycompany" -> mycompany.logicmonitor.com)
 portalName: ""
 
-# Base domain the portal subdomain is appended to. Override for GovCloud or other
-# environments where the domain differs (e.g. "mycompany.<portalDomain>").
+# Base domain appended to portalName. Override for GovCloud or other environments.
 portalDomain: "logicmonitor.com"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Collector type and image selection
+# ─────────────────────────────────────────────────────────────────────────────
+# collector.type controls which image and config layout is used:
+#   otel-collector-contrib — Community contrib image. Metrics via OTLP/HTTP;
+#                             logs, events, and traces via upstream logicmonitor
+#                             exporter. Does not include LM fleet management.
+#   lm-otel                — LogicMonitor distro (k8scol binary, no lmoverseer).
+#                             Metrics via OTLP/HTTP; logs, events, and traces via
+#                             lmexporter with lmextension/fleet metadata. The
+#                             cluster collector enables lmextension by default.
+collector:
+  type: otel-collector-contrib   # lm-otel | otel-collector-contrib
+
+  # Image used when collector.type is lm-otel.
+  # This should point to the existing lm-otel container image built from the
+  # lm-otel-collector repository (cmd/container/Dockerfile).
+  # The image already contains the lmotel binary and entrypoint.sh.
+  # K8s mode is activated at runtime via the K8S_MODE=true env var — no
+  # separate Docker image is needed.
+  lmOtelImage:
+    repository: logicmonitor/lmotel
+    tag: "latest"
+    pullPolicy: IfNotPresent
+
+# ─────────────────────────────────────────────────────────────────────────────
+# OTel / lm-otel collector settings
+# ─────────────────────────────────────────────────────────────────────────────
+otel:
+  # lmOtelVersion is the collector version string passed as LOGICMONITOR_OTEL_VERSION
+  # to the lm-otel binary. Used for build info and Santaba API registration.
+  # This is NOT the Docker image tag (controlled by agent.image.tag / clusterCollector.image.tag).
+  lmOtelVersion: "latest"
+
+  # Log verbosity for the k8scol binary and collector service telemetry logs.
+  # Injected as K8S_LOG_LEVEL and rendered as service.telemetry.logs.level.
+  # Accepted values: INFO (default) | DEBUG
+  logLevel: INFO
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Optional logs, events, and traces
+# ─────────────────────────────────────────────────────────────────────────────
+# Enable container log collection on the Agent DaemonSet via filelogreceiver.
+# Supported with collector.type: otel-collector-contrib or lm-otel.
+# logSourceId/logSourceName are optional in k8s mode. Set logSourceId only when
+# you need to force a specific LogicMonitor logsource mapping.
+logs:
+  enabled: false
+  type: logs
+  logType: container_logs # pod_logs | container_logs
+  startAt: end # beginning | end
+  # Extra filelog exclude globs. The chart always excludes its own agent and
+  # cluster collector pod logs to avoid stdout/debug exporter feedback loops.
+  exclude: []
+  logSourceId: ""
+  logSourceName: "k8s-container-logs"
+
+# Enable Kubernetes event collection on the Cluster StatefulSet via
+# k8seventsreceiver. Supported with collector.type: otel-collector-contrib or
+# lm-otel.
+# logSourceId/logSourceName are optional in k8s mode. Events get a synthetic
+# filename so LogicMonitor log ingest can send them without a mandatory
+# logsource ID.
+events:
+  enabled: false
+  type: events
+  # k8seventsreceiver uses an empty string to watch all namespaces. Rendering
+  # this explicitly also overrides the lm-otel image's generated default config.
+  namespaces: [""]
+  logSourceId: ""
+  logSourceName: "k8s-events"
+  syntheticFilename: "/var/log/kubernetes/events.log"
+
+# Enable OTLP trace ingestion on the Cluster StatefulSet.
+# Supported with collector.type: otel-collector-contrib or lm-otel. Applications
+# must be configured to export traces to the cluster collector Service on
+# otlpGrpc.port or otlpHttp.port.
+traces:
+  enabled: false
+  otlpGrpc:
+    enabled: true
+    port: 4317
+    endpoint: 0.0.0.0:4317
+  otlpHttp:
+    enabled: true
+    port: 4318
+    endpoint: 0.0.0.0:4318
+  batch:
+    sendBatchSize: 4000
+    sendBatchMaxSize: 4000
+    timeout: 1000ms
+  memoryLimiter:
+    enabled: false
+    checkInterval: 60s
+    limitMiB: 200
+  probabilisticSampler:
+    enabled: false
+    samplingPercentage: 10
+  tailSampling:
+    enabled: false
+    decisionWait: 10s
+    numTraces: 10000
+    policies:
+      - name: sample_error_http
+        type: numeric_attribute
+        numeric_attribute:
+          key: http.status_code
+          min_value: 300
+          max_value: 500
+      - name: sample_error_grpc
+        type: numeric_attribute
+        numeric_attribute:
+          key: rpc.grpc.status_code
+          min_value: 1
+          max_value: 16
 
 # How cluster_name is attached to exported metrics (explicit vs cloud resourcedetection)
 clusterIdentity:
@@ -24,9 +139,8 @@ clusterIdentity:
 clusterName: ""
 
 auth:
-  # Required: name of a pre-created Secret containing the LogicMonitor bearer token
+  bearerToken: ""
   existingSecret: ""
-  # Key within existingSecret that holds the bearer token value
   secretKey: "bearer-token"
 
 agent:
@@ -40,15 +154,102 @@ agent:
   tolerations: []
   affinity: {}
   priorityClassName: ""
+  # Pod-level security context. For non-root log collection on runtimes where
+  # /var/log/pods is root-group-readable, set fsGroup: 0 to grant group access
+  # without running the collector container as UID 0.
+  podSecurityContext: {}
+  securityContext: {}
   collectionInterval: 30s
   metricGroups:
     - node
     - pod
     - container
+  # lmotel process UID/GID (lmuser in logicmonitor/lmotel image). Init container
+  # chowns filelog offset storage on the node when logs.enabled is true.
+  lmOtelRunAsUser: 1001
+  lmOtelRunAsGroup: 1001
+  # otel/opentelemetry-collector-contrib runs as 10001:10001 by default.
+  otelContribRunAsUser: 10001
+  otelContribRunAsGroup: 10001
+  # The official contrib image is scratch and cannot run shell commands, so a
+  # small init image prepares hostPath-backed filelog offset storage.
+  filelogStorageInitImage:
+    repository: busybox
+    tag: "1.36"
+    pullPolicy: IfNotPresent
+
+
+# Opt-in Prometheus scraping of Kubernetes control-plane and add-on components
+# (cluster collector only). Scheduler, controller-manager, and etcd targets are
+# not reachable on managed control planes (EKS/GKE/AKS); use sub-toggles there.
+controlPlaneMonitoring:
+  enabled: false
+  scrapeInterval: 30s
+  components:
+    controlPlane:
+      enabled: true
+      apiserver: true
+      scheduler: true
+      controllerManager: true
+      etcd: true
+    coredns:
+      enabled: true
+    kubeProxy:
+      enabled: true
+
+# Collector health_check extension (Kubernetes probes / readiness).
+collectorHealth:
+  port: 13133
+
+# Export OpenTelemetry Collector internal metrics via prometheus/self scrape jobs.
+# Port is kept adjacent to health and management (13133–13135).
+collectorMetrics:
+  enabled: true
+  level: basic
+  port: 13134
+  scrapeInterval: 30s
+
+# OTel zpages extension (in-process diagnostics UI; default port 55679 upstream).
+# Helm maps it to collectorManagement.port (13135) alongside health and metrics.
+collectorManagement:
+  enabled: true
+  port: 13135
+
+# Optional OpenTelemetry debug exporter for printing telemetry batches to stdout.
+# Keep disabled in normal installs because detailed output can be very noisy and
+# can include metric/log attribute values.
+debugExporter:
+  enabled: false
+  # basic prints batch counts, normal prints one-line records, detailed prints
+  # full telemetry records.
+  verbosity: basic # basic | normal | detailed
+  # With useInternalLogger=false, output_paths controls stdout/stderr directly.
+  # Set useInternalLogger=true to route through the collector's internal logger.
+  useInternalLogger: false
+  outputPaths:
+    - stdout
+  # Log the first N messages per second, then every Mth message. The default
+  # samplingThereafter=1 disables sampling after the initial messages.
+  samplingInitial: 2
+  samplingThereafter: 1
+  metrics:
+    enabled: true
+  logs:
+    enabled: true
+
+# Optional pod-local diagnostic exporter for logs/events.
+# This writes the OTel log records that reached the exporter stage to a file in
+# the collector container. It is useful when stdout debug logs are too noisy or
+# when the LogicMonitor exporter does not emit enough send/drop detail.
+diagnosticFileExporter:
+  enabled: false
+  path: /tmp/otel-log-diagnostics.json
 
 clusterCollector:
   enabled: true
   replicas: 1
+  # The cluster collector is StatefulSet-only. Stable pod ordinals are used for
+  # lm-otel collector names such as {clusterName}_cluster_0.
   image:
     repository: otel/opentelemetry-collector-contrib
     tag: "0.149.0"
@@ -59,22 +260,71 @@ clusterCollector:
   affinity: {}
   priorityClassName: ""
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Kube State Metrics (KSM)
+# ─────────────────────────────────────────────────────────────────────────────
+# The cluster collector scrapes KSM via prometheus/ksm (see ksm.scrapeInterval).
+#
+# Bundled (default): install the kube-state-metrics sub-chart when ksm.bundled.enabled
+# is true and ksm.url is empty. Workload name is {release}-ksm (nameOverride below).
+#
+# External: set ksm.url to "host:port" and ksm.bundled.enabled to false.
+#
+# Layer-1 metric filtering (filtering.*) applies at scrape time; mirror namespace/
+# resource restrictions into kube-state-metrics.namespaces / .resources when needed.
 ksm:
-  # External KSM scrape target "host:port" (e.g. kube-state-metrics.monitoring.svc:8080).
-  # When non-empty, set ksm.bundled.enabled to false (validation enforces this).
   url: ""
   bundled:
     enabled: true
   scrapeInterval: 30s
+  # Deprecated: use kube-state-metrics.extraArgs for bundled KSM CLI flags.
   extraArgs: []
 
+# Sub-chart values (Helm requires this top-level key; gated by ksm.bundled.enabled).
+kube-state-metrics:
+  prometheusScrape: false
+  nameOverride: ksm
+  # Keep bundled KSM as a StatefulSet so the chart defaults render no Deployment workload.
+  autosharding:
+    enabled: true
+  image:
+    registry: registry.k8s.io
+    repository: kube-state-metrics/kube-state-metrics
+    tag: "v2.17.0"
+    pullPolicy: IfNotPresent
+  # https://github.com/kubernetes/kube-state-metrics/blob/main/docs/developer/cli-arguments.md
+  extraArgs: []
+  resources: {}
+
+# Attribute-based filtering via the OpenTelemetry filter processor (after
+# k8sattributes). Exclude drops matches; a non-empty include list drops records
+# that have the attribute set but are not in the list. Do not set both include
+# and exclude for the same dimension (Helm fails). Metric-name filters apply to
+# metrics only. Namespace/workload filters apply to signals with applyTo.<signal>
+# true when that signal pipeline exists.
 filtering:
   includeNamespaces: []
   excludeNamespaces: []
+  # Unused by collector templates today; mirror into kube-state-metrics when
+  # tightening Layer-1 KSM emission (see NOTES.txt).
   includeResources: []
   excludeResources: []
   includeMetrics: []
   excludeMetrics: []
+  includeDeployments: []
+  excludeDeployments: []
+  includeStatefulSets: []
+  excludeStatefulSets: []
+  includeDaemonSets: []
+  excludeDaemonSets: []
+  includeJobs: []
+  excludeJobs: []
+  includeCronJobs: []
+  excludeCronJobs: []
+  applyTo:
+    metrics: true
+    logs: true
+    traces: true
 
 metadata:
   labels:
@@ -107,10 +357,3 @@ rbac:
 
 operatorFramework:
   enabled: false
-
-# kube-state-metrics sub-chart (bundled when ksm.bundled.enabled true and ksm.url empty).
-# Layer 1 filtering: namespaces/resources restrict what KSM emits (see filtering.*).
-kube-state-metrics:
-  # Leave enabled management to parent Chart.yaml condition (ksm.bundled.enabled).
-  prometheusScrape: false
-  resources: {}

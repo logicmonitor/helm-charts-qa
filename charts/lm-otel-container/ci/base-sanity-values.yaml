@@ -4,9 +4,8 @@ clusterIdentity:
   mode: explicit
 
 auth:
-  existingSecret: "lm-otel-container-auth"
   # CI has no pre-created Secret; let the chart create it so pods can start.
-  token: "ci-dummy-bearer-token"
+  bearerToken: "ci-dummy-bearer-token"
 
 ksm:
   bundled:

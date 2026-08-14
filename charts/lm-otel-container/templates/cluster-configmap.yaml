@@ -1,6 +1,13 @@
 {{- if and .Values.clusterCollector.enabled (or .Values.ksm.url .Values.ksm.bundled.enabled) }}
-{{- $hasFilter := or (not (empty .Values.filtering.excludeNamespaces)) (not (empty .Values.filtering.includeNamespaces)) (not (empty .Values.filtering.excludeMetrics)) (not (empty .Values.filtering.includeMetrics)) }}
-{{- $ksmRelabel := or (not (empty .Values.filtering.excludeNamespaces)) (not (empty .Values.filtering.includeNamespaces)) (not (empty .Values.filtering.excludeMetrics)) (not (empty .Values.filtering.includeMetrics)) }}
+{{- $hasMetricsFilter := eq (include "lm-otel-container.filtering.hasMetricsFilter" .) "true" }}
+{{- $hasTracesFilter := eq (include "lm-otel-container.filtering.hasTracesFilter" .) "true" }}
+{{- $isLmOtel := eq .Values.collector.type "lm-otel" }}
+{{- $supportsSignalExport := or $isLmOtel (eq .Values.collector.type "otel-collector-contrib") }}
+{{- $hasEventsPipeline := and .Values.events.enabled $supportsSignalExport }}
+{{- $hasTracesPipeline := and .Values.traces.enabled $supportsSignalExport }}
+{{- $hasSignalExporter := or $hasEventsPipeline $hasTracesPipeline }}
+{{- $hasLmExtension := $isLmOtel }}
+{{- $hasDebugExporter := and .Values.debugExporter.enabled (or .Values.debugExporter.metrics.enabled (and .Values.debugExporter.logs.enabled $hasEventsPipeline)) }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -10,42 +17,37 @@ metadata:
 data:
   config.yaml: |
     extensions:
-      health_check:
-        endpoint: 0.0.0.0:13133
+{{- include "lm-otel-container.collectorExtensions" . | nindent 6 }}
+{{- if $hasLmExtension }}
+      # lmextension: collector registration, install.yaml metadata, Santaba logsource sync
+{{ include "lm-otel-container.lmExtension" . | nindent 6 }}
+{{- end }}
 
     receivers:
-      prometheus:
-        config:
-          scrape_configs:
-            - job_name: kube-state-metrics
-              scrape_interval: {{ .Values.ksm.scrapeInterval }}
-              static_configs:
-                - targets:
-                    - {{ include "lm-otel-container.ksmScrapeTarget" . | quote }}
-{{- if $ksmRelabel }}
-              metric_relabel_configs:
-{{- range .Values.filtering.excludeNamespaces }}
-                - source_labels: [namespace]
-                  regex: {{ printf "^%s$" . | quote }}
-                  action: drop
+{{ include "lm-otel-container.clusterReceiversBlock" . }}
+{{- if $hasTracesPipeline }}
+
+      # otlp: trace ingest from instrumented workloads.
+      otlp:
+        protocols:
+{{- if .Values.traces.otlpGrpc.enabled }}
+          grpc:
+            endpoint: {{ .Values.traces.otlpGrpc.endpoint | quote }}
 {{- end }}
-{{- if not (empty .Values.filtering.includeNamespaces) }}
-                - source_labels: [namespace]
-                  regex: {{ printf "^(%s)$" (join "|" .Values.filtering.includeNamespaces) | quote }}
-                  action: keep
-{{- end }}
-{{- if not (empty .Values.filtering.excludeMetrics) }}
-{{- range .Values.filtering.excludeMetrics }}
-                - source_labels: [__name__]
-                  regex: {{ . | quote }}
-                  action: drop
+{{- if .Values.traces.otlpHttp.enabled }}
+          http:
+            endpoint: {{ .Values.traces.otlpHttp.endpoint | quote }}
 {{- end }}
 {{- end }}
-{{- if not (empty .Values.filtering.includeMetrics) }}
-                - source_labels: [__name__]
-                  regex: {{ printf "^(%s)$" (join "|" .Values.filtering.includeMetrics) | quote }}
-                  action: keep
-{{- end }}
+{{ if $hasEventsPipeline }}
+{{- $eventNamespaces := default (list "") .Values.events.namespaces }}
+
+      # k8seventsreceiver collects Kubernetes Events as log records.
+      # Config key is k8s_events. Requires events RBAC on the ServiceAccount.
+      k8s_events:
+        auth_type: serviceAccount
+        namespaces:
+{{- toYaml $eventNamespaces | nindent 10 }}
 {{- end }}
 
     processors:
@@ -77,6 +79,14 @@ data:
             action: upsert
 {{- end }}
 
+      # Collector identity for LM device registration.
+      # MY_POD_ORDINAL is injected by the StatefulSet via downward API.
+      resource/collector:
+        attributes:
+          - key: lm.collector.name
+            value: "${env:CLUSTER_NAME}_cluster_${env:MY_POD_ORDINAL}"
+            action: upsert
+
       k8sattributes:
         auth_type: serviceAccount
         passthrough: false
@@ -85,12 +95,26 @@ data:
             - k8s.namespace.name
             - k8s.pod.name
             - k8s.pod.uid
+            - k8s.pod.ip
+            - k8s.pod.hostname
+            - k8s.pod.start_time
             - k8s.node.name
+            - k8s.node.uid
+            - k8s.container.name
+            - container.image.name
+            - container.image.tag
             - k8s.deployment.name
+            - k8s.deployment.uid
+            - k8s.replicaset.name
+            - k8s.replicaset.uid
             - k8s.statefulset.name
+            - k8s.statefulset.uid
             - k8s.daemonset.name
+            - k8s.daemonset.uid
             - k8s.job.name
+            - k8s.job.uid
             - k8s.cronjob.name
+            - k8s.cronjob.uid
 {{- if .Values.metadata.labels.extractAll }}
           labels:
             - tag_name: kubernetes.label.$$1
@@ -110,6 +134,20 @@ data:
               key: {{ .Values.metadata.annotations.monitorKey | quote }}
               from: pod
 {{- end }}
+        pod_association:
+          - sources:
+              - from: resource_attribute
+                name: k8s.pod.uid
+          - sources:
+              - from: resource_attribute
+                name: k8s.namespace.name
+              - from: resource_attribute
+                name: k8s.pod.name
+          - sources:
+              - from: resource_attribute
+                name: k8s.pod.ip
+          - sources:
+              - from: connection
 
       transform/ksmnormalize:
         error_mode: ignore
@@ -120,24 +158,7 @@ data:
               - set(resource.attributes["k8s.pod.name"], attributes["pod"]) where attributes["pod"] != nil
               - set(resource.attributes["k8s.deployment.name"], attributes["deployment"]) where attributes["deployment"] != nil
 
-{{- if $hasFilter }}
-      filter/main:
-        error_mode: ignore
-        metrics:
-          datapoint:
-{{- range .Values.filtering.excludeNamespaces }}
-            - 'resource.attributes["k8s.namespace.name"] == {{ . | quote }}'
-{{- end }}
-{{- if not (empty .Values.filtering.includeNamespaces) }}
-            - 'resource.attributes["k8s.namespace.name"] != nil and not ({{ include "lm-otel-container.ottlNamespaceOrEquals" .Values.filtering.includeNamespaces }})'
-{{- end }}
-{{- range .Values.filtering.excludeMetrics }}
-            - 'IsMatch(metric.name, {{ . | quote }})'
-{{- end }}
-{{- if not (empty .Values.filtering.includeMetrics) }}
-            - 'not IsMatch(metric.name, {{ printf "^(%s)$" (join "|" .Values.filtering.includeMetrics) | quote }})'
-{{- end }}
-{{- end }}
+{{ include "lm-otel-container.filtering.filterMainProcessor" . }}
 
 {{- if and .Values.metadata.annotations.enabled (ne .Values.metadata.annotations.disabledValue "") }}
       filter/annotations:
@@ -146,12 +167,42 @@ data:
           datapoint:
             - 'resource.attributes["{{ .Values.metadata.annotations.resourceAttributeName }}"] == "{{ .Values.metadata.annotations.disabledValue }}"'
 {{- end }}
+{{- if $hasEventsPipeline }}
+
+      # Optional LogicMonitor log ingest compatibility fields for Kubernetes Event logs.
+{{ include "lm-otel-container.transformLmK8sEventPodAttrs" . | nindent 6 }}
+{{ include "lm-otel-container.transformLmK8sEvents" . | nindent 6 }}
+{{- end }}
+{{- if $hasTracesPipeline }}
+
+{{- if .Values.traces.memoryLimiter.enabled }}
+      memory_limiter/traces:
+        check_interval: {{ .Values.traces.memoryLimiter.checkInterval }}
+        limit_mib: {{ .Values.traces.memoryLimiter.limitMiB }}
+{{- end }}
+{{- if .Values.traces.tailSampling.enabled }}
+      tail_sampling/traces:
+        decision_wait: {{ .Values.traces.tailSampling.decisionWait }}
+        num_traces: {{ .Values.traces.tailSampling.numTraces }}
+        policies:
+{{- toYaml .Values.traces.tailSampling.policies | nindent 10 }}
+{{- end }}
+{{- if .Values.traces.probabilisticSampler.enabled }}
+      probabilistic_sampler/traces:
+        sampling_percentage: {{ .Values.traces.probabilisticSampler.samplingPercentage }}
+{{- end }}
+      batch/traces:
+        send_batch_size: {{ .Values.traces.batch.sendBatchSize }}
+        send_batch_max_size: {{ .Values.traces.batch.sendBatchMaxSize }}
+        timeout: {{ .Values.traces.batch.timeout }}
+{{- end }}
 
     exporters:
+      # otlphttp: metrics to LogicMonitor OTLP/HTTP ingest API.
       otlphttp:
-        metrics_endpoint: {{ include "lm-otel-container.metricsEndpoint" . | quote }}
+        metrics_endpoint: "https://${env:LOGICMONITOR_ACCOUNT}.${env:LOGICMONITOR_DOMAIN}/rest/api/v1/metrics"
         headers:
-          Authorization: Bearer ${env:LM_BEARER_TOKEN}
+          Authorization: "Bearer ${env:LM_BEARER_TOKEN}"
         compression: {{ .Values.exporter.compression }}
         timeout: {{ .Values.exporter.timeout }}
 {{- if .Values.exporter.retry.enabled }}
@@ -164,12 +215,33 @@ data:
           enabled: true
           queue_size: {{ .Values.exporter.sendingQueue.queueSize }}
 {{- end }}
+{{- if $hasSignalExporter }}
+
+      # LogicMonitor exporter: K8s logs/events/traces to LogicMonitor REST ingest API.
+{{ include "lm-otel-container.logicmonitorSignalExporter" . | nindent 6 }}
+{{- end }}
+{{- if and .Values.diagnosticFileExporter.enabled $hasEventsPipeline }}
+
+      # file/diagnostics: optional pod-local copy of event log records at exporter stage.
+{{ include "lm-otel-container.diagnosticFileExporter" . | nindent 6 }}
+{{- end }}
+{{- if $hasDebugExporter }}
+
+      # debug: optional stdout/stderr exporter for inspecting telemetry batches.
+{{ include "lm-otel-container.debugExporter" . | nindent 6 }}
+{{- end }}
 
     service:
-      extensions: [health_check]
+      extensions:
+{{- include "lm-otel-container.collectorServiceExtensions" . | nindent 8 }}
+{{- if $hasLmExtension }}
+        - lmextension
+{{- end }}
+{{ include "lm-otel-container.collectorTelemetry" . | nindent 6 }}
       pipelines:
         metrics:
-          receivers: [prometheus]
+          receivers:
+{{ include "lm-otel-container.clusterMetricsReceivers" . }}
           processors:
 {{- if eq .Values.clusterIdentity.mode "cloudAuto" }}
             - resourcedetection/cloud
@@ -180,13 +252,66 @@ data:
 {{- else }}
             - resource/cluster
 {{- end }}
+            - resource/collector
             - k8sattributes
             - transform/ksmnormalize
-{{- if $hasFilter }}
+{{- if $hasMetricsFilter }}
             - filter/main
 {{- end }}
 {{- if and .Values.metadata.annotations.enabled (ne .Values.metadata.annotations.disabledValue "") }}
             - filter/annotations
 {{- end }}
-          exporters: [otlphttp]
+          exporters:
+{{ include "lm-otel-container.metricsExporters" . | nindent 12 }}
+{{- if $hasEventsPipeline }}
+
+        # logs/events pipeline: Kubernetes Events via k8seventsreceiver to LogicMonitor
+        logs/events:
+          receivers: [k8s_events]
+          processors:
+{{- if eq .Values.clusterIdentity.mode "cloudAuto" }}
+            - resourcedetection/cloud
+            - transform/clusteridentity
+{{- else }}
+            - resource/cluster
+{{- end }}
+            - resource/collector
+            - transform/lm_k8s_event_pod_attrs
+            - k8sattributes
+            - transform/lm_k8s_events
+          exporters:
+{{ include "lm-otel-container.logsExporters" . | nindent 12 }}
+{{- end }}
+{{- if $hasTracesPipeline }}
+
+        # traces pipeline: OTLP from instrumented workloads to LogicMonitor
+        traces:
+          receivers: [otlp]
+          processors:
+{{- if .Values.traces.memoryLimiter.enabled }}
+            - memory_limiter/traces
+{{- end }}
+{{- if eq .Values.clusterIdentity.mode "cloudAuto" }}
+            - resourcedetection/cloud
+{{- if .Values.clusterIdentity.fallbackClusterName }}
+            - resource/fallback
+{{- end }}
+{{- else }}
+            - resource/cluster
+{{- end }}
+            - resource/collector
+            - k8sattributes
+{{- if $hasTracesFilter }}
+            - filter/main
+{{- end }}
+{{- if .Values.traces.tailSampling.enabled }}
+            - tail_sampling/traces
+{{- end }}
+{{- if .Values.traces.probabilisticSampler.enabled }}
+            - probabilistic_sampler/traces
+{{- end }}
+            - batch/traces
+          exporters:
+            - {{ include "lm-otel-container.logicmonitorSignalExporterName" . }}
+{{- end }}
 {{- end }}
