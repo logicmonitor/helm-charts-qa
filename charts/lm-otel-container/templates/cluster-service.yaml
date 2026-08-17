@@ -11,8 +11,5 @@ spec:
     {{- include "lm-otel-container.selectorLabels" . | nindent 4 }}
     app.kubernetes.io/component: otel-cluster
   ports:
-    - name: health
-      port: 13133
-      targetPort: health
-      protocol: TCP
+{{- include "lm-otel-container.collectorServicePorts" . | nindent 4 }}
 {{- end }}

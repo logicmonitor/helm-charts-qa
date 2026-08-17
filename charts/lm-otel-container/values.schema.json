@@ -1,35 +1,445 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
-  "required": ["portalName", "clusterIdentity", "auth"],
+  "required": [
+    "portalName",
+    "clusterIdentity",
+    "auth"
+  ],
   "properties": {
     "portalName": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "description": "LogicMonitor portal subdomain"
     },
     "portalDomain": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "description": "Base domain appended to portalName"
+    },
+    "logicmonitor": {
+      "type": "object",
+      "properties": {
+        "account": {
+          "type": "string",
+          "description": "Deprecated alias; use portalName"
+        }
+      }
     },
     "clusterName": {
       "type": "string"
     },
     "clusterIdentity": {
       "type": "object",
-      "required": ["mode"],
+      "required": [
+        "mode"
+      ],
       "properties": {
         "mode": {
           "type": "string",
-          "enum": ["explicit", "cloudAuto"]
+          "enum": [
+            "explicit",
+            "cloudAuto"
+          ]
         }
       }
     },
     "auth": {
       "type": "object",
-      "required": ["existingSecret"],
       "properties": {
-        "existingSecret": { "type": "string", "minLength": 1 },
-        "secretKey": { "type": "string", "minLength": 1 }
+        "bearerToken": {
+          "type": "string"
+        },
+        "existingSecret": {
+          "type": "string"
+        },
+        "secretKey": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "anyOf": [
+        { "required": ["bearerToken"] },
+        { "required": ["existingSecret"] }
+      ]
+    },
+    "controlPlaneMonitoring": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "scrapeInterval": {
+          "type": "string"
+        }
+      }
+    },
+    "collectorHealth": {
+      "type": "object",
+      "properties": {
+        "port": {
+          "type": "integer"
+        }
+      }
+    },
+    "collectorMetrics": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "level": {
+          "type": "string",
+          "enum": [
+            "none",
+            "basic",
+            "normal",
+            "detailed"
+          ]
+        },
+        "port": {
+          "type": "integer"
+        },
+        "scrapeInterval": {
+          "type": "string"
+        }
+      }
+    },
+    "collectorManagement": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "port": {
+          "type": "integer"
+        }
+      }
+    },
+    "debugExporter": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "verbosity": {
+          "type": "string",
+          "enum": [
+            "basic",
+            "normal",
+            "detailed"
+          ]
+        },
+        "useInternalLogger": {
+          "type": "boolean"
+        },
+        "outputPaths": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "samplingInitial": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "samplingThereafter": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "metrics": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            }
+          }
+        },
+        "logs": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    "diagnosticFileExporter": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "logs": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "logs"
+          ]
+        },
+        "logType": {
+          "type": "string",
+          "enum": [
+            "pod_logs",
+            "container_logs"
+          ]
+        },
+        "startAt": {
+          "type": "string",
+          "enum": [
+            "beginning",
+            "end"
+          ]
+        },
+        "exclude": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "logSourceId": {
+          "type": "string"
+        },
+        "logSourceName": {
+          "type": "string"
+        }
+      }
+    },
+    "events": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "events"
+          ]
+        },
+        "namespaces": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "logSourceId": {
+          "type": "string"
+        },
+        "logSourceName": {
+          "type": "string"
+        },
+        "syntheticFilename": {
+          "type": "string"
+        }
+      }
+    },
+    "traces": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "otlpGrpc": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "port": {
+              "type": "integer"
+            },
+            "endpoint": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "otlpHttp": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "port": {
+              "type": "integer"
+            },
+            "endpoint": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "batch": {
+          "type": "object",
+          "properties": {
+            "sendBatchSize": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "sendBatchMaxSize": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "timeout": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "memoryLimiter": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "checkInterval": {
+              "type": "string",
+              "minLength": 1
+            },
+            "limitMiB": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "probabilisticSampler": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "samplingPercentage": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 100
+            }
+          }
+        },
+        "tailSampling": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "decisionWait": {
+              "type": "string",
+              "minLength": 1
+            },
+            "numTraces": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "policies": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "agent": {
+      "type": "object",
+      "properties": {
+        "podSecurityContext": {
+          "type": "object"
+        },
+        "securityContext": {
+          "type": "object"
+        }
+      }
+    },
+    "filtering": {
+      "type": "object",
+      "properties": {
+        "includeNamespaces": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "excludeNamespaces": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "includeResources": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "excludeResources": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "includeMetrics": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "excludeMetrics": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "includeDeployments": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "excludeDeployments": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "includeStatefulSets": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "excludeStatefulSets": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "includeDaemonSets": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "excludeDaemonSets": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "includeJobs": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "excludeJobs": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "includeCronJobs": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "excludeCronJobs": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "applyTo": {
+          "type": "object",
+          "properties": {
+            "metrics": { "type": "boolean" },
+            "logs": { "type": "boolean" },
+            "traces": { "type": "boolean" }
+          }
+        }
       }
     }
   },
@@ -38,17 +448,30 @@
       "if": {
         "properties": {
           "clusterIdentity": {
-            "properties": { "mode": { "const": "explicit" } },
-            "required": ["mode"]
+            "properties": {
+              "mode": {
+                "const": "explicit"
+              }
+            },
+            "required": [
+              "mode"
+            ]
           }
         },
-        "required": ["clusterIdentity"]
+        "required": [
+          "clusterIdentity"
+        ]
       },
       "then": {
         "properties": {
-          "clusterName": { "type": "string", "minLength": 1 }
+          "clusterName": {
+            "type": "string",
+            "minLength": 1
+          }
         },
-        "required": ["clusterName"]
+        "required": [
+          "clusterName"
+        ]
       }
     }
   ]

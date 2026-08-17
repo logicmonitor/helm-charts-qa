@@ -1,5 +1,10 @@
 {{- if .Values.agent.enabled }}
-{{- $hasFilter := or (not (empty .Values.filtering.excludeNamespaces)) (not (empty .Values.filtering.includeNamespaces)) (not (empty .Values.filtering.excludeMetrics)) (not (empty .Values.filtering.includeMetrics)) }}
+{{- $hasMetricsFilter := eq (include "lm-otel-container.filtering.hasMetricsFilter" .) "true" }}
+{{- $hasLogsFilter := eq (include "lm-otel-container.filtering.hasLogsFilter" .) "true" }}
+{{- $isLmOtel := eq .Values.collector.type "lm-otel" }}
+{{- $supportsSignalExport := or $isLmOtel (eq .Values.collector.type "otel-collector-contrib") }}
+{{- $hasLogsPipeline := and .Values.logs.enabled $supportsSignalExport }}
+{{- $hasDebugExporter := and .Values.debugExporter.enabled (or .Values.debugExporter.metrics.enabled (and .Values.debugExporter.logs.enabled $hasLogsPipeline)) }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -9,8 +14,16 @@ metadata:
 data:
   config.yaml: |
     extensions:
-      health_check:
-        endpoint: 0.0.0.0:13133
+{{- include "lm-otel-container.collectorExtensions" . | nindent 6 }}
+{{- if $hasLogsPipeline }}
+      # file_storage persists filelog read offsets across collector restarts
+      file_storage:
+        directory: /var/lib/otelcol/file_storage
+{{- end }}
+{{- if and .Values.logs.enabled $isLmOtel }}
+      # lmextension: collector registration, install.yaml metadata, Santaba logsource sync
+{{ include "lm-otel-container.lmExtension" . | nindent 6 }}
+{{- end }}
 
     receivers:
       kubeletstats:
@@ -20,6 +33,32 @@ data:
         collection_interval: {{ .Values.agent.collectionInterval }}
         metric_groups:
           {{- toYaml .Values.agent.metricGroups | nindent 10 }}
+{{- if $hasLogsPipeline }}
+
+      # filelogreceiver collects container logs from the node (hostPath mounted).
+      # Storage extension ensures offsets are persisted so logs are not re-read
+      # after a collector restart.
+      filelog:
+        include:
+          - /var/log/pods/*/*/*.log
+        exclude:
+          # Avoid feedback loops from debug/LogicMonitor exporter output written by this chart.
+          - {{ printf "/var/log/pods/*_%s-agent-*_*/*/*.log" (include "lm-otel-container.fullname" .) | quote }}
+          - {{ printf "/var/log/pods/*_%s-cluster-*_*/*/*.log" (include "lm-otel-container.fullname" .) | quote }}
+{{- range .Values.logs.exclude }}
+          - {{ . | quote }}
+{{- end }}
+        start_at: {{ .Values.logs.startAt }}
+        include_file_path: true
+        operators:
+          - type: container
+            id: container-parser
+        storage: file_storage
+{{- end }}
+{{- if .Values.collectorMetrics.enabled }}
+
+{{ include "lm-otel-container.prometheusReceiverSelf" (dict "root" . "jobName" "otel-collector-agent") | nindent 6 }}
+{{- end }}
 
     processors:
 {{- if eq .Values.clusterIdentity.mode "cloudAuto" }}
@@ -50,6 +89,14 @@ data:
             action: upsert
 {{- end }}
 
+      # Attach collector identity so LM can distinguish per-node agents.
+      # Naming convention: {clusterName}_agent_{nodeName}
+      resource/collector:
+        attributes:
+          - key: lm.collector.name
+            value: "${env:CLUSTER_NAME}_agent_${env:K8S_NODE_NAME}"
+            action: upsert
+
       k8sattributes:
         auth_type: serviceAccount
         passthrough: false
@@ -58,12 +105,26 @@ data:
             - k8s.namespace.name
             - k8s.pod.name
             - k8s.pod.uid
+            - k8s.pod.ip
+            - k8s.pod.hostname
+            - k8s.pod.start_time
             - k8s.node.name
+            - k8s.node.uid
+            - k8s.container.name
+            - container.image.name
+            - container.image.tag
             - k8s.deployment.name
+            - k8s.deployment.uid
+            - k8s.replicaset.name
+            - k8s.replicaset.uid
             - k8s.statefulset.name
+            - k8s.statefulset.uid
             - k8s.daemonset.name
+            - k8s.daemonset.uid
             - k8s.job.name
+            - k8s.job.uid
             - k8s.cronjob.name
+            - k8s.cronjob.uid
 {{- if .Values.metadata.labels.extractAll }}
           labels:
             - tag_name: kubernetes.label.$$1
@@ -86,26 +147,19 @@ data:
         pod_association:
           - sources:
               - from: resource_attribute
+                name: k8s.pod.uid
+          - sources:
+              - from: resource_attribute
+                name: k8s.namespace.name
+              - from: resource_attribute
+                name: k8s.pod.name
+          - sources:
+              - from: resource_attribute
                 name: k8s.pod.ip
+          - sources:
+              - from: connection
 
-{{- if $hasFilter }}
-      filter/main:
-        error_mode: ignore
-        metrics:
-          datapoint:
-{{- range .Values.filtering.excludeNamespaces }}
-            - 'resource.attributes["k8s.namespace.name"] == {{ . | quote }}'
-{{- end }}
-{{- if not (empty .Values.filtering.includeNamespaces) }}
-            - 'resource.attributes["k8s.namespace.name"] != nil and not ({{ include "lm-otel-container.ottlNamespaceOrEquals" .Values.filtering.includeNamespaces }})'
-{{- end }}
-{{- range .Values.filtering.excludeMetrics }}
-            - 'IsMatch(metric.name, {{ . | quote }})'
-{{- end }}
-{{- if not (empty .Values.filtering.includeMetrics) }}
-            - 'not IsMatch(metric.name, {{ printf "^(%s)$" (join "|" .Values.filtering.includeMetrics) | quote }})'
-{{- end }}
-{{- end }}
+{{ include "lm-otel-container.filtering.filterMainProcessor" . }}
 
 {{- if and .Values.metadata.annotations.enabled (ne .Values.metadata.annotations.disabledValue "") }}
       filter/annotations:
@@ -114,12 +168,19 @@ data:
           datapoint:
             - 'resource.attributes["{{ .Values.metadata.annotations.resourceAttributeName }}"] == "{{ .Values.metadata.annotations.disabledValue }}"'
 {{- end }}
+{{- if $hasLogsPipeline }}
+
+      # Required for LogicMonitor log ingest: map log.file.path → filename and attach LM logsource fields.
+{{ include "lm-otel-container.transformLmFilelog" . | nindent 6 }}
+{{- end }}
 
     exporters:
+      # otlphttp: metrics → LogicMonitor OTLP/HTTP ingest API.
+      # Credentials and account are injected as environment variables.
       otlphttp:
-        metrics_endpoint: {{ include "lm-otel-container.metricsEndpoint" . | quote }}
+        metrics_endpoint: "https://${env:LOGICMONITOR_ACCOUNT}.${env:LOGICMONITOR_DOMAIN}/rest/api/v1/metrics"
         headers:
-          Authorization: Bearer ${env:LM_BEARER_TOKEN}
+          Authorization: "Bearer ${env:LM_BEARER_TOKEN}"
         compression: {{ .Values.exporter.compression }}
         timeout: {{ .Values.exporter.timeout }}
 {{- if .Values.exporter.retry.enabled }}
@@ -132,12 +193,39 @@ data:
           enabled: true
           queue_size: {{ .Values.exporter.sendingQueue.queueSize }}
 {{- end }}
+{{- if $hasLogsPipeline }}
+
+      # LogicMonitor exporter: logs to LogicMonitor REST ingest API.
+{{ include "lm-otel-container.logicmonitorSignalExporter" . | nindent 6 }}
+{{- end }}
+{{- if and .Values.diagnosticFileExporter.enabled $hasLogsPipeline }}
+
+      # file/diagnostics: optional pod-local copy of log records at exporter stage.
+{{ include "lm-otel-container.diagnosticFileExporter" . | nindent 6 }}
+{{- end }}
+{{- if $hasDebugExporter }}
+
+      # debug: optional stdout/stderr exporter for inspecting telemetry batches.
+{{ include "lm-otel-container.debugExporter" . | nindent 6 }}
+{{- end }}
 
     service:
-      extensions: [health_check]
+      extensions:
+{{- include "lm-otel-container.collectorServiceExtensions" . | nindent 8 }}
+{{- if $hasLogsPipeline }}
+        - file_storage
+{{- end }}
+{{- if and .Values.logs.enabled $isLmOtel }}
+        - lmextension
+{{- end }}
+{{ include "lm-otel-container.collectorTelemetry" . | nindent 6 }}
       pipelines:
         metrics:
-          receivers: [kubeletstats]
+          receivers:
+            - kubeletstats
+{{- if .Values.collectorMetrics.enabled }}
+            - prometheus/self
+{{- end }}
           processors:
 {{- if eq .Values.clusterIdentity.mode "cloudAuto" }}
             - resourcedetection/cloud
@@ -148,12 +236,35 @@ data:
 {{- else }}
             - resource/cluster
 {{- end }}
+            - resource/collector
             - k8sattributes
-{{- if $hasFilter }}
+{{- if $hasMetricsFilter }}
             - filter/main
 {{- end }}
 {{- if and .Values.metadata.annotations.enabled (ne .Values.metadata.annotations.disabledValue "") }}
             - filter/annotations
 {{- end }}
-          exporters: [otlphttp]
+          exporters:
+{{ include "lm-otel-container.metricsExporters" . | nindent 12 }}
+{{- if $hasLogsPipeline }}
+
+        # logs pipeline: container logs via filelogreceiver to LogicMonitor
+        logs:
+          receivers: [filelog]
+          processors:
+{{- if eq .Values.clusterIdentity.mode "cloudAuto" }}
+            - resourcedetection/cloud
+            - transform/clusteridentity
+{{- else }}
+            - resource/cluster
+{{- end }}
+            - resource/collector
+            - k8sattributes
+{{- if $hasLogsFilter }}
+            - filter/main
+{{- end }}
+            - transform/lm_filelog
+          exporters:
+{{ include "lm-otel-container.logsExporters" . | nindent 12 }}
+{{- end }}
 {{- end }}

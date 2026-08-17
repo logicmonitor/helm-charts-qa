@@ -1,4 +1,6 @@
 {{- if .Values.agent.enabled }}
+{{- $supportsSignalExport := or (eq .Values.collector.type "lm-otel") (eq .Values.collector.type "otel-collector-contrib") }}
+{{- $hasLogsPipeline := and .Values.logs.enabled $supportsSignalExport }}
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -12,6 +14,8 @@ spec:
       app.kubernetes.io/component: otel-agent
   template:
     metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/agent-configmap.yaml") . | sha256sum }}
       labels:
         {{- include "lm-otel-container.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: otel-agent
@@ -32,40 +36,97 @@ spec:
       {{- with .Values.agent.priorityClassName }}
       priorityClassName: {{ . }}
       {{- end }}
+      {{- with .Values.agent.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- if $hasLogsPipeline }}
+      # hostPath offset dir is created root-owned on the node; the collector runs non-root by default.
+      initContainers:
+        - name: init-filelog-storage
+          image: {{ include "lm-otel-container.filelogStorageInitImage" . }}
+          imagePullPolicy: {{ .Values.agent.filelogStorageInitImage.pullPolicy }}
+          command:
+            - sh
+            - -c
+            - mkdir -p /var/lib/otelcol/file_storage && chown -R {{ include "lm-otel-container.filelogStorageRunAsUser" . }}:{{ include "lm-otel-container.filelogStorageRunAsGroup" . }} /var/lib/otelcol/file_storage
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - name: filelog-offsets
+              mountPath: /var/lib/otelcol/file_storage
+{{- end }}
       containers:
         - name: otelcol
-          image: {{ printf "%s:%s" .Values.agent.image.repository .Values.agent.image.tag | quote }}
-          imagePullPolicy: {{ .Values.agent.image.pullPolicy }}
+          image: {{ include "lm-otel-container.agentImage" . }}
+          imagePullPolicy: {{ include "lm-otel-container.agentImagePullPolicy" . }}
+{{- with .Values.agent.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+{{- end }}
           args:
-            - --config=/etc/otelcol-contrib/config.yaml
+            - {{ include "lm-otel-container.configArgs" . }}
           env:
+            # ── Common: LM account, auth, version, cluster, log level ──────
+            {{- include "lm-otel-container.commonEnv" . | nindent 12 }}
+            # ── Node identity (downward API) ────────────────────────────────
+            - name: K8S_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
             - name: K8S_NODE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
-            - name: LM_BEARER_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "lm-otel-container.secretName" . }}
-                  key: {{ .Values.auth.secretKey }}
+{{- if eq .Values.collector.type "lm-otel" }}
+            # ── Collector registration name for LM platform ─────────────────
+            # Kubernetes substitutes $(VAR) from earlier entries in the same env list.
+            # Result: "{clusterName}_agent_{nodeName}" e.g. "prod_agent_worker-1"
+            - name: LOGICMONITOR_OTEL_NAME
+              value: "$(CLUSTER_NAME)_agent_$(K8S_NODE_NAME)"
+{{- end }}
+            # ── cloudAuto fallback cluster name ─────────────────────────────
             {{- if and (eq .Values.clusterIdentity.mode "cloudAuto") .Values.clusterIdentity.fallbackClusterName }}
             - name: LM_CLUSTER_FALLBACK
               value: {{ .Values.clusterIdentity.fallbackClusterName | quote }}
             {{- end }}
           ports:
-            - name: health
-              containerPort: 13133
-              protocol: TCP
+{{- include "lm-otel-container.collectorContainerPorts" . | nindent 12 }}
           {{- with .Values.agent.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           volumeMounts:
             - name: otel-config
-              mountPath: /etc/otelcol-contrib
+              mountPath: {{ include "lm-otel-container.configMountPath" . }}
+              subPath: config.yaml
               readOnly: true
+{{- if $hasLogsPipeline }}
+            # filelogreceiver: read container logs from the node
+            - name: varlogpods
+              mountPath: /var/log/pods
+              readOnly: true
+            - name: varlogcontainers
+              mountPath: /var/log/containers
+              readOnly: true
+            # filelogreceiver: persist read offsets across restarts
+            - name: filelog-offsets
+              mountPath: /var/lib/otelcol/file_storage
+{{- end }}
       volumes:
         - name: otel-config
           configMap:
             name: {{ include "lm-otel-container.fullname" . }}-agent-otel-config
+{{- if $hasLogsPipeline }}
+        - name: varlogpods
+          hostPath:
+            path: /var/log/pods
+        - name: varlogcontainers
+          hostPath:
+            path: /var/log/containers
+        - name: filelog-offsets
+          hostPath:
+            path: /var/lib/otelcol/file_storage
+            type: DirectoryOrCreate
+{{- end }}
 {{- end }}

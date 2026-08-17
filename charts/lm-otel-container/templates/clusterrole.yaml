@@ -38,4 +38,18 @@ rules:
     resources:
       - ingresses
     verbs: ["get", "list", "watch"]
+  # K8s Events - required for k8seventsreceiver (events.enabled: true)
+  - apiGroups: [""]
+    resources:
+      - events
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["events.k8s.io"]
+    resources:
+      - events
+    verbs: ["get", "list", "watch"]
+  # Node log subresource — required for filelog host path access validation
+  - apiGroups: [""]
+    resources:
+      - nodes/log
+    verbs: ["get"]
 {{- end }}

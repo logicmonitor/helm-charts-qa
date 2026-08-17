@@ -1,18 +1,25 @@
+{{/*
+Cluster StatefulSet. The cluster collector is intentionally StatefulSet-only so
+lm-otel collector registration can use stable ordinal-based names.
+*/}}
 {{- if and .Values.clusterCollector.enabled (or .Values.ksm.url .Values.ksm.bundled.enabled) }}
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ include "lm-otel-container.fullname" . }}-cluster
   labels:
     {{- include "lm-otel-container.cluster.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.clusterCollector.replicas }}
+  serviceName: {{ include "lm-otel-container.fullname" . }}-cluster
   selector:
     matchLabels:
       {{- include "lm-otel-container.selectorLabels" . | nindent 6 }}
       app.kubernetes.io/component: otel-cluster
   template:
     metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/cluster-configmap.yaml") . | sha256sum }}
       labels:
         {{- include "lm-otel-container.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: otel-cluster
@@ -35,31 +42,39 @@ spec:
       {{- end }}
       containers:
         - name: otelcol
-          image: {{ printf "%s:%s" .Values.clusterCollector.image.repository .Values.clusterCollector.image.tag | quote }}
-          imagePullPolicy: {{ .Values.clusterCollector.image.pullPolicy }}
+          image: {{ include "lm-otel-container.clusterImage" . }}
+          imagePullPolicy: {{ include "lm-otel-container.clusterImagePullPolicy" . }}
           args:
-            - --config=/etc/otelcol-contrib/config.yaml
+            - {{ include "lm-otel-container.configArgs" . }}
           env:
-            - name: LM_BEARER_TOKEN
+            # ── Common: LM account, auth, version, cluster, log level ──────
+            {{- include "lm-otel-container.commonEnv" . | nindent 12 }}
+            # ── Pod identity (downward API) ─────────────────────────────────
+            - name: MY_POD_NAME
               valueFrom:
-                secretKeyRef:
-                  name: {{ include "lm-otel-container.secretName" . }}
-                  key: {{ .Values.auth.secretKey }}
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: MY_POD_ORDINAL
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['apps.kubernetes.io/pod-index']
+{{- include "lm-otel-container.clusterOtelNameEnv" . | nindent 12 }}
+            # ── cloudAuto fallback cluster name ─────────────────────────────
             {{- if and (eq .Values.clusterIdentity.mode "cloudAuto") .Values.clusterIdentity.fallbackClusterName }}
             - name: LM_CLUSTER_FALLBACK
               value: {{ .Values.clusterIdentity.fallbackClusterName | quote }}
             {{- end }}
           ports:
-            - name: health
-              containerPort: 13133
-              protocol: TCP
+{{- include "lm-otel-container.collectorContainerPorts" . | nindent 12 }}
+{{- include "lm-otel-container.traceContainerPorts" . | nindent 12 }}
           {{- with .Values.clusterCollector.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           volumeMounts:
             - name: otel-config
-              mountPath: /etc/otelcol-contrib
+              mountPath: {{ include "lm-otel-container.configMountPath" . }}
+              subPath: config.yaml
               readOnly: true
       volumes:
         - name: otel-config
