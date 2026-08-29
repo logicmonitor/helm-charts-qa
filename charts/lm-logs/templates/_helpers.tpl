@@ -236,6 +236,53 @@ Return the appropriate apiVersion for rbac.
 {{- toYaml $envList | nindent 0 -}}
 {{- end -}}
 
+{{/*
+Render HTTP/S proxy env vars for the fluentd container.
+
+Precedence per field: .Values.proxy.<field>  >  .Values.global.proxy.<field>.
+If url is empty after fallback, nothing is rendered.
+If user/pass are set, they are URL-encoded and embedded into the URL as
+  scheme://user:pass@host:port
+Emits http_proxy, https_proxy and uppercase variants. no_proxy is emitted
+when noProxy is set (defaulted in values.yaml to cover the in-cluster API).
+*/}}
+{{- define "lm-logs.proxyEnv" -}}
+{{- $local  := default (dict) .Values.proxy -}}
+{{- $global := default (dict) (default (dict) .Values.global).proxy -}}
+{{- $url     := default (default "" $global.url)     $local.url -}}
+{{- $user    := default (default "" $global.user)    $local.user -}}
+{{- $pass    := default (default "" $global.pass)    $local.pass -}}
+{{- $noProxy := default (default "" $global.noProxy) $local.noProxy -}}
+{{- /* Safe default for no_proxy keeps the in-cluster API direct so the */ -}}
+{{- /* kubernetes_metadata filter doesn't tunnel kube API calls through the proxy. */ -}}
+{{- if and $url (not $noProxy) -}}
+  {{- $noProxy = "kubernetes.default.svc,.svc,.cluster.local,localhost,127.0.0.1" -}}
+{{- end -}}
+{{- if $url -}}
+{{- $finalUrl := $url -}}
+{{- if and $user $pass -}}
+  {{- $parts := regexSplit "://" $url 2 -}}
+  {{- if eq (len $parts) 2 -}}
+    {{- $finalUrl = printf "%s://%s:%s@%s" (index $parts 0) (urlquery $user) (urlquery $pass) (index $parts 1) -}}
+  {{- end -}}
+{{- end }}
+- name: http_proxy
+  value: {{ $finalUrl | quote }}
+- name: https_proxy
+  value: {{ $finalUrl | quote }}
+- name: HTTP_PROXY
+  value: {{ $finalUrl | quote }}
+- name: HTTPS_PROXY
+  value: {{ $finalUrl | quote }}
+{{- if $noProxy }}
+- name: no_proxy
+  value: {{ $noProxy | quote }}
+- name: NO_PROXY
+  value: {{ $noProxy | quote }}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
 {{- define "fluentd-image" -}}
 "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
 {{- end -}}
