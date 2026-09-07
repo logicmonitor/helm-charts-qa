@@ -159,7 +159,7 @@ data:
           - sources:
               - from: connection
 
-{{ include "lm-otel-container.filtering.filterMainProcessor" . }}
+{{ include "lm-otel-container.filtering.filterMainProcessor" (dict "Values" .Values "metricFilterScope" "resource") }}
 
 {{- if and .Values.metadata.annotations.enabled (ne .Values.metadata.annotations.disabledValue "") }}
       filter/annotations:

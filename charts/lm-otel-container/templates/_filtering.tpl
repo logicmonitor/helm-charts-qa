@@ -90,6 +90,13 @@ Usage: include with dict "attr" "k8s.deployment.name" "values" $list
 {{- end }}
 
 {{/*
+OTTL OR-equals for metric datapoint attributes.
+*/}}
+{{- define "lm-otel-container.ottlMetricAttrOrEquals" -}}
+({{- range $i, $n := .values }}{{ if $i }} or {{ end }}attributes[{{ $.attr | quote }}] == {{ $n | quote }}{{ end }})
+{{- end }}
+
+{{/*
 Render OTTL drop conditions for namespace + workload resource attributes.
 Output is indented list items under a filterprocessor signal context.
 */}}
@@ -133,6 +140,51 @@ Output is indented list items under a filterprocessor signal context.
 {{- end }}
 
 {{/*
+Render metric conditions against normalized KSM datapoint attributes. The KSM
+normalizer runs before filter/ksm in the KSM-only cluster metrics pipeline. Agent
+metrics use the resource-scoped helper below because kubeletstats is enriched
+with resource attributes by k8sattributes.
+*/}}
+{{- define "lm-otel-container.filtering.metricDatapointConditions" -}}
+{{- range .Values.filtering.excludeNamespaces }}
+            - 'attributes["k8s.namespace.name"] == {{ . | quote }}'
+{{- end }}
+{{- if not (empty .Values.filtering.includeNamespaces) }}
+            - 'attributes["k8s.namespace.name"] != nil and not ({{ include "lm-otel-container.ottlMetricAttrOrEquals" (dict "attr" "k8s.namespace.name" "values" .Values.filtering.includeNamespaces) }})'
+{{- end }}
+{{- range .Values.filtering.excludeDeployments }}
+            - 'attributes["k8s.deployment.name"] == {{ . | quote }}'
+{{- end }}
+{{- if not (empty .Values.filtering.includeDeployments) }}
+            - 'attributes["k8s.deployment.name"] != nil and not ({{ include "lm-otel-container.ottlMetricAttrOrEquals" (dict "attr" "k8s.deployment.name" "values" .Values.filtering.includeDeployments) }})'
+{{- end }}
+{{- range .Values.filtering.excludeStatefulSets }}
+            - 'attributes["k8s.statefulset.name"] == {{ . | quote }}'
+{{- end }}
+{{- if not (empty .Values.filtering.includeStatefulSets) }}
+            - 'attributes["k8s.statefulset.name"] != nil and not ({{ include "lm-otel-container.ottlMetricAttrOrEquals" (dict "attr" "k8s.statefulset.name" "values" .Values.filtering.includeStatefulSets) }})'
+{{- end }}
+{{- range .Values.filtering.excludeDaemonSets }}
+            - 'attributes["k8s.daemonset.name"] == {{ . | quote }}'
+{{- end }}
+{{- if not (empty .Values.filtering.includeDaemonSets) }}
+            - 'attributes["k8s.daemonset.name"] != nil and not ({{ include "lm-otel-container.ottlMetricAttrOrEquals" (dict "attr" "k8s.daemonset.name" "values" .Values.filtering.includeDaemonSets) }})'
+{{- end }}
+{{- range .Values.filtering.excludeJobs }}
+            - 'attributes["k8s.job.name"] == {{ . | quote }}'
+{{- end }}
+{{- if not (empty .Values.filtering.includeJobs) }}
+            - 'attributes["k8s.job.name"] != nil and not ({{ include "lm-otel-container.ottlMetricAttrOrEquals" (dict "attr" "k8s.job.name" "values" .Values.filtering.includeJobs) }})'
+{{- end }}
+{{- range .Values.filtering.excludeCronJobs }}
+            - 'attributes["k8s.cronjob.name"] == {{ . | quote }}'
+{{- end }}
+{{- if not (empty .Values.filtering.includeCronJobs) }}
+            - 'attributes["k8s.cronjob.name"] != nil and not ({{ include "lm-otel-container.ottlMetricAttrOrEquals" (dict "attr" "k8s.cronjob.name" "values" .Values.filtering.includeCronJobs) }})'
+{{- end }}
+{{- end }}
+
+{{/*
 Metric-name OTTL conditions (metrics.datapoint context only).
 */}}
 {{- define "lm-otel-container.filtering.metricNameConditions" -}}
@@ -141,6 +193,22 @@ Metric-name OTTL conditions (metrics.datapoint context only).
 {{- end }}
 {{- if not (empty .Values.filtering.includeMetrics) }}
             - 'not IsMatch(metric.name, {{ printf "^(%s)$" (join "|" .Values.filtering.includeMetrics) | quote }})'
+{{- end }}
+{{- end }}
+
+{{/*
+Render the KSM-only filter. KSM labels are normalized at datapoint scope, while
+the shared filter/main remains resource-scoped for non-KSM metrics, logs, and
+traces.
+*/}}
+{{- define "lm-otel-container.filtering.filterKsmProcessor" -}}
+{{- if eq (include "lm-otel-container.filtering.hasMetricsFilter" .) "true" }}
+      filter/ksm:
+        error_mode: ignore
+        metrics:
+          datapoint:
+{{- include "lm-otel-container.filtering.metricDatapointConditions" . }}
+{{- include "lm-otel-container.filtering.metricNameConditions" . }}
 {{- end }}
 {{- end }}
 
