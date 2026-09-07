@@ -201,10 +201,20 @@ OTTL helper: (ns == "a") or (ns == "b") for namespace allowlist membership
 
 
 {{/*
-YAML list items for cluster collector metrics pipeline receivers.
+YAML list items for the KSM-only cluster metrics pipeline. KSM represents
+cluster object state, so it must not share Kubernetes pod association with
+connection-oriented control-plane telemetry.
 */}}
-{{- define "lm-otel-container.clusterMetricsReceivers" }}
+{{- define "lm-otel-container.clusterKsmMetricsReceivers" }}
             - prometheus/ksm
+{{- end }}
+
+{{/*
+YAML list items for the non-KSM cluster metrics pipeline. This path preserves
+the existing k8sattributes connection fallback for receivers that carry pod
+connection context.
+*/}}
+{{- define "lm-otel-container.clusterPlatformMetricsReceivers" }}
 {{- if and .Values.controlPlaneMonitoring.enabled .Values.controlPlaneMonitoring.components.controlPlane.enabled (or .Values.controlPlaneMonitoring.components.controlPlane.apiserver .Values.controlPlaneMonitoring.components.controlPlane.scheduler .Values.controlPlaneMonitoring.components.controlPlane.controllerManager .Values.controlPlaneMonitoring.components.controlPlane.etcd) }}
             - prometheus/control-plane
 {{- end }}

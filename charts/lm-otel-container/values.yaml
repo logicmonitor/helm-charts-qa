@@ -296,12 +296,16 @@ kube-state-metrics:
   extraArgs: []
   resources: {}
 
-# Attribute-based filtering via the OpenTelemetry filter processor (after
-# k8sattributes). Exclude drops matches; a non-empty include list drops records
-# that have the attribute set but are not in the list. Do not set both include
-# and exclude for the same dimension (Helm fails). Metric-name filters apply to
-# metrics only. Namespace/workload filters apply to signals with applyTo.<signal>
-# true when that signal pipeline exists.
+# Attribute-based filtering via the OpenTelemetry filter processor. KSM runs in
+# its own metrics pipeline without k8sattributes, retaining raw KSM labels and
+# adding datapoint-scoped normalized k8s.* attributes for development-time
+# comparison. Control-plane cluster metrics, kubeletstats agent metrics, logs,
+# and traces continue to use resource attributes after k8sattributes. Exclude
+# drops matches; a non-empty include list drops records that have the attribute
+# set but are not in the list. Do not set both include and exclude for the same
+# dimension (Helm fails). Metric-name filters apply to metrics only. Namespace/
+# workload filters apply to signals with applyTo.<signal> true when that signal
+# pipeline exists.
 filtering:
   includeNamespaces: []
   excludeNamespaces: []
@@ -322,6 +326,7 @@ filtering:
   includeCronJobs: []
   excludeCronJobs: []
   applyTo:
+    # false disables both KSM scrape relabeling and post-receive metric filtering.
     metrics: true
     logs: true
     traces: true
