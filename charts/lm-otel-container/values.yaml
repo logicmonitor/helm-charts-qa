@@ -61,6 +61,10 @@ logs:
   # Extra filelog exclude globs. The chart always excludes its own agent and
   # cluster collector pod logs to avoid stdout/debug exporter feedback loops.
   exclude: []
+  # Optional additional hostPath mounts for runtime-specific log storage. The
+  # mountPath must match the absolute target of any /var/log/pods symlink.
+  # type defaults to Directory and readOnly defaults to true when omitted.
+  additionalHostPathMounts: []
   logSourceId: ""
   logSourceName: "k8s-container-logs"
 
