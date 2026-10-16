@@ -189,6 +189,36 @@ Fail fast validation - invoked from templates/validate.yaml
 {{- fail "lm-otel-container: diagnosticFileExporter.path is required when diagnosticFileExporter.enabled=true" }}
 {{- end }}
 {{- end }}
+{{- $additionalHostPathMounts := .Values.logs.additionalHostPathMounts | default (list) }}
+{{- if and (not .Values.logs.enabled) (gt (len $additionalHostPathMounts) 0) }}
+{{- fail "lm-otel-container: logs.additionalHostPathMounts requires logs.enabled=true" }}
+{{- end }}
+{{- $reservedVolumeNames := list "otel-config" "varlogpods" "varlogcontainers" "filelog-offsets" }}
+{{- $seenAdditionalVolumeNames := dict }}
+{{- range $mount := $additionalHostPathMounts }}
+{{- $name := get $mount "name" | default "" }}
+{{- if not (regexMatch "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$" $name) }}
+{{- fail (printf "lm-otel-container: logs.additionalHostPathMounts.name must be a DNS label: %q" $name) }}
+{{- end }}
+{{- if gt (len $name) 63 }}
+{{- fail (printf "lm-otel-container: logs.additionalHostPathMounts.name must be at most 63 characters: %q" $name) }}
+{{- end }}
+{{- if has $name $reservedVolumeNames }}
+{{- fail (printf "lm-otel-container: logs.additionalHostPathMounts.name conflicts with an existing chart volume: %q" $name) }}
+{{- end }}
+{{- if hasKey $seenAdditionalVolumeNames $name }}
+{{- fail (printf "lm-otel-container: duplicate logs.additionalHostPathMounts.name: %q" $name) }}
+{{- end }}
+{{- $_ := set $seenAdditionalVolumeNames $name true }}
+{{- $hostPath := get $mount "hostPath" | default "" }}
+{{- if not (regexMatch "^/" $hostPath) }}
+{{- fail (printf "lm-otel-container: logs.additionalHostPathMounts.hostPath must be an absolute path: %q" $hostPath) }}
+{{- end }}
+{{- $mountPath := get $mount "mountPath" | default "" }}
+{{- if not (regexMatch "^/" $mountPath) }}
+{{- fail (printf "lm-otel-container: logs.additionalHostPathMounts.mountPath must be an absolute path: %q" $mountPath) }}
+{{- end }}
+{{- end }}
 {{- include "lm-otel-container.filtering.validate" . }}
 {{- end }}
 
