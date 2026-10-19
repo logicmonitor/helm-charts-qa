@@ -109,6 +109,11 @@ spec:
             - name: varlogcontainers
               mountPath: /var/log/containers
               readOnly: true
+{{- range .Values.logs.additionalHostPathMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .mountPath | quote }}
+              readOnly: {{ if hasKey . "readOnly" }}{{ .readOnly }}{{ else }}true{{ end }}
+{{- end }}
             # filelogreceiver: persist read offsets across restarts
             - name: filelog-offsets
               mountPath: /var/lib/otelcol/file_storage
@@ -124,6 +129,12 @@ spec:
         - name: varlogcontainers
           hostPath:
             path: /var/log/containers
+{{- range .Values.logs.additionalHostPathMounts }}
+        - name: {{ .name }}
+          hostPath:
+            path: {{ .hostPath | quote }}
+            type: {{ if hasKey . "type" }}{{ .type | quote }}{{ else }}"Directory"{{ end }}
+{{- end }}
         - name: filelog-offsets
           hostPath:
             path: /var/lib/otelcol/file_storage

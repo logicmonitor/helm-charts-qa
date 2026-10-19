@@ -211,6 +211,54 @@
             "minLength": 1
           }
         },
+        "additionalHostPathMounts": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "hostPath",
+              "mountPath"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 63,
+                "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+              },
+              "hostPath": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^/.*$"
+              },
+              "mountPath": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^/.*$"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "",
+                  "DirectoryOrCreate",
+                  "Directory",
+                  "FileOrCreate",
+                  "File",
+                  "Socket",
+                  "CharDevice",
+                  "BlockDevice"
+                ],
+                "default": "Directory"
+              },
+              "readOnly": {
+                "type": "boolean",
+                "default": true
+              }
+            }
+          }
+        },
         "logSourceId": {
           "type": "string"
         },
