@@ -23,6 +23,14 @@ global:
   account: ""
   clusterName: ""
   companyDomain: ""
+  # HTTP/S proxy fallback when chart-local .Values.proxy.* is unset.
+  # Mirrors the argus/lm-container global.proxy convention so umbrella installs
+  # can configure a single proxy block once.
+  proxy:
+    url: ""
+    user: ""
+    pass: ""
+    noProxy: ""
 
 imagePullSecrets: []
 nameOverride: ""
@@ -32,6 +40,30 @@ labels: {}
 annotations: {}
 
 env: {}
+
+# HTTP/S proxy for the fluentd container's outbound traffic to LogicMonitor.
+# When proxy.url is set, the chart injects http_proxy, https_proxy, no_proxy
+# (and their uppercase variants) onto the DaemonSet container.
+#
+# If proxy.user / proxy.pass are set, they're URL-encoded and embedded into the
+# proxy URL (e.g. http://user:pass@host:port). If you do not want credentials
+# rendered into the manifest in plain text, leave proxy.user / proxy.pass empty
+# here and inject http_proxy via .Values.env from a Kubernetes Secret instead.
+#
+# noProxy defaults below cover the in-cluster API + loopback so the fluentd
+# kubernetes_metadata filter is not tunnelled through the proxy. Extend it with
+# your cluster's Service/Pod CIDRs if the defaults don't match.
+#
+# Precedence: .Values.proxy.<field>  >  .Values.global.proxy.<field>.
+proxy:
+  url: ""
+  user: ""
+  pass: ""
+  # Leave noProxy empty to use the chart's safe default
+  # ("kubernetes.default.svc,.svc,.cluster.local,localhost,127.0.0.1"), which
+  # keeps the kubernetes_metadata filter direct. Setting noProxy here replaces
+  # that default entirely; remember to include the in-cluster API CIDR.
+  noProxy: ""
 
 resources:
   limits:

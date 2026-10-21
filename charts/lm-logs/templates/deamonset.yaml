@@ -31,6 +31,7 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
+            {{- include "lm-logs.proxyEnv" . | nindent 12 }}
             {{- if gt (len .Values.env) 0 }}
             {{- include "ds-env" . | nindent 12 }}
             {{- end }}
