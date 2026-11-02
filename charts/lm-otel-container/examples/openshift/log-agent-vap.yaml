@@ -1,0 +1,77 @@
+# Optional policy guardrail. The SCC/RoleBinding grant admission permission;
+# this VAP constrains which Pods can use the host paths and how they mount them.
+# Keep namespace, SA, SCC, and offset path synchronized with values.yaml.
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: lm-otel-log-hostpath-guardrails
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    matchPolicy: Exact
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: lm-otel-manual
+    objectSelector:
+      matchLabels:
+        app.kubernetes.io/component: otel-agent
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: [CREATE, UPDATE]
+        resources: [pods]
+  validations:
+    - expression: object.spec.serviceAccountName == 'lm-otel-agent'
+      message: The host-log agent must use the dedicated ServiceAccount.
+    - expression: >-
+        has(object.metadata.annotations) &&
+        object.metadata.annotations.exists(k, k == 'openshift.io/required-scc') &&
+        object.metadata.annotations['openshift.io/required-scc'] == 'lm-otel-filelog'
+      message: The host-log agent must pin the approved SCC.
+    - expression: >-
+        object.spec.volumes.all(v, !has(v.hostPath) ||
+          v.hostPath.path in ['/var/log/pods', '/var/log/containers',
+          '/var/lib/otelcol/file_storage/lm-otel-manual/lm-otel-manual'])
+      message: The host-log agent contains an unapproved hostPath.
+    - expression: >-
+        object.spec.volumes.exists(v, has(v.hostPath) && v.hostPath.path == '/var/log/pods') &&
+        object.spec.volumes.exists(v, has(v.hostPath) && v.hostPath.path == '/var/log/containers') &&
+        object.spec.volumes.exists(v, has(v.hostPath) &&
+          v.hostPath.path == '/var/lib/otelcol/file_storage/lm-otel-manual/lm-otel-manual')
+      message: The required log and offset hostPaths must be mounted.
+    - expression: >-
+        object.spec.containers.all(c,
+          c.volumeMounts.exists(m, m.mountPath == '/var/log/pods' && has(m.readOnly) && m.readOnly) &&
+          c.volumeMounts.exists(m, m.mountPath == '/var/log/containers' && has(m.readOnly) && m.readOnly))
+      message: Log directories must be mounted read-only.
+    - expression: >-
+        object.spec.containers.exists(c,
+          c.volumeMounts.exists(m, m.mountPath == '/var/lib/otelcol/file_storage' &&
+            (!has(m.readOnly) || !m.readOnly)))
+      message: The offset storage mount must remain writable.
+    - expression: '!has(object.spec.hostNetwork) || object.spec.hostNetwork == false'
+      message: Host networking is not allowed.
+    - expression: '!has(object.spec.hostPID) || object.spec.hostPID == false'
+      message: Host PID is not allowed.
+    - expression: '!has(object.spec.hostIPC) || object.spec.hostIPC == false'
+      message: Host IPC is not allowed.
+    - expression: >-
+        object.spec.containers.all(c, !has(c.securityContext) ||
+          ((!has(c.securityContext.privileged) || !c.securityContext.privileged) &&
+          (!has(c.securityContext.allowPrivilegeEscalation) || !c.securityContext.allowPrivilegeEscalation)))
+      message: Privileged mode and privilege escalation are not allowed.
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: lm-otel-log-hostpath-guardrails
+spec:
+  policyName: lm-otel-log-hostpath-guardrails
+  validationActions: [Deny]
+  matchResources:
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: lm-otel-manual
+    objectSelector:
+      matchLabels:
+        app.kubernetes.io/component: otel-agent

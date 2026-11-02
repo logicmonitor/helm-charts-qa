@@ -70,6 +70,20 @@ ServiceAccount name
 {{- end }}
 
 {{/*
+ServiceAccount used by the node agent. It may be isolated from the cluster
+collector when it needs hostPath access or an OpenShift SCC grant.
+*/}}
+{{- define "lm-otel-container.agentServiceAccountName" -}}
+{{- if .Values.agent.serviceAccount.name }}
+{{- .Values.agent.serviceAccount.name }}
+{{- else if .Values.agent.serviceAccount.create }}
+{{- printf "%s-agent" (include "lm-otel-container.fullname" .) | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- include "lm-otel-container.serviceAccountName" . }}
+{{- end }}
+{{- end }}
+
+{{/*
 Secret holding Bearer token (created by chart or existing)
 */}}
 {{- define "lm-otel-container.secretName" -}}
@@ -192,6 +206,9 @@ Fail fast validation - invoked from templates/validate.yaml
 {{- $additionalHostPathMounts := .Values.logs.additionalHostPathMounts | default (list) }}
 {{- if and (not .Values.logs.enabled) (gt (len $additionalHostPathMounts) 0) }}
 {{- fail "lm-otel-container: logs.additionalHostPathMounts requires logs.enabled=true" }}
+{{- end }}
+{{- if and .Values.agent.serviceAccount.create (eq (include "lm-otel-container.agentServiceAccountName" .) (include "lm-otel-container.serviceAccountName" .)) }}
+{{- fail "lm-otel-container: agent.serviceAccount.name must differ from serviceAccount.name when creating a dedicated agent ServiceAccount" }}
 {{- end }}
 {{- $reservedVolumeNames := list "otel-config" "varlogpods" "varlogcontainers" "filelog-offsets" }}
 {{- $seenAdditionalVolumeNames := dict }}
@@ -376,20 +393,28 @@ UID/GID used by the init container that prepares filelog offset storage.
 */}}
 {{- define "lm-otel-container.filelogStorageRunAsUser" -}}
 {{- if eq .Values.collector.type "lm-otel" -}}
-{{ .Values.agent.lmOtelRunAsUser }}
+{{ printf "%d" (int64 .Values.agent.lmOtelRunAsUser) }}
 {{- else -}}
-{{ .Values.agent.otelContribRunAsUser }}
+{{ printf "%d" (int64 .Values.agent.otelContribRunAsUser) }}
 {{- end -}}
 {{- end }}
 
 {{- define "lm-otel-container.filelogStorageRunAsGroup" -}}
 {{- if eq .Values.collector.type "lm-otel" -}}
-{{ .Values.agent.lmOtelRunAsGroup }}
+{{ printf "%d" (int64 .Values.agent.lmOtelRunAsGroup) }}
 {{- else -}}
-{{ .Values.agent.otelContribRunAsGroup }}
+{{ printf "%d" (int64 .Values.agent.otelContribRunAsGroup) }}
 {{- end -}}
 {{- end }}
 
 {{- define "lm-otel-container.filelogStorageInitImage" -}}
 {{ printf "%s:%s" .Values.agent.filelogStorageInitImage.repository .Values.agent.filelogStorageInitImage.tag | quote }}
+{{- end }}
+
+{{/*
+Host path for filelog offsets. Keep the collector's mount path stable while
+isolating each Helm release's backing directory on a shared node.
+*/}}
+{{- define "lm-otel-container.filelogStorageHostPath" -}}
+{{- default (printf "/var/lib/otelcol/file_storage/%s/%s" .Release.Namespace (include "lm-otel-container.fullname" .)) .Values.logs.storageHostPath -}}
 {{- end }}

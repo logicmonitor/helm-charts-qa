@@ -211,6 +211,10 @@
             "minLength": 1
           }
         },
+        "storageHostPath": {
+          "type": "string",
+          "pattern": "^$|^/.*$"
+        },
         "additionalHostPathMounts": {
           "type": "array",
           "default": [],
@@ -405,6 +409,22 @@
     "agent": {
       "type": "object",
       "properties": {
+        "requiredSCC": {
+          "type": "string",
+          "maxLength": 253
+        },
+        "serviceAccount": {
+          "type": "object",
+          "properties": {
+            "create": {
+              "type": "boolean"
+            },
+            "name": {
+              "type": "string",
+              "maxLength": 253
+            }
+          }
+        },
         "podSecurityContext": {
           "type": "object"
         },

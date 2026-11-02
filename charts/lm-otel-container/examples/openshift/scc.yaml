@@ -1,0 +1,38 @@
+# Cluster-scoped SCC used by the tested host-log profile. Review with the
+# cluster security owner before applying: spc_t grants broad host-file access.
+apiVersion: security.openshift.io/v1
+kind: SecurityContextConstraints
+metadata:
+  name: lm-otel-filelog
+allowHostDirVolumePlugin: true
+allowHostIPC: false
+allowHostNetwork: false
+allowHostPID: false
+allowHostPorts: false
+allowPrivilegedContainer: false
+allowPrivilegeEscalation: false
+allowedCapabilities:
+  - CHOWN
+defaultAddCapabilities: []
+requiredDropCapabilities: []
+readOnlyRootFilesystem: true
+runAsUser:
+  type: RunAsAny
+userNamespaceLevel: AllowHostLevel
+seLinuxContext:
+  type: MustRunAs
+  seLinuxOptions:
+    type: spc_t
+fsGroup:
+  type: MustRunAs
+supplementalGroups:
+  type: MustRunAs
+seccompProfiles:
+  - runtime/default
+volumes:
+  - configMap
+  - downwardAPI
+  - hostPath
+  - projected
+users: []
+groups: []

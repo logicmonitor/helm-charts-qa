@@ -1,0 +1,54 @@
+# OpenShift overlay for bundled KSM and container log collection.
+# Set the namespace, ServiceAccount, SCC, and offset path to match the
+# administrator-applied manifests in scc-use.yaml and scc.yaml.
+# Supply portalName, clusterName, and auth.existingSecret in your private
+# customer values file; do not put bearer-token data here.
+
+kube-state-metrics:
+  # Let the namespace SCC assign a UID and fsGroup from its allocated range.
+  securityContext:
+    enabled: false
+
+logs:
+  enabled: true
+  # Must match the offset hostPath allowed by log-agent-vap.yaml.
+  # Keep unchanged across upgrades and rollbacks.
+  storageHostPath: /var/lib/otelcol/file_storage/lm-otel-manual/lm-otel-manual
+
+agent:
+  serviceAccount:
+    # scc-use.yaml creates this account before Helm installation.
+    create: false
+    name: lm-otel-agent
+  # Pin selection only; scc-use.yaml separately grants SCC use.
+  requiredSCC: lm-otel-filelog
+
+  # The offset initializer chowns the offset tree to this target identity.
+  otelContribRunAsUser: 0
+  otelContribRunAsGroup: 0
+
+  podSecurityContext:
+    seccompProfile:
+      type: RuntimeDefault
+
+  # This identity was required to read /var/log/pods on the tested ARO
+  # cluster. Keep all capabilities dropped in the collector process.
+  securityContext:
+    runAsUser: 0
+    runAsNonRoot: false
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+      add: []
+
+# Limit a manual test to its canary namespace. Replace with the namespaces to
+# collect, or remove the allowlist if cluster-wide collection is intentional.
+filtering:
+  includeNamespaces:
+    - lm-otel-manual-canary
+  applyTo:
+    metrics: false
+    logs: true
+    traces: false

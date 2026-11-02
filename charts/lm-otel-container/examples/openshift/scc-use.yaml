@@ -1,0 +1,36 @@
+# Apply after creating namespace lm-otel-manual and before installing Helm.
+# The Role grants use of only lm-otel-filelog to this one ServiceAccount.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: lm-otel-agent
+  namespace: lm-otel-manual
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: lm-otel-filelog-use
+  namespace: lm-otel-manual
+rules:
+  - apiGroups:
+      - security.openshift.io
+    resources:
+      - securitycontextconstraints
+    resourceNames:
+      - lm-otel-filelog
+    verbs:
+      - use
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: lm-otel-filelog-use
+  namespace: lm-otel-manual
+subjects:
+  - kind: ServiceAccount
+    name: lm-otel-agent
+    namespace: lm-otel-manual
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: lm-otel-filelog-use
