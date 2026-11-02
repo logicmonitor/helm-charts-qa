@@ -1,16 +1,17 @@
-# Apply after creating namespace lm-otel-manual and before installing Helm.
-# The Role grants use of only lm-otel-filelog to this one ServiceAccount.
+# Apply with `oc -n "$NAMESPACE"` after creating the release namespace.
+# Then create the RoleBinding with:
+# oc create rolebinding lm-otel-filelog-use --role=lm-otel-filelog-use \
+#   --serviceaccount="$NAMESPACE:lm-otel-agent" -n "$NAMESPACE" \
+#   --dry-run=client -o yaml | oc apply -f -
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: lm-otel-agent
-  namespace: lm-otel-manual
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: lm-otel-filelog-use
-  namespace: lm-otel-manual
 rules:
   - apiGroups:
       - security.openshift.io
@@ -20,17 +21,3 @@ rules:
       - lm-otel-filelog
     verbs:
       - use
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: lm-otel-filelog-use
-  namespace: lm-otel-manual
-subjects:
-  - kind: ServiceAccount
-    name: lm-otel-agent
-    namespace: lm-otel-manual
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: lm-otel-filelog-use

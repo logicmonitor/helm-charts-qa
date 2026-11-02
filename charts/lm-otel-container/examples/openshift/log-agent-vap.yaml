@@ -1,6 +1,7 @@
-# Optional policy guardrail. The SCC/RoleBinding grant admission permission;
-# this VAP constrains which Pods can use the host paths and how they mount them.
-# Keep namespace, SA, SCC, and offset path synchronized with values.yaml.
+# Optional cluster-wide policy guardrail. Label only the target namespace before
+# applying this policy:
+#   oc label namespace "$NAMESPACE" logicmonitor.com/otel-log-agent=enabled --overwrite
+# The offset path is expected to be /var/lib/otelcol/file_storage/<namespace>/<release>.
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingAdmissionPolicy
 metadata:
@@ -11,7 +12,7 @@ spec:
     matchPolicy: Exact
     namespaceSelector:
       matchLabels:
-        kubernetes.io/metadata.name: lm-otel-manual
+        logicmonitor.com/otel-log-agent: enabled
     objectSelector:
       matchLabels:
         app.kubernetes.io/component: otel-agent
@@ -31,13 +32,15 @@ spec:
     - expression: >-
         object.spec.volumes.all(v, !has(v.hostPath) ||
           v.hostPath.path in ['/var/log/pods', '/var/log/containers',
-          '/var/lib/otelcol/file_storage/lm-otel-manual/lm-otel-manual'])
+          '/var/lib/otelcol/file_storage/' + object.metadata.namespace + '/' +
+          object.metadata.labels['app.kubernetes.io/instance'])
       message: The host-log agent contains an unapproved hostPath.
     - expression: >-
         object.spec.volumes.exists(v, has(v.hostPath) && v.hostPath.path == '/var/log/pods') &&
         object.spec.volumes.exists(v, has(v.hostPath) && v.hostPath.path == '/var/log/containers') &&
         object.spec.volumes.exists(v, has(v.hostPath) &&
-          v.hostPath.path == '/var/lib/otelcol/file_storage/lm-otel-manual/lm-otel-manual')
+          v.hostPath.path == '/var/lib/otelcol/file_storage/' + object.metadata.namespace + '/' +
+            object.metadata.labels['app.kubernetes.io/instance'])
       message: The required log and offset hostPaths must be mounted.
     - expression: >-
         object.spec.containers.all(c,
@@ -71,7 +74,7 @@ spec:
   matchResources:
     namespaceSelector:
       matchLabels:
-        kubernetes.io/metadata.name: lm-otel-manual
+        logicmonitor.com/otel-log-agent: enabled
     objectSelector:
       matchLabels:
         app.kubernetes.io/component: otel-agent

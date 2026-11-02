@@ -1,6 +1,6 @@
 # OpenShift overlay for bundled KSM and container log collection.
-# Set the namespace, ServiceAccount, SCC, and offset path to match the
-# administrator-applied manifests in scc-use.yaml and scc.yaml.
+# Install with `--namespace "$NAMESPACE"`. Pass namespace-dependent log
+# values to Helm on the command line.
 # Supply portalName, clusterName, and auth.existingSecret in your private
 # customer values file; do not put bearer-token data here.
 
@@ -11,9 +11,7 @@ kube-state-metrics:
 
 logs:
   enabled: true
-  # Must match the offset hostPath allowed by log-agent-vap.yaml.
-  # Keep unchanged across upgrades and rollbacks.
-  storageHostPath: /var/lib/otelcol/file_storage/lm-otel-manual/lm-otel-manual
+  # The install command supplies a stable per-namespace/release path.
 
 agent:
   serviceAccount:
@@ -43,11 +41,8 @@ agent:
         - ALL
       add: []
 
-# Limit a manual test to its canary namespace. Replace with the namespaces to
-# collect, or remove the allowlist if cluster-wide collection is intentional.
+# Pass a canary or production namespace allowlist to Helm on the command line.
 filtering:
-  includeNamespaces:
-    - lm-otel-manual-canary
   applyTo:
     metrics: false
     logs: true
