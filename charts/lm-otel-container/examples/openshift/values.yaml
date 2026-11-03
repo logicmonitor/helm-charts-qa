@@ -1,0 +1,49 @@
+# OpenShift overlay for bundled KSM and container log collection.
+# Install with `--namespace "$NAMESPACE"`. Pass namespace-dependent log
+# values to Helm on the command line.
+# Supply portalName, clusterName, and auth.existingSecret in your private
+# customer values file; do not put bearer-token data here.
+
+kube-state-metrics:
+  # Let the namespace SCC assign a UID and fsGroup from its allocated range.
+  securityContext:
+    enabled: false
+
+logs:
+  enabled: true
+  # The install command supplies a stable per-namespace/release path.
+
+agent:
+  serviceAccount:
+    # scc-use.yaml creates this account before Helm installation.
+    create: false
+    name: lm-otel-agent
+  # Pin selection only; scc-use.yaml separately grants SCC use.
+  requiredSCC: lm-otel-filelog
+
+  # The offset initializer chowns the offset tree to this target identity.
+  otelContribRunAsUser: 0
+  otelContribRunAsGroup: 0
+
+  podSecurityContext:
+    seccompProfile:
+      type: RuntimeDefault
+
+  # This identity was required to read /var/log/pods on the tested ARO
+  # cluster. Keep all capabilities dropped in the collector process.
+  securityContext:
+    runAsUser: 0
+    runAsNonRoot: false
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+      add: []
+
+# Pass a canary or production namespace allowlist to Helm on the command line.
+filtering:
+  applyTo:
+    metrics: false
+    logs: true
+    traces: false

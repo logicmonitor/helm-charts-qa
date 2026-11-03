@@ -1,0 +1,23 @@
+# Apply with `oc -n "$NAMESPACE"` after creating the release namespace.
+# Then create the RoleBinding with:
+# oc create rolebinding lm-otel-filelog-use --role=lm-otel-filelog-use \
+#   --serviceaccount="$NAMESPACE:lm-otel-agent" -n "$NAMESPACE" \
+#   --dry-run=client -o yaml | oc apply -f -
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: lm-otel-agent
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: lm-otel-filelog-use
+rules:
+  - apiGroups:
+      - security.openshift.io
+    resources:
+      - securitycontextconstraints
+    resourceNames:
+      - lm-otel-filelog
+    verbs:
+      - use
