@@ -174,6 +174,38 @@
           "examples": [
             "lm-logs-credentials"
           ]
+        },
+        "proxy": {
+          "type": "object",
+          "title": "Global HTTP/S proxy (fallback)",
+          "description": "Fallback proxy used when .Values.proxy.<field> is empty. Mirrors argus/lm-container global.proxy.",
+          "additionalProperties": false,
+          "default": {},
+          "properties": {
+            "url": {
+              "type": "string",
+              "default": "",
+              "description": "Proxy URL, e.g. http://proxy.corp:8080. Empty disables proxy.",
+              "$comment": "ui:proxyURL-ignore tf:optional"
+            },
+            "user": {
+              "type": "string",
+              "default": "",
+              "description": "Optional proxy auth user (URL-encoded into the URL when set).",
+              "$comment": "ui:proxyUser-ignore tf:optional"
+            },
+            "pass": {
+              "type": "string",
+              "default": "",
+              "description": "Optional proxy auth password (URL-encoded into the URL when set).",
+              "$comment": "ui:proxyPass-ignore tf:optional"
+            },
+            "noProxy": {
+              "type": "string",
+              "default": "",
+              "description": "Comma-separated no_proxy list."
+            }
+          }
         }
       }
     },
@@ -247,6 +279,42 @@
       ],
       "additionalProperties": {
         "type": "string"
+      }
+    },
+    "proxy": {
+      "$id": "#/properties/proxy",
+      "type": "object",
+      "title": "HTTP/S proxy for fluentd egress",
+      "description": "When proxy.url is set, the chart injects http_proxy/https_proxy/no_proxy (and uppercase variants) on the lm-logs DaemonSet. Falls back to global.proxy.<field> when unset. Credentials, if provided, are URL-encoded into the proxy URL.",
+      "additionalProperties": false,
+      "default": {},
+      "examples": [
+        { "url": "http://proxy.corp:8080", "user": "", "pass": "", "noProxy": "kubernetes.default.svc,.svc,.cluster.local,localhost,127.0.0.1" }
+      ],
+      "properties": {
+        "url": {
+          "type": "string",
+          "default": "",
+          "description": "Proxy URL, e.g. http://proxy.corp:8080. Empty disables proxy.",
+          "$comment": "ui:proxyURL-ignore tf:optional"
+        },
+        "user": {
+          "type": "string",
+          "default": "",
+          "description": "Optional proxy auth user (URL-encoded into the URL when set).",
+          "$comment": "ui:proxyUser-ignore tf:optional"
+        },
+        "pass": {
+          "type": "string",
+          "default": "",
+          "description": "Optional proxy auth password (URL-encoded into the URL when set).",
+          "$comment": "ui:proxyPass-ignore tf:optional"
+        },
+        "noProxy": {
+          "type": "string",
+          "default": "",
+          "description": "Comma-separated no_proxy list. Empty means the chart applies a safe default (in-cluster API + loopback). Setting this replaces the default - keep the kube API in scope or the kubernetes_metadata filter will break."
+        }
       }
     },
     "resources": {
