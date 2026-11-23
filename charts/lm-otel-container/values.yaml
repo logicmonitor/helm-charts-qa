@@ -61,6 +61,10 @@ logs:
   # Extra filelog exclude globs. The chart always excludes its own agent and
   # cluster collector pod logs to avoid stdout/debug exporter feedback loops.
   exclude: []
+  # Host directory for filelog offsets. By default, each release gets an
+  # isolated path under /var/lib/otelcol/file_storage/<namespace>/<fullname>.
+  # Override when an OpenShift admission policy requires an explicit path.
+  storageHostPath: ""
   # Optional additional hostPath mounts for runtime-specific log storage. The
   # mountPath must match the absolute target of any /var/log/pods symlink.
   # type defaults to Directory and readOnly defaults to true when omitted.
@@ -149,6 +153,16 @@ auth:
 
 agent:
   enabled: true
+  # Optional dedicated ServiceAccount for the node agent. This lets an
+  # OpenShift SCC-use grant target the host-log agent without granting that SCC
+  # to the cluster collector. When create=false, name may reference a
+  # pre-created ServiceAccount.
+  serviceAccount:
+    create: false
+    name: ""
+  # OpenShift-only: pin the agent Pod to an SCC that has already been granted
+  # to its ServiceAccount. This annotation does not grant SCC use.
+  requiredSCC: ""
   image:
     repository: otel/opentelemetry-collector-contrib
     tag: "0.149.0"

@@ -16,11 +16,14 @@ spec:
     metadata:
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/agent-configmap.yaml") . | sha256sum }}
+        {{- with .Values.agent.requiredSCC }}
+        openshift.io/required-scc: {{ . | quote }}
+        {{- end }}
       labels:
         {{- include "lm-otel-container.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: otel-agent
     spec:
-      serviceAccountName: {{ include "lm-otel-container.serviceAccountName" . }}
+      serviceAccountName: {{ include "lm-otel-container.agentServiceAccountName" . }}
       {{- with .Values.agent.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -41,7 +44,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
 {{- if $hasLogsPipeline }}
-      # hostPath offset dir is created root-owned on the node; the collector runs non-root by default.
+      # The initializer prepares only the isolated offsets directory.
       initContainers:
         - name: init-filelog-storage
           image: {{ include "lm-otel-container.filelogStorageInitImage" . }}
@@ -52,6 +55,14 @@ spec:
             - mkdir -p /var/lib/otelcol/file_storage && chown -R {{ include "lm-otel-container.filelogStorageRunAsUser" . }}:{{ include "lm-otel-container.filelogStorageRunAsGroup" . }} /var/lib/otelcol/file_storage
           securityContext:
             runAsUser: 0
+            runAsNonRoot: false
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+              add:
+                - CHOWN
           volumeMounts:
             - name: filelog-offsets
               mountPath: /var/lib/otelcol/file_storage
@@ -137,7 +148,7 @@ spec:
 {{- end }}
         - name: filelog-offsets
           hostPath:
-            path: /var/lib/otelcol/file_storage
+            path: {{ include "lm-otel-container.filelogStorageHostPath" . | quote }}
             type: DirectoryOrCreate
 {{- end }}
 {{- end }}

@@ -12,3 +12,8 @@
 # Docs (not part of chart package)
 prompt.md
 uploads/
+docs/
+
+# Local validation artifacts
+backups/
+config/

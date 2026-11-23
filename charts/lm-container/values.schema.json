@@ -9,6 +9,17 @@
   ],
   "additionalProperties": false,
   "properties": {
+    "openshiftPullSecrets": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "image": {"type": "string", "minLength": 1},
+        "imagePullPolicy": {"enum": ["Always", "IfNotPresent", "Never"]},
+        "intervalSeconds": {"type": "integer", "minimum": 1, "maximum": 300},
+        "podSecurityContext": {"type": "object"},
+        "resources": {"type": "object"}
+      }
+    },
     "global": {
       "$id": "#/properties/global",
       "description": "Global Properties",

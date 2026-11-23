@@ -13,4 +13,21 @@ subjects:
   - kind: ServiceAccount
     name: {{ include "lm-otel-container.serviceAccountName" . }}
     namespace: {{ .Release.Namespace }}
+{{- if and .Values.agent.enabled (ne (include "lm-otel-container.agentServiceAccountName" .) (include "lm-otel-container.serviceAccountName" .)) }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ printf "%s-agent-rbac" (include "lm-otel-container.fullname" .) | trunc 63 | trimSuffix "-" }}
+  labels:
+    {{- include "lm-otel-container.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "lm-otel-container.fullname" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "lm-otel-container.agentServiceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
+{{- end }}
 {{- end }}

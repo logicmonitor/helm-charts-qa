@@ -2,6 +2,8 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 global:
+  openshiftPullSecrets:
+    enabled: true
   companyDomain: ""
   userDefinedSecret: ""
   kube-state-metrics:
@@ -10,6 +12,19 @@ global:
     registry: ""
     pullPolicy: ""
   collectorsetServiceNameSuffix: "lm-container-collectorset-controller"
+
+openshiftPullSecrets:
+  image: docker.io/library/python:3.12-alpine
+  imagePullPolicy: IfNotPresent
+  intervalSeconds: 10
+  podSecurityContext: {}
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 64Mi
 
 argus:
   enabled: true
