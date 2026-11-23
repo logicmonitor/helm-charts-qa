@@ -57,7 +57,7 @@ dependencies:
       - monitoring
   - condition: kube-state-metrics.enabled
     name: kube-state-metrics
-    repository: https://prometheus-community.github.io/helm-charts
+    repository: file://vendor/kube-state-metrics
     version: 7.2.2
   - name: lmutil
     repository: https://logicmonitor.github.io/helm-charts-qa
